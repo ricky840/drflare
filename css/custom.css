@@ -1,0 +1,13 @@
+body {
+	display:table;
+	width:100%;
+}
+
+.label {
+	padding-left: 20px;
+}
+
+.ui.toggle.checkbox {
+	float: right;
+	padding-right: 20px;
+}

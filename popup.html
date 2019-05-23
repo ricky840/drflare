@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Cloudflare Performance Debugger</title>
+		<link rel="stylesheet" type="text/css" href="/css/custom.css">
+		<link rel="stylesheet" type="text/css" href="/css/semantic.css">
+		<link rel="stylesheet" type="text/css" href="/css/semantic.min.css">
+	</head>
+
+	<body>
+		<div class="ui divided items" style="margin-bottom: 0px;">
+
+			<!-- Top Logo -->
+      	<div class="item">
+         	<a class="ui tiny image" style="padding: 0px 10px 0px 10px; text-align:center;">
+	           	<img id="logoimg" class="main_logo" src="/img/cloudflare-logo.png">
+         	</a>
+    		</div>
+
+    		<!-- Checkbox Controller -->
+    		<div class="item">
+    			<div class="ui vertically divded grid">
+					
+					<!-- Caching -->
+					<div id="cache" class="two column row">
+						<div class="column">
+							<p class="label">Caching</p>
+						</div>
+						<div class="column">
+							<div class="ui toggle checkbox">
+								<input type="checkbox" name="caching_checkbox">
+								<label id="checkbox_label"></label>
+							</div>
+						</div>
+						
+					</div>
+
+					<!-- Railgun -->
+					<div id="railgun" class="two column row">
+						<div class="column">
+							<p class="label">Railgun</p>
+						</div>
+						<div class="column">
+							<div class="ui toggle checkbox">
+								<input type="checkbox" name="railgun_checkbox">
+								<label class="checkbox_label"></label>
+							</div>
+						</div>
+							
+					</div>
+
+					<!-- Polish -->
+					<div id="polish" class="two column row">
+						<div class="column">
+							<p class="label">Polish</p>
+						</div>
+						<div class="column">
+							<div class="ui toggle checkbox">
+								<input type="checkbox" name="polish_checkbox">
+								<label class="checkbox_label"></label>
+							</div>
+						</div>
+							
+					</div>
+
+					<!-- Image Resizing (Beta) -->
+					<div id="image_resizing" class="two column row">
+						<div class="column">
+							<p class="label">Image Resizing</p>
+						</div>
+						<div class="column">
+							<div class="ui toggle checkbox">
+						      <input type="checkbox" name="image_resizing_checkbox">
+						      <label class="checkbox_label"></label>
+						   </div>
+						</div>
+					</div>
+				</div>
+    		</div>
+     	</div>
+
+		<script type="text/javascript" src="/js/jquery-3.1.1.min.js"></script>
+    	<script type="text/javascript" src="/js/jquery.tagify.min.js"></script>
+    	<script type="text/javascript" src="js/popup.js"></script>
+	</body>
+
+	<footer>
+	</footer>
+</html>
