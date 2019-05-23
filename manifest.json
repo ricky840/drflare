@@ -6,6 +6,7 @@
   "background": {
     "persistent": false,
     "scripts": [
+      "js/jquery-3.1.1.min.js",
       "js/background.js",
 	    "js/popup.js"
     ]
@@ -22,5 +23,5 @@
     "contextMenus",
     "notifications",
     "https://api.cloudflare.com/*"
-  ],
+  ]
 }
