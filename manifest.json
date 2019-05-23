@@ -1,0 +1,26 @@
+{
+  "name": "Cloudflare Debugger",
+  "version": "0.0.1",
+  "description": "A little debug tool for Cloudflare",
+  "manifest_version": 2,
+  "background": {
+    "persistent": false,
+    "scripts": [
+      "js/background.js",
+	    "js/popup.js"
+    ]
+  },
+  "browser_action": {
+    "default_icon": "img/cloudflare-logo.png",
+    "default_popup": "popup.html",
+    "default_title": "Cloudflare Debugger"
+  },
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "storage",
+    "contextMenus",
+    "notifications",
+    "https://api.cloudflare.com/*"
+  ],
+}
