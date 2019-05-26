@@ -4,11 +4,12 @@
   "description": "A little debug tool for Cloudflare",
   "manifest_version": 2,
   "background": {
-    "persistent": false,
+    "persistent": true,
     "scripts": [
       "js/jquery-3.1.1.min.js",
       "js/background.js",
-	    "js/popup.js"
+	    "js/popup.js",
+      "js/webRequestListener.js"
     ]
   },
   "browser_action": {
@@ -17,11 +18,16 @@
     "default_title": "Cloudflare Debugger"
   },
   "permissions": [
-    "tabs",
     "activeTab",
-    "storage",
     "contextMenus",
     "notifications",
-    "https://api.cloudflare.com/*"
+    "storage",
+    "tabs",
+    "webRequest",
+    "webRequestBlocking",
+    "<all_urls>"
+    
+    // Debugging purpose
+    //"*://durianlovers.cf/*"
   ]
 }
