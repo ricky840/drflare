@@ -1,6 +1,9 @@
-// Request Listener
-// Listeners in the order of WebRequest's Life Cycle: https://developer.chrome.com/extensions/webRequest
+/** 
+  * @desc Listener for all webRequest API
+  * 			WebRequest's Life Cycle: https://developer.chrome.com/extensions/webRequest
+*/
 
+// Global variables for webRequestListener
 var selectedTabId;
 var readRequests = false;
 
@@ -8,8 +11,7 @@ var readRequests = false;
 chrome.webRequest.onSendHeaders.addListener(
 	function(details) {
 	    if (isActiveTab(details)) {
-	    	printRequestLog("onSendHeaders", details);
-			sendMessage("onSendHeaders", details);
+				sendMessage("onSendHeaders", details);
 	    }
 	},
 	{
@@ -22,7 +24,7 @@ chrome.webRequest.onSendHeaders.addListener(
 chrome.webRequest.onHeadersReceived.addListener(
 	function(details) {
 		if (isActiveTab(details)) {
-			// printRequestLog("onHeaderReceived", details);
+			sendMessage("onHeaderReceived", details);
 		}
 	},
 	{
@@ -35,7 +37,7 @@ chrome.webRequest.onHeadersReceived.addListener(
 chrome.webRequest.onResponseStarted.addListener(
 	function(details) {
 		if (isActiveTab(details)) {
-			// printRequestLog("onResponseStarted", details);
+			sendMessage("onResponseStarted", details);
 		}
 	},
 	{
@@ -44,10 +46,11 @@ chrome.webRequest.onResponseStarted.addListener(
 	["responseHeaders"]
 );
 
+// onResponseStarted: Response Listener
 chrome.webRequest.onCompleted.addListener(
 	function(details) {
 		if (isActiveTab(details)) {
-			// printRequestLog("onCompleted", details);
+			sendMessage("onCompleted", details);
 		}
 	},
 	{
@@ -56,14 +59,21 @@ chrome.webRequest.onCompleted.addListener(
 	["responseHeaders"]
 )
 
-function printRequestLog(requesType, details) {
-	console.log(requesType);
-	console.log(details);
-}
+// onResponseStarted: Response Listener
+chrome.tabs.onActivated.addListener(
+	function(activeInfo) {
+		selectedTabId = activeInfo.tabId;
+	}
+)
 
+/**
+  * @desc check if an incoming webRequest is from the current active tab.
+  * @param string $requestType - type of webRequest (onSendHeaders and etc.)
+	* @return boolean
+*/
 function isActiveTab(requestDetails) {
 	if (requestDetails) {
-		if (!selectedTabId) {
+		if (!selectedTabId) { //null handling case
 			chrome.tabs.query({
 				active:true,
 				currentWindow:true
@@ -82,32 +92,33 @@ function isActiveTab(requestDetails) {
 	return false;
 }
 
-function sendMessage(requestType, details) {
-	chrome.tabs.sendMessage(details.tabId, {message: "Hi there..."})
+/**
+  * @desc print webRequest details for debugging purpose
+  * @param string $requestType - type of webRequest (onSendHeaders and etc.)
+  * @param object $details - webRequest object
+*/
+function printRequestLog(requesType, details) {
+	console.log(requesType);
+	console.log(details);
 }
 
-chrome.tabs.onActivated.addListener(
-	function(activeInfo) {
-		selectedTabId = activeInfo.tabId;
-	}
-)
-
-// Fires when a page is updated (reload, different URL, or even Spotify changed song)
-// changeInfo: 'loading', 'complete'
-// Shouldn't rely on this API, some of the requests may not go through.
-chrome.tabs.onUpdated.addListener(
-	function(tabId, changeInfo, tab) {
-		if (changeInfo.status == "loading") {
-			readingRequests = true;
-		} else if (changeInfo.status == "complete") {
-			readingRequests = false;
+/**
+  * @desc send webRequest webRequest object to webRequestParser.js (content_script)
+  * @param string $requestType - type of webRequest (onSendHeaders and etc.)
+  * @param object $details - webRequest object
+*/
+function sendMessage(requestType, details) {
+	chrome.tabs.sendMessage(
+		details.tabId,
+		{
+			requestType: requestType,
+			details: details
 		}
-	}
-)
-
-// Sameple Logs for `http://durianlovers.cf/random.jpg`
+	)
+}
 
 
+//// Sameple Logs for `http://durianlovers.cf/random.jpg`
 //// onSendHeaders
 
 // frameId: 0
