@@ -2,6 +2,10 @@
   * @desc Parser for webRequest details from webRequestListener.js
 */
 
+import { WebRequest } from './class/WebRequest';
+
+const FROM_WEB_REQUEST_LISTENER = "webRequestListener";
+
 // types of webRequest
 const ON_SEND_HEADERS = "onSendHeaders"; 
 const ON_HEADER_RECEIVED = "onHeaderReceived";
@@ -10,9 +14,22 @@ const ON_COMPLETED = "onCompleted";
 
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
-		// console.log(request);
-		// console.log(sender); 
 
+		// Only the messages from webREquestListener.js
+		if (request.from.match(FROM_WEB_REQUEST_LISTENER)) { 
+			if (request.requestType.match(ON_SEND_HEADERS)) {
+				// TODO figure out how to export and import WebRequest class.
+				// const w = new WebRequest(request.details);
+				// console.log(w);
+			} else if (request.requestType.match(ON_HEADER_RECEIVED)) {
+
+			} else if (request.requestType.match(ON_RESPONSE_STARTED)) {
+
+			} else if (request.requestType.match(ON_COMPLETED)) {
+
+			}
+		}
+		
 		// TODO Handle each type of webRequest details
 });
 

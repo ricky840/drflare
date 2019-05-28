@@ -111,6 +111,7 @@ function sendMessage(requestType, details) {
 	chrome.tabs.sendMessage(
 		details.tabId,
 		{
+			from: "webRequestListener",
 			requestType: requestType,
 			details: details
 		}
