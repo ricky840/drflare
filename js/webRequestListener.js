@@ -10,9 +10,9 @@ var readRequests = false;
 // onSendHeaders: Before the requests are sent to the network.
 chrome.webRequest.onSendHeaders.addListener(
 	function(details) {
-	    if (isActiveTab(details)) {
-				sendMessage("onSendHeaders", details);
-	    }
+    if (isActiveTab(details)) {
+      sendMessage("onSendHeaders", details);
+    }
 	},
 	{
 		urls: ["<all_urls>"]

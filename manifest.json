@@ -8,9 +8,8 @@
     "scripts": [
       "js/jquery-3.1.1.min.js",
       "js/background.js",
-	    "js/popup.js",
-      "js/webRequestListener.js",
       "js/class/WebRequest.js"
+      "js/webRequestListener.js",
     ]
   },
   "browser_action": {
