@@ -1,51 +1,67 @@
 /** 
   * @desc Parser for webRequest details from webRequestListener.js
+  * @required js/global_static.js
 */
 
-import { WebRequest } from './class/WebRequest';
+// var requests = {}; // Collections of all requests made
 
-const FROM_WEB_REQUEST_LISTENER = "webRequestListener";
+// chrome.runtime.onMessage.addListener(
+// 	function(message, sender, sendResponse) {
+// 		console.log(message);
 
-// types of webRequest
-const ON_SEND_HEADERS = "onSendHeaders"; 
-const ON_HEADER_RECEIVED = "onHeaderReceived";
-const ON_RESPONSE_STARTED = "onResponseStarted";
-const ON_COMPLETED = "onCompleted";
+// 		// Only the messages from webREquestListener.js
+// 		if (message.from.match(FROM_WEB_REQUEST_LISTENER)) {
+// 			let responseWebRquest = message.webRequest;
 
-chrome.runtime.onMessage.addListener(
-	function(request, sender, sendResponse) {
+// 			switch(message.requestType) {
+// 				case ON_SEND_HEADERS:
+// 					let request = new WebRequest(message.webRequest);
+// 					requests[request.getRequestId()] = request;
+// 					break;
+// 				case ON_HEADER_RECEIVED:
+// 					if (isInRequests(requests, message.webRequest.requestId)) {
+// 						requests[responseWebRquest.requestId] = updateResponse(requests[responseWebRquest.requestId], responseWebRquest);
+// 					}
+// 					break;
+// 				case ON_RESPONSE_STARTED:
+// 					if (isInRequests(requests, message.webRequest.requestId)) {
+// 						requests[responseWebRquest.requestId].setOnResponseStartedTimeStamp(message.webRequest.timeStamp);
+// 					}
+// 					break;
+// 				case ON_COMPLETED:
+// 					if (isInRequests(requests, message.webRequest.requestId)) {
 
-		// Only the messages from webREquestListener.js
-		if (request.from.match(FROM_WEB_REQUEST_LISTENER)) { 
-			if (request.requestType.match(ON_SEND_HEADERS)) {
-				// TODO figure out how to export and import WebRequest class.
-				// const w = new WebRequest(request.details);
-				// console.log(w);
-			} else if (request.requestType.match(ON_HEADER_RECEIVED)) {
+// 						requests[responseWebRquest.requestId].setOnCompletedTimeStamp(message.webRequest.timeStamp);
 
-			} else if (request.requestType.match(ON_RESPONSE_STARTED)) {
+// 						requests[responseWebRquest.requestId].printRequestHeaders();
+// 						requests[responseWebRquest.requestId].printResponseHeaders();
+// 					}
+// 					break;
+// 				default:
+// 					// Do nothing
+// 			}
+// 		} else if (message.from.match(FROM_POPUP_JS)) {
+// 			console.log("Received a message from popup.js");
+// 		}
+// });
 
-			} else if (request.requestType.match(ON_COMPLETED)) {
+// function isInRequests(requests, requestId) {
+// 	let requestIds = Object.keys(requests);
+// 	if (requestIds.length == 1) {
+// 		return requestIds == requestId;
+// 	}
 
-			}
-		}
-		
-		// TODO Handle each type of webRequest details
-});
+// 	if (requestId in requestIds) {
+// 		return true;
+// 	}
 
+// 	return false;
+// }
 
-// Sample `request` from webRequestListener.js
+// function updateResponse(oldWebRequest, newWebRequest) {
+// 	oldWebRequest.setStatusCode(newWebRequest.statusCode);
+// 	oldWebRequest.setOnHeaderReceivedTimeStamp(newWebRequest.timeStamp);
+// 	oldWebRequest.setResponseHeaders(newWebRequest.responseHeaders);
 
-// details:
-// frameId: 0
-// initiator: "https://durianlovers.cf"
-// method: "GET"
-// parentFrameId: -1
-// requestHeaders: (2) [{…}, {…}]
-// requestId: "104010"
-// tabId: 401
-// timeStamp: 1558960736875.1309
-// type: "other"
-// url: "https://durianlovers.cf/random.jpg"
-// __proto__: Object
-// requestType: "onSendHeaders"
+// 	return oldWebRequest;
+// }

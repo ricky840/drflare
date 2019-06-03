@@ -8,8 +8,10 @@
     "scripts": [
       "js/jquery-3.1.1.min.js",
       "js/background.js",
+      "js/global_static.js",
 	    "js/popup.js",
       "js/webRequestListener.js",
+      "js/webRequestListenerHelper.js",
       "js/class/WebRequest.js"
     ]
   },
@@ -21,9 +23,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": [
-        "js/webRequestParser.js"
-      ]
+      "js": ["js/content_script.js"]
     }
   ],
   "permissions": [

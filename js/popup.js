@@ -1,5 +1,5 @@
 // popup checkbox handler
-$('.checkbox').on("change", "input", function () {
+$('.checkbox').on("change", "input", function() {
   let status = `${this.name} checkbox is now `;
   if (this.checked) {
   	status = status.concat("checked");
@@ -9,3 +9,15 @@ $('.checkbox').on("change", "input", function () {
 
   console.log(status);
 });
+
+
+$('.button').on("click", "button", function() {
+	console.log("Button Clicked");
+	chrome.runtime.sendMessage(
+		{
+  		from: "popup.js",
+  		type: "string",
+  		message: "test"
+  	}
+	);
+})
