@@ -1,19 +1,15 @@
-// Todo - Scan the page and apply css
-var elems = document.body.getElementsByTagName("*");
-var hello = "";
+var allElements = document.body.getElementsByTagName("*");
+var hightlightElements = [];
 
-for (var i=0; i < elems.length; i++) {
-  let element = elems[i];
+for (var i=0; i < allElements.length; i++) {
+  let element = allElements[i];
   if (element.tagName === 'IMG') {
-    console.log(element);
-    hello = $(element);
-    // hello.wrap("<div class='cfdebugger-container'>");
-
-    // $(element).wrapAll("<div class='cfdebugger-container'></div>");
-    $("body").find('.cfdebugger-container').append("<div class='cfdebugger-overlay'></div>")
+    hightlightElements.push(element);
   }
 }
 
-var applyOverlay = function(dom) {
-    
+for (var i=0; i < hightlightElements.length; i++) {
+  $(hightlightElements[i]).wrap("<div class='cfdebugger-container'>");
 }
+
+$("body").find('.cfdebugger-container').append("<div class='cfdebugger-overlay'></div>")

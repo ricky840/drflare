@@ -1,11 +1,6 @@
 chrome.devtools.panels.create("Cloudflare Debugger", "img/cloudflare-logo.png", "panel.html",
   function(panel) {
-    
-    var tab_id = chrome.devtools.inspectedWindow.tabId;
-    console.log(tab_id);
-    
-    // tabIds.push(chrome.devtools.inspectedWindow.tabId);
-    // console.log('tabIds updated: ' + tabIds);
+    let tabId = chrome.devtools.inspectedWindow.tabId;
 
     chrome.runtime.sendMessage({
       type: 'String',
@@ -13,11 +8,9 @@ chrome.devtools.panels.create("Cloudflare Debugger", "img/cloudflare-logo.png", 
       from: 'devTools.js'
     });
 
-      // chrome.devtools.inspectedWindow.reload();
-    chrome.tabs.insertCSS(tab_id, {file: "css/overlay.css"}, function() {
-      chrome.tabs.executeScript(tab_id, {file: 'lib/jquery-3.1.1.min.js'}, function() {
-        chrome.tabs.executeScript(tab_id, {file: 'js/contentScript.js'});
+    chrome.tabs.insertCSS(tabId, {file: "css/overlay.css"}, function() {
+      chrome.tabs.executeScript(tabId, {file: 'lib/jquery-3.1.1.min.js'}, function() {
+        chrome.tabs.executeScript(tabId, {file: 'js/contentScript.js'});
       });
     });
-
-});
+  });
