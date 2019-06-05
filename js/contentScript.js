@@ -13,3 +13,9 @@ for (var i=0; i < hightlightElements.length; i++) {
 }
 
 $("body").find('.cfdebugger-container').append("<div class='cfdebugger-overlay'></div>")
+
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  if (message.type !== 'content-script-status') return;
+  sendResponse({result: true});
+  return true;
+});

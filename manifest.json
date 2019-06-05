@@ -9,7 +9,6 @@
       "lib/jquery-3.1.1.min.js",
       "js/background.js",
       "js/global_static.js",
-	    "js/popup.js",
       "js/webRequestListener.js",
       "js/webRequestListenerHelper.js",
       "js/class/WebRequest.js"
@@ -21,12 +20,6 @@
     "default_popup": "popup.html",
     "default_title": "Cloudflare Debugger"
   },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["js/content_script.js"]
-    }
-  ],
   "permissions": [
     "activeTab",
     "contextMenus",
