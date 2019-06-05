@@ -6,12 +6,13 @@
   "background": {
     "persistent": true,
     "scripts": [
-      "js/jquery-3.1.1.min.js",
+      "lib/jquery-3.1.1.min.js",
       "js/background.js",
-      "js/class/WebRequest.js"
-      "js/webRequestListener.js",
+      "js/class/WebRequest.js",
+      "js/webRequestListener.js"
     ]
   },
+  "devtools_page": "devtools.html",
   "browser_action": {
     "default_icon": "img/cloudflare-logo.png",
     "default_popup": "popup.html",
