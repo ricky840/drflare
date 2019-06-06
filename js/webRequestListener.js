@@ -14,6 +14,7 @@ chrome.webRequest.onSendHeaders.addListener(
     if (isActiveTab(details)) {
 			let request = new WebRequest(details);
 			requests[request.getRequestId()] = request;
+			// printRequestLog('onSendHeaders', details);
     }
 	},
 	{
@@ -28,6 +29,7 @@ chrome.webRequest.onHeadersReceived.addListener(
 		if (isActiveTab(details)) {
 			if (isInRequests(requests, details.requestId)) {
 				requests[details.requestId] = updateResponse(requests[details.requestId], details);
+				// printRequestLog('onHeadersReceived', details);
 			}
 		}
 	},
@@ -43,6 +45,7 @@ chrome.webRequest.onResponseStarted.addListener(
 		if (isActiveTab(details)) {
 			if (isInRequests(requests, details.requestId)) {
 				requests[details.requestId].setOnResponseStartedTimeStamp(details.timeStamp);
+				// printRequestLog('onResponseStarted', details);
 			}
 		}
 	},
@@ -52,12 +55,16 @@ chrome.webRequest.onResponseStarted.addListener(
 	["responseHeaders"]
 );
 
-// onResponseStarted: Response Listener
+// onCompleted: Response Listener
 chrome.webRequest.onCompleted.addListener(
 	function(details) {
 		if (isActiveTab(details)) {
 			if (isInRequests(requests, details.requestId)) {
 				requests[details.requestId].setOnCompletedTimeStamp(details.timeStamp);
+				// printRequestLog('onCompleted', details);
+
+				// Send message to background.js or contentScript.js
+				// sendMessage('web-request-object', requests[details.requestId], 'webRequestListener.js');
 			}
 		}
 	},
@@ -77,13 +84,18 @@ chrome.tabs.onActivated.addListener(
 chrome.runtime.onMessage.addListener(
 	function(message, sender, sendResponse) {
 		if (message.from.match(FROM_POPUP_JS)) {
-			
-			// TODO Filter
-
-			// switch() {
-			// 	case
-			// }
 			printRequests();
 		}
 	}
 )
+
+// Reset 
+chrome.webNavigation.onBeforeNavigate.addListener(
+	function(details) {
+		// console.log('onBeforeNavigate log:');
+		// console.log(details);
+		if (isActiveTab(details)) {
+			this.resetRequests();
+		}
+	}
+);

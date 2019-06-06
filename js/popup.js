@@ -15,9 +15,9 @@ $('.button').on("click", "button", function() {
 	console.log("Button Clicked");
 	chrome.runtime.sendMessage(
 		{
-  		from: "popup.js",
   		type: "string",
-  		message: "test"
+  		message: "test",
+  		from: "popup.js"
   	}
 	);
 })

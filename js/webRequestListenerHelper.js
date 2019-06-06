@@ -60,13 +60,13 @@ function printRequestLog(requesType, details) {
   * @param string $requestType - type of webRequest (onSendHeaders and etc.)
   * @param object $details - webRequest object
 */
-function sendMessage(requestType, details) {
+function sendMessage(type, message, from) {
 	chrome.tabs.sendMessage(
 		details.tabId,
 		{
-			from: "webRequestListener",
-			requestType: requestType,
-			webRequest: details
+			type: this.type,
+			message: this.message,
+			from: this.from
 		}
 	)
 }
@@ -78,4 +78,8 @@ function printRequests() {
 		console.log(requests[requestId]);
 	}
 	console.log("----END----");
+}
+
+function resetRequests() {
+	this.requests = {};
 }
