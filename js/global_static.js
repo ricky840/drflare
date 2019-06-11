@@ -1,5 +1,10 @@
+// From
 const FROM_WEB_REQUEST_LISTENER = "webRequestListener.js";
 const FROM_POPUP_JS = "popup.js";
+const FROM_DEV_TOOLS_JS = "devTools.js";
+
+// Type
+const NEW_INSTPECTED_WINDOW_TABID = "new-inspected-window-tabid";
 
 // types of webRequest
 const ON_SEND_HEADERS = "onSendHeaders"; 
@@ -18,3 +23,6 @@ const CACHE_CONTROL_HEADER = "cache-control";
 const CONTENT_TYPE_HEADER = "content-type";
 
 const CACHE_STATUS_HIT = "hit";
+
+
+

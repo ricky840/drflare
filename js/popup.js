@@ -19,5 +19,12 @@ $('.button').on("click", "button", function() {
   		message: "test",
   		from: "popup.js"
   	}
+
+  // Debugging message from devTools.js
+    // {
+    //   type: "new-inspected-window-tabid",
+    //   message: "12",
+    //   from: "devTools.js"
+    // }
 	);
 })

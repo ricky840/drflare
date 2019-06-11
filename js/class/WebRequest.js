@@ -1,6 +1,7 @@
 var WebRequest = class {
 	constructor(onSendHeadersWebRequest) {
 		this.requestId = onSendHeadersWebRequest.requestId;
+		this.tabId = onSendHeadersWebRequest.tabId;
 		this.method = onSendHeadersWebRequest.method;
 		this.url = onSendHeadersWebRequest.url;
 		this.requestHeaders = this.parseHeaders(onSendHeadersWebRequest.requestHeaders);
@@ -80,6 +81,7 @@ var WebRequest = class {
 	getRequestHeaders() { return this.requestHeaders; }
 	getStatusCode() { return this.statusCode; }
 	getResponseHeaders() { return this.responseHeaders; }
+	getTabId() { return this.tabId; }
 	getTTFB() { return "TODO getTTFB"; }
 	getRayId() { return this.rayId; }
 	getColo() { return this.colo; }

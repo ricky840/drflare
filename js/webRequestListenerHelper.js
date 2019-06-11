@@ -24,14 +24,18 @@ function isActiveTab(requestDetails) {
 	return false;
 }
 
-function isInRequests(requests, requestId) {
-	let requestIds = Object.keys(requests);
-	if (requestIds.length == 1) {
-		return requestIds == requestId;
+
+function isInRequests(requests, tabId) {
+	for (let id in requests) {
+		if (id == tabId) return true;
 	}
 
-	if (requestIds.includes(requestId)) {
-		return true;
+	return false;
+}
+
+function isInTab(tab, requestId) {
+	for (let id in tab) {
+		if (id == requestId) return true;
 	}
 
 	return false;
@@ -62,7 +66,7 @@ function printRequestLog(requesType, details) {
 */
 function sendMessage(type, message, from) {
 	chrome.tabs.sendMessage(
-		details.tabId,
+		message.tabId,
 		{
 			type: this.type,
 			message: this.message,
@@ -72,14 +76,14 @@ function sendMessage(type, message, from) {
 }
 
 function printRequests() {
-	console.log("----REQUESTS----");
-	for (let requestId in requests) {
-		console.log(`requestId: ${requestId}`);
-		console.log(requests[requestId]);
+	console.log("----ALL REQUESTS----");
+	for (let tabId in requests) {
+		console.log("--Tab Start--")
+		for (let requestId in requests[tabId]) {
+			console.log(`requestId: ${requestId}`);
+			console.log(requests[tabId][requestId]);
+		}
+		console.log("--Tab End--")
 	}
 	console.log("----END----");
-}
-
-function resetRequests() {
-	this.requests = {};
 }

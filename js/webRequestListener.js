@@ -5,16 +5,25 @@
 
 // Global variables for webRequestListener
 var selectedTabId;
-var readRequests = false;
-var requests = {}; // Collections of all requests made
+var devToolEnabled = false;
+
+// Collections of requests per tabId 
+// ex) tabId => {requestId1: webRequest1, requestId2: webRequest2, ...}
+var requests = {};
+var requestsHolder = {};
+var requestQueue = {};
 
 // onSendHeaders: Before the requests are sent to the network.
 chrome.webRequest.onSendHeaders.addListener(
 	function(details) {
     if (isActiveTab(details)) {
 			let request = new WebRequest(details);
-			requests[request.getRequestId()] = request;
-			// printRequestLog('onSendHeaders', details);
+			if (!isInRequests(requests, details.tabId)) {
+				console.log('create new tab');
+				requests[details.tabId] = {};
+			}
+
+			requests[details.tabId][request.getRequestId()] = request;
     }
 	},
 	{
@@ -27,9 +36,8 @@ chrome.webRequest.onSendHeaders.addListener(
 chrome.webRequest.onHeadersReceived.addListener(
 	function(details) {
 		if (isActiveTab(details)) {
-			if (isInRequests(requests, details.requestId)) {
-				requests[details.requestId] = updateResponse(requests[details.requestId], details);
-				// printRequestLog('onHeadersReceived', details);
+			if (isInTab(requests[details.tabId], details.requestId)) {
+				requests[details.tabId][details.requestId] = updateResponse(requests[details.tabId][details.requestId], details);
 			}
 		}
 	},
@@ -39,13 +47,12 @@ chrome.webRequest.onHeadersReceived.addListener(
 	["responseHeaders"]
 )
 
-// onResponseStarted: Response Listener
+// onResponseStarted: For onResponseStarted timestamp.
 chrome.webRequest.onResponseStarted.addListener(
 	function(details) {
 		if (isActiveTab(details)) {
-			if (isInRequests(requests, details.requestId)) {
-				requests[details.requestId].setOnResponseStartedTimeStamp(details.timeStamp);
-				// printRequestLog('onResponseStarted', details);
+			if (isInTab(requests[details.tabId], details.requestId)) {
+				requests[details.tabId][details.requestId].setOnResponseStartedTimeStamp(details.timeStamp);
 			}
 		}
 	},
@@ -55,16 +62,15 @@ chrome.webRequest.onResponseStarted.addListener(
 	["responseHeaders"]
 );
 
-// onCompleted: Response Listener
+// onCompleted: For onComplete timestamp.
 chrome.webRequest.onCompleted.addListener(
 	function(details) {
 		if (isActiveTab(details)) {
-			if (isInRequests(requests, details.requestId)) {
-				requests[details.requestId].setOnCompletedTimeStamp(details.timeStamp);
-				// printRequestLog('onCompleted', details);
+			if (isInTab(requests[details.tabId], details.requestId)) {
+				requests[details.tabId][details.requestId].setOnCompletedTimeStamp(details.timeStamp);
 
 				// Send message to background.js or contentScript.js
-				// sendMessage('web-request-object', requests[details.requestId], 'webRequestListener.js');
+				sendMessage('web-request-object', requests[details.tabId][details.requestId], 'webRequestListener.js');
 			}
 		}
 	},
@@ -85,6 +91,12 @@ chrome.runtime.onMessage.addListener(
 	function(message, sender, sendResponse) {
 		if (message.from.match(FROM_POPUP_JS)) {
 			printRequests();
+		} else if (message.type.match(NEW_INSTPECTED_WINDOW_TABID)) {
+			console.log(`
+					Received Tab ID: ${message.message}
+					selected Tab ID: ${selectedTabId}
+				`);
+			devToolEnabled = true;
 		}
 	}
 )
@@ -92,10 +104,12 @@ chrome.runtime.onMessage.addListener(
 // Reset 
 chrome.webNavigation.onBeforeNavigate.addListener(
 	function(details) {
-		// console.log('onBeforeNavigate log:');
-		// console.log(details);
 		if (isActiveTab(details)) {
-			this.resetRequests();
+			if (selectedTabId) {
+				// Handle browser cache: solution disable broswer cache by default
+				// console.log(details);
+				delete requests[selectedTabId];
+			}
 		}
 	}
 );
