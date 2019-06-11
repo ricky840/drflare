@@ -6,7 +6,6 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type !== 'content-script-paint') return;
-
   $("body").find("img").wrap("<div class='cfdebugger-container'>");
   $("body").find('.cfdebugger-container').append("<div class='cfdebugger-overlay'></div>");
   sendResponse({result: true});

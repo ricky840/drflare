@@ -1,6 +1,11 @@
-chrome.devtools.panels.create("Cloudflare Debugger", "img/cloudflare-logo.png", "panel.html",
+let tabId = chrome.devtools.inspectedWindow.tabId;
+
+const PANEL_NAME = "Cloudflare Debugger";
+const PANEL_LOGO = "img/cloudflare-logo.png";
+const PANEL_HTML = "panel.html";
+
+chrome.devtools.panels.create(PANEL_NAME, PANEL_LOGO, PANEL_HTML,
   function(panel) {
-    let tabId = chrome.devtools.inspectedWindow.tabId;
     if (tabId) {
       // Create a connection to the background page
       var backgroundPageConnectionPort = chrome.runtime.connect({name: "devtools-page" + "-" + tabId});
@@ -19,6 +24,8 @@ chrome.devtools.panels.create("Cloudflare Debugger", "img/cloudflare-logo.png", 
             chrome.tabs.executeScript(tabId, {file: 'lib/jquery-3.1.1.min.js'}, function() {
               chrome.tabs.executeScript(tabId, {file: 'js/contentScript.js'}, function(){
                 console.log("contentScript inserted");
+
+                paintElement(tabId);
               });
             });
           });
@@ -27,17 +34,25 @@ chrome.devtools.panels.create("Cloudflare Debugger", "img/cloudflare-logo.png", 
     }
   });
 
-var paintElement = function() {
-
+var paintElement = function(tabId) {
+  chrome.tabs.sendMessage(tabId, {type: 'content-script-paint', message: 'hello', from: 'devTools.js'}, function(response) {
+    // console.log(response);
+  });
 }
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type !== 'web-request-object') return;
-  console.log(message.message);
+   // let url = message.message.url;
+   // let objType = message.message.type;
+   // console.log(type + " " + url);
 });
 
 
 
+chrome.storage.local.get('inspectedWindowTabIds', function(data) {
+  var tabIds = data['inspectedWindowTabIds'];
+  console.log("fdafas");
+});
 
 
 
