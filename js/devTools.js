@@ -27,6 +27,9 @@ chrome.devtools.panels.create("Cloudflare Debugger", "img/cloudflare-logo.png", 
     }
   });
 
+var paintElement = function() {
+
+}
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type !== 'web-request-object') return;
