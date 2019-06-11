@@ -33,7 +33,11 @@ chrome.runtime.onConnect.addListener(function(port) {
       var tabIds = data['inspectedWindowTabIds'];
       if (tabIds.indexOf(inspectedWindowTabId) < 0) {
         tabIds.push(inspectedWindowTabId);
-        chrome.storage.local.set({'inspectedWindowTabIds': tabIds}); 
+        chrome.storage.local.set({'inspectedWindowTabIds': tabIds}, function() {
+          if(addToListener(inspectedWindowTabId)) {
+            port.postMessage({refresh: true});
+          }
+        });
       }
     });
 
@@ -42,7 +46,9 @@ chrome.runtime.onConnect.addListener(function(port) {
 
       inspectedWindowCount--;
       if (inspectedWindowCount == 0) {
-        chrome.storage.local.set({'inspectedWindowTabIds': []}); 
+        chrome.storage.local.set({'inspectedWindowTabIds': []}, function(){
+          removeFromListner(inspectedWindowTabId);
+        }); 
       }
 
       chrome.storage.local.get('inspectedWindowTabIds', function(data) {

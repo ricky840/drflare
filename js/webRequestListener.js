@@ -4,8 +4,29 @@
 */
 
 // Global variables for webRequestListener
-var selectedTabId;
-var devToolEnabled = false;
+var selectedTabId = "";
+// var devToolEnabled = false;
+
+// Ricky: Temporary
+var inspectedTabIds = [];
+
+function addToListener(newTabId, callback) {
+  if (inspectedTabIds.indexOf(newTabId) < 0) {
+    inspectedTabIds.push(newTabId);
+    console.log("inspectedTabIds: " + inspectedTabIds);
+    return true;
+  } else {
+    console.log("already listening");
+    return false;
+  }
+}
+
+function removeFromListner(closedTabId) {
+  if (inspectedTabIds.indexOf(closedTabId) >= 0) {
+    inspectedTabIds.splice(inspectedTabIds.indexOf(closedTabId), 1);
+    console.log("removed, inspectedTabIds: "+ inspectedTabIds);
+  }
+}
 
 // Collections of requests per tabId 
 // ex) tabId => {requestId1: webRequest1, requestId2: webRequest2, ...}
@@ -65,7 +86,9 @@ chrome.webRequest.onResponseStarted.addListener(
 // onCompleted: For onComplete timestamp.
 chrome.webRequest.onCompleted.addListener(
 	function(details) {
-		if (isActiveTab(details)) {
+    let tabId = details.tabId.toString();
+    if (inspectedTabIds.indexOf(tabId) > -1) {
+		// if (isActiveTab(details)) {
 			if (isInTab(requests[details.tabId], details.requestId)) {
 				requests[details.tabId][details.requestId].setOnCompletedTimeStamp(details.timeStamp);
 
@@ -73,7 +96,7 @@ chrome.webRequest.onCompleted.addListener(
 				sendMessage('web-request-object', requests[details.tabId][details.requestId], 'webRequestListener.js');
 			}
 		}
-	},
+	 },
 	{
 		urls: ["<all_urls>"]
 	},
@@ -87,19 +110,20 @@ chrome.tabs.onActivated.addListener(
 	}
 )
 
-chrome.runtime.onMessage.addListener(
-	function(message, sender, sendResponse) {
-		if (message.from.match(FROM_POPUP_JS)) {
-			printRequests();
-		} else if (message.type.match(NEW_INSTPECTED_WINDOW_TABID)) {
-			console.log(`
-					Received Tab ID: ${message.message}
-					selected Tab ID: ${selectedTabId}
-				`);
-			devToolEnabled = true;
-		}
-	}
-)
+// Ricky: webRequestListener.js and background.js is in the same background.html page
+// chrome.runtime.onMessage.addListener(
+// 	function(message, sender, sendResponse) {
+// 		if (message.from.match(FROM_POPUP_JS)) {
+// 			printRequests();
+// 		} else if (message.type.match(NEW_INSTPECTED_WINDOW_TABID)) {
+// 			console.log(`
+// 					Received Tab ID: ${message.message}
+// 					selected Tab ID: ${selectedTabId}
+// 				`);
+// 			devToolEnabled = true;
+// 		}
+// 	}
+// )
 
 // Reset 
 chrome.webNavigation.onBeforeNavigate.addListener(

@@ -4,7 +4,7 @@ const FROM_POPUP_JS = "popup.js";
 const FROM_DEV_TOOLS_JS = "devTools.js";
 
 // Type
-const NEW_INSTPECTED_WINDOW_TABID = "new-inspected-window-tabid";
+// const NEW_INSTPECTED_WINDOW_TABID = "new-inspected-window-tabid";
 
 // types of webRequest
 const ON_SEND_HEADERS = "onSendHeaders"; 
