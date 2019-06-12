@@ -21,7 +21,7 @@ if (tabId) {
         }
       }, { url: [{urlEquals: tabUrl}] });
 
-      chrome.devtools.inspectedWindow.reload({ignoreCache: true});
+      // chrome.devtools.inspectedWindow.reload({ignoreCache: true});
     }
   });
 }
@@ -37,7 +37,8 @@ var paintElement = function(tabId) {
 }
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type !== 'web-request-object') return;
+  if (message.type.match('web-request-object')) { console.log(message.message); }
+
    // let url = message.message.url;
    // let objType = message.message.type;
   // if (objType == "image") {

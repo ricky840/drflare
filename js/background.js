@@ -33,9 +33,16 @@ chrome.runtime.onConnect.addListener(function(port) {
     console.log("DevTool Window Open TabId: " + inspectedWindowTabId);
 
     if(addToListener(inspectedWindowTabId)) {
-      chrome.tabs.get(inspectedWindowTabId, function(tab) {
-        port.postMessage({refresh: true, tabUrl: tab.url});
-      });
+      console.log(`${inspectedWindowTabId} is reloaded`);
+
+      // chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      //   chrome.tabs.reload(tabs[0].id, {bypassCache: true});
+      // });
+      chrome.tabs.reload(inspectedWindowTabId, {bypassCache: true});
+
+      // chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      //   chrome.tabs.update(tabs[0].id, {url: tabs[0].url});
+      // });
     }
 
     chrome.storage.local.get('inspectedWindowTabIds', function(data) {
