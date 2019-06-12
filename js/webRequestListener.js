@@ -8,7 +8,7 @@ var selectedTabId = "";
 // var devToolEnabled = false;
 
 // Ricky: Temporary
-var inspectedTabIds = []; // this needs to be initialized when reloading the app
+var inspectedTabIds = []; // this needs to be initialized when reloading the app see background.js
 
 function addToListener(newTabId, callback) {
   if (inspectedTabIds.indexOf(newTabId) < 0) {
@@ -94,7 +94,12 @@ chrome.webRequest.onCompleted.addListener(
 
 				// Send message to background.js or contentScript.js
 				// sendMessage('web-request-object', requests[details.tabId][details.requestId], 'webRequestListener.js');
-       chrome.runtime.sendMessage({type: 'web-request-object', message: details, tabId: tabId, from: 'webRequestListener.js'});
+       chrome.runtime.sendMessage({
+         type: 'web-request-object', 
+         message: details, 
+         tabId: tabId, 
+         from: 'webRequestListener.js'
+       });
          
 			// }
 		}

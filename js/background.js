@@ -33,7 +33,9 @@ chrome.runtime.onConnect.addListener(function(port) {
     console.log("DevTool Window Open TabId: " + inspectedWindowTabId);
 
     if(addToListener(inspectedWindowTabId)) {
-      port.postMessage({refresh: true});
+      chrome.tabs.get(inspectedWindowTabId, function(tab) {
+        port.postMessage({refresh: true, tabUrl: tab.url});
+      });
     }
 
     chrome.storage.local.get('inspectedWindowTabIds', function(data) {
