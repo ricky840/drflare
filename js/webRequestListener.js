@@ -24,6 +24,8 @@ function removeFromListner(closedTabId) {
   if (inspectedTabIds.indexOf(closedTabId) >= 0) {
     inspectedTabIds.splice(inspectedTabIds.indexOf(closedTabId), 1);
     console.log("removed, inspectedTabIds: "+ inspectedTabIds);
+
+    delete requests[closedTabId];
   }
 }
 
@@ -64,17 +66,13 @@ var requestQueue = {};
 chrome.webRequest.onSendHeaders.addListener(
 	function(details) {
 		if (inspectedTabIds.indexOf(details.tabId) > -1) {
-    // if (isActiveTab(details)) {
 			let request = new WebRequest(details);
      
 			if (!isInRequests(requests, details.tabId)) {
-				// console.log('create new tab');
 				requests[details.tabId] = {};
 			}
 
 			requests[details.tabId][request.getRequestId()] = request;
-
-			printRequestLog('onSend', request);
     }
 	},
 	{
@@ -82,19 +80,14 @@ chrome.webRequest.onSendHeaders.addListener(
 	},
 	["requestHeaders"]
 )
-//
-// // onHeadersReceived: First HTTP response header is received.
+
+// onHeadersReceived: First HTTP response header is received.
 chrome.webRequest.onHeadersReceived.addListener(
 	function(details) {
-		// if (isActiveTab(details)) {
-		// 	if (isInTab(requests[details.tabId], details.requestId)) {
-		// 		requests[details.tabId][details.requestId] = updateResponse(requests[details.tabId][details.requestId], details);
-		// 	}
-		// }
 		if (inspectedTabIds.indexOf(details.tabId) > -1) {
-      confirmRequestExist(details).then(function() {
-        requests[details.tabId][details.requestId] = updateResponse(requests[details.tabId][details.requestId], details);
-      });
+			if (isInTab(requests[details.tabId], details.requestId)) {
+				requests[details.tabId][details.requestId] = updateResponse(requests[details.tabId][details.requestId], details);
+			}
 		}
 	},
 	{
@@ -102,19 +95,14 @@ chrome.webRequest.onHeadersReceived.addListener(
 	},
 	["responseHeaders"]
 )
-//
-// // onResponseStarted: For onResponseStarted timestamp.
+
+// onResponseStarted: For onResponseStarted timestamp.
 chrome.webRequest.onResponseStarted.addListener(
 	function(details) {
-		// if (isActiveTab(details)) {
-		// 	if (isInTab(requests[details.tabId], details.requestId)) {
-		// 		requests[details.tabId][details.requestId].setOnResponseStartedTimeStamp(details.timeStamp);
-		// 	}
-		// }
 		if (inspectedTabIds.indexOf(details.tabId) > -1) {
-      confirmRequestExist(details).then(function() {
-        requests[details.tabId][details.requestId].setOnResponseStartedTimeStamp(details.timeStamp);
-      }).catch(err => console.log(err));
+			if (isInTab(requests[details.tabId], details.requestId)) {
+				requests[details.tabId][details.requestId].setOnResponseStartedTimeStamp(details.timeStamp);
+			}
 		}
 	},
 	{
@@ -128,24 +116,9 @@ chrome.webRequest.onCompleted.addListener(
 	function(details) {
     let tabId = details.tabId;
     if (inspectedTabIds.indexOf(tabId) > -1) {
-		// if (isActiveTab(details)) {
-			// if (isInTab(requests[details.tabId], details.requestId)) {
-				// requests[details.tabId][details.requestId].setOnCompletedTimeStamp(details.timeStamp);
-
-				// Send message to background.js or contentScript.js
-				// sendMessage('web-request-object', requests[details.tabId][details.requestId], 'webRequestListener.js');
-       // chrome.runtime.sendMessage({
-       //   type: 'web-request-object', 
-       //   message: details, 
-       //   tabId: tabId, 
-       //   from: 'webRequestListener.js'
-       // });
-         
-			// }
-      confirmRequestExist(details).then(function(){
+			if (isInTab(requests[details.tabId], details.requestId)) {
         requests[details.tabId][details.requestId].setOnCompletedTimeStamp(details.timeStamp);
-      });
-			// printRequestLog('onCompeleted', requests[details.tabId][details.requestId]);
+			}
 		}
 	 },
 	{
@@ -164,29 +137,33 @@ chrome.tabs.onActivated.addListener(
 // Ricky: webRequestListener.js and background.js is in the same background.html page
 chrome.runtime.onMessage.addListener(
 	function(message, sender, sendResponse) {
-		if (message.from.match(FROM_POPUP_JS)) {
+		if (message.from === FROM_POPUP_JS) {
 			printRequests();
-		} else if (message.type.match(NEW_INSTPECTED_WINDOW_TABID)) {
-			console.log(`
-					Received Tab ID: ${message.message}
-					selected Tab ID: ${selectedTabId}
-				`);
-			devToolEnabled = true;
-		}
+		} 
+		// else if (message.type === NEW_INSTPECTED_WINDOW_TABID) {
+		// 	console.log(`
+		// 			Received Tab ID: ${message.message}
+		// 			selected Tab ID: ${selectedTabId}
+		// 		`);
+		// 	devToolEnabled = true;
+		// }
 	}
 )
 
 // Reset 
 chrome.webNavigation.onBeforeNavigate.addListener(
-	// function(details) {
-		// if (isActiveTab(details)) {
-			// if (selectedTabId) {
-				// Handle browser cache: solution disable broswer cache by default
-				// console.log(details);
-			// 	delete requests[selectedTabId];
-			// }
-		// }
-	// }
+	function(details) {
+		if (inspectedTabIds.indexOf(details.tabId) > -1) {
+			delete requests[details.tabId];
+		}
+	}
+);
+
+// onCompleted
+chrome.webNavigation.onDOMContentLoaded.addListener(
+	function(details) {
+
+	}
 );
 //
 // onCompleted
@@ -207,9 +184,6 @@ chrome.webNavigation.onBeforeNavigate.addListener(
 chrome.webNavigation.onCompleted.addListener(
 	function(details) {
 		if (inspectedTabIds.indexOf(details.tabId) > -1) {
-			printRequestLog('webNavigation onCompleted', details);
-
-      // Send the first batch requests to safely paint. DOM has to be constructed in order to paint
 			chrome.runtime.sendMessage({
          type: 'web-request-objects', 
          message: requests[details.tabId], 
@@ -218,13 +192,6 @@ chrome.webNavigation.onCompleted.addListener(
       }, function(){
         delete requests[details.tabId];
       });
-		// if (isActiveTab(details)) {
-		// 	if (selectedTabId) {
-		// 		// Handle browser cache: solution disable broswer cache by default
-		// 		// console.log(details);
-		// 		delete requests[selectedTabId];
-		// 	}
-		// }
 		}
 	}
 );

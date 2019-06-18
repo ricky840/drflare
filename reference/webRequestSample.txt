@@ -114,3 +114,16 @@ tabId: 439
 timeStamp: 1558873103012.791
 type: "main_frame"
 url: "https://durianlovers.cf/random.jpg"
+
+
+function addRow(request) {
+    let tab = window.document.getElementById("status_table");
+    console.log(tab);
+    console.log(tab.rows);
+    let newRow = tab.insertRow(tab.rows.length);
+    let row = table.insertRow(tab.rows.length - 2);
+    for (let i = 0; i < TABLE_ELEMENTS.length; i++) {
+      let cell = row.insertCell(i);
+      cell.innerHTML = TABLE_ELEMENTS[i];
+    }
+  }

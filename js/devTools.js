@@ -4,7 +4,13 @@ const PANEL_NAME = "Cloudflare Debugger";
 const PANEL_LOGO = "img/cloudflare-logo.png";
 const PANEL_HTML = "panel.html";
 
+const TABLE_ELEMENTS = ["requestId", "rayId", "url", "cache", "railgun", "polish"];
+
+var paintTargets = [];
 let tabId = chrome.devtools.inspectedWindow.tabId;
+
+var table;
+var win;
 
 if (tabId) {
   let backgroundPageConnectionPort = chrome.runtime.connect({name: "devtools-page" + "-" + tabId});
@@ -14,9 +20,9 @@ if (tabId) {
     // Panel Created
   });
 
-
   chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     if (message.type.match('web-request-objects') && tabId == message.tabId) { 
+      console.log(message.message);
       let webRequests = message.message;
       var paintTargetUrls = [];
       for (var requestId in webRequests) {
@@ -29,7 +35,6 @@ if (tabId) {
     }
   });
 }
-
 
 var paintElement = function(urls, tabId) {
   injectContentScript(tabId).then(function() {

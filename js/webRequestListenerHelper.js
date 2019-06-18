@@ -78,6 +78,7 @@ function sendMessage(type, message, from) {
 function printRequests() {
 	console.log("----ALL REQUESTS----");
 	for (let tabId in requests) {
+		console.log(`request Length: ${Object.keys(requests[tabId]).length}`);
 		console.log("--Tab Start--")
 		for (let requestId in requests[tabId]) {
 			console.log(`requestId: ${requestId}`);

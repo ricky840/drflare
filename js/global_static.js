@@ -23,6 +23,7 @@ const CACHE_CONTROL_HEADER = "cache-control";
 const CONTENT_TYPE_HEADER = "content-type";
 
 const CACHE_STATUS_HIT = "hit";
+const CACHE_REVALIDATE = "revalidate";
 
 
 

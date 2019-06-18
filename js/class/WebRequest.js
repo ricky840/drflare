@@ -42,7 +42,7 @@ var WebRequest = class {
 		for (let header in this.responseHeaders) {
 			switch(header) {
 				case CF_CACHE_STATUS_HEADER:
-					if (CACHE_STATUS_HIT.match(this.responseHeaders[header].toLowerCase())) {
+					if (CACHE_STATUS_HIT === this.responseHeaders[header].toLowerCase()) {
 						this.cfCached = true;
 					}
 					break;
