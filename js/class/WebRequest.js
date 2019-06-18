@@ -4,6 +4,7 @@ var WebRequest = class {
 		this.tabId = onSendHeadersWebRequest.tabId;
 		this.method = onSendHeadersWebRequest.method;
 		this.url = onSendHeadersWebRequest.url;
+    this.objectType = onSendHeadersWebRequest.type;
 		this.requestHeaders = this.parseHeaders(onSendHeadersWebRequest.requestHeaders);
 		this.statusCode;
 		this.responseHeaders;

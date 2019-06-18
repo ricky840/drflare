@@ -1,69 +1,70 @@
+'use strict';
+
 const PANEL_NAME = "Cloudflare Debugger";
 const PANEL_LOGO = "img/cloudflare-logo.png";
 const PANEL_HTML = "panel.html";
 
-var paintTargets = [];
-
 let tabId = chrome.devtools.inspectedWindow.tabId;
 
 if (tabId) {
-  // Create a connection to the background page
-  var backgroundPageConnectionPort = chrome.runtime.connect({name: "devtools-page" + "-" + tabId});
-  backgroundPageConnectionPort.onMessage.addListener(function(message) {
-    if (message.refresh) {
-      console.log("listener is on " + message.tabUrl + " refreshing the page: " + tabId);
-      let tabUrl = message.tabUrl;
+  let backgroundPageConnectionPort = chrome.runtime.connect({name: "devtools-page" + "-" + tabId});
+  
 
-      chrome.webNavigation.onCompleted.addListener(function(details) {
-        if (details.tabId == tabId) {
-          console.log("Refreshed completed, lets paint");
-          injectContentScript(tabId);
-        }
-      }, { url: [{urlEquals: tabUrl}] });
+  chrome.devtools.panels.create(PANEL_NAME, PANEL_LOGO, PANEL_HTML, function(panel) {
+    // Panel Created
+  });
 
-      // chrome.devtools.inspectedWindow.reload({ignoreCache: true});
+
+  chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+    if (message.type.match('web-request-objects') && tabId == message.tabId) { 
+      let webRequests = message.message;
+      var paintTargetUrls = [];
+      for (var requestId in webRequests) {
+        let request = webRequests[requestId];
+        if (request.objectType === "image" && request.tabId === tabId) {
+          paintTargetUrls.push(request.url);
+        } 
+      }
+      if (paintTargetUrls.length > 0) paintElement(paintTargetUrls, tabId);
     }
   });
 }
 
-chrome.devtools.panels.create(PANEL_NAME, PANEL_LOGO, PANEL_HTML, function(panel) {
-  //
-});
 
-var paintElement = function(tabId) {
-  chrome.tabs.sendMessage(tabId, {type: 'content-script-paint', message: 'hello', from: 'devTools.js'}, function(response) {
-    // console.log(response);
+var paintElement = function(urls, tabId) {
+  injectContentScript(tabId).then(function() {
+    chrome.tabs.sendMessage(tabId, {type: 'content-script-paint', urls: urls, from: 'devTools.js'});
   });
 }
 
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type.match('web-request-object')) { console.log(message.message); }
 
-   // let url = message.message.url;
-   // let objType = message.message.type;
-  // if (objType == "image") {
-  //   paintElement(tabId);
-  // }
-   // console.log(type + " " + url);
-});
-
-
-
-
-function injectContentScript(tabId) {
-  chrome.tabs.sendMessage(tabId, {type: 'content-script-status', message_type: 'String', message: 'alive?', from: 'devTools.js'}, function(response) {
-    if (response !== undefined && response.result === true) {
-      console.log("contentScript already exists");
-      paintElement(tabId);
-    } else {
-      chrome.tabs.insertCSS(tabId, {file: "css/overlay.css"}, function() {
-        chrome.tabs.executeScript(tabId, {file: 'lib/jquery-3.1.1.min.js'}, function() {
-          chrome.tabs.executeScript(tabId, {file: 'js/contentScript.js'}, function(){
-            console.log("contentScript inserted");
-            paintElement(tabId);
+var injectContentScript = function(tabId) {
+  return new Promise(function(resolve, reject) {
+    chrome.tabs.sendMessage(tabId, {type: 'content-script-status', message: 'alive?', from: 'devTools.js'}, function(response) {
+      if (response !== undefined && response.result === true) {
+        console.log("ContentScript already exists");
+        resolve();
+      } else {
+        chrome.tabs.insertCSS(tabId, {file: "css/overlay.css"}, function() {
+          chrome.tabs.executeScript(tabId, {file: 'lib/jquery-3.1.1.min.js'}, function() {
+            chrome.tabs.executeScript(tabId, {file: 'js/contentScript.js'}, function(){
+              console.log("ContentScript inserted");
+              resolve();
+            });
           });
         });
-      });
-    }
+      }
+    });
   });
 }
+
+
+
+
+
+
+
+
+
+
+

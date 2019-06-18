@@ -13,11 +13,10 @@ var inspectedTabIds = []; // this needs to be initialized when reloading the app
 function addToListener(newTabId, callback) {
   if (inspectedTabIds.indexOf(newTabId) < 0) {
     inspectedTabIds.push(newTabId);
+    callback(newTabId);
     console.log("inspectedTabIds: " + inspectedTabIds);
-    return true;
   } else {
     console.log("already listening");
-    return false;
   }
 }
 
@@ -30,6 +29,33 @@ function removeFromListner(closedTabId) {
 
 // Collections of requests per tabId 
 // ex) tabId => {requestId1: webRequest1, requestId2: webRequest2, ...}
+
+
+// Ricky
+function confirmRequestExist(hi) {
+  return new Promise(function(resolve, reject) { 
+    console.log("confirm");
+    console.log(requests);
+    console.log(hi);
+    console.log("---------------");
+    console.log(hi.requestId);
+    var test = requests[hi.tabId];
+    console.log("---------------");
+
+    if (test[hi.requestId] == undefined) {
+      let request = new WebRequest(hi);
+      requests[hi.tabId][hi.requestId] = request;
+      console.log("Request " + hi.requestId + " does not exist, adding..");
+      resolve();
+    } else {
+      console.log("Request " + hi.requestId + " exists");
+      resolve();
+    }
+  });
+
+
+}
+
 var requests = {};
 var requestsHolder = {};
 var requestQueue = {};
@@ -40,6 +66,7 @@ chrome.webRequest.onSendHeaders.addListener(
 		if (inspectedTabIds.indexOf(details.tabId) > -1) {
     // if (isActiveTab(details)) {
 			let request = new WebRequest(details);
+     
 			if (!isInRequests(requests, details.tabId)) {
 				// console.log('create new tab');
 				requests[details.tabId] = {};
@@ -65,7 +92,9 @@ chrome.webRequest.onHeadersReceived.addListener(
 		// 	}
 		// }
 		if (inspectedTabIds.indexOf(details.tabId) > -1) {
-			requests[details.tabId][details.requestId] = updateResponse(requests[details.tabId][details.requestId], details);
+      confirmRequestExist(details).then(function() {
+        requests[details.tabId][details.requestId] = updateResponse(requests[details.tabId][details.requestId], details);
+      });
 		}
 	},
 	{
@@ -83,7 +112,9 @@ chrome.webRequest.onResponseStarted.addListener(
 		// 	}
 		// }
 		if (inspectedTabIds.indexOf(details.tabId) > -1) {
-			requests[details.tabId][details.requestId].setOnResponseStartedTimeStamp(details.timeStamp);
+      confirmRequestExist(details).then(function() {
+        requests[details.tabId][details.requestId].setOnResponseStartedTimeStamp(details.timeStamp);
+      }).catch(err => console.log(err));
 		}
 	},
 	{
@@ -111,7 +142,9 @@ chrome.webRequest.onCompleted.addListener(
        // });
          
 			// }
-			requests[details.tabId][details.requestId].setOnCompletedTimeStamp(details.timeStamp);
+      confirmRequestExist(details).then(function(){
+        requests[details.tabId][details.requestId].setOnCompletedTimeStamp(details.timeStamp);
+      });
 			// printRequestLog('onCompeleted', requests[details.tabId][details.requestId]);
 		}
 	 },
@@ -145,30 +178,30 @@ chrome.runtime.onMessage.addListener(
 
 // Reset 
 chrome.webNavigation.onBeforeNavigate.addListener(
-	function(details) {
-		if (isActiveTab(details)) {
-			if (selectedTabId) {
+	// function(details) {
+		// if (isActiveTab(details)) {
+			// if (selectedTabId) {
 				// Handle browser cache: solution disable broswer cache by default
 				// console.log(details);
-				delete requests[selectedTabId];
-			}
-		}
-	}
-);
-
-// onCompleted
-chrome.webNavigation.onDOMContentLoaded.addListener(
-	function(details) {
-		printRequestLog('webNavigation onDOMContentLoaded', details);
-		// if (isActiveTab(details)) {
-		// 	if (selectedTabId) {
-		// 		// Handle browser cache: solution disable broswer cache by default
-		// 		// console.log(details);
-		// 		delete requests[selectedTabId];
-		// 	}
+			// 	delete requests[selectedTabId];
+			// }
 		// }
-	}
+	// }
 );
+//
+// onCompleted
+// chrome.webNavigation.onDOMContentLoaded.addListener(
+// 	function(details) {
+// 		// printRequestLog('webNavigation onDOMContentLoaded', details);
+// 		// if (isActiveTab(details)) {
+// 		// 	if (selectedTabId) {
+// 		// 		// Handle browser cache: solution disable broswer cache by default
+// 		// 		// console.log(details);
+// 		// 		delete requests[selectedTabId];
+// 		// 	}
+// 		// }
+// 	}
+// );
 
 // onCompleted
 chrome.webNavigation.onCompleted.addListener(
@@ -176,11 +209,14 @@ chrome.webNavigation.onCompleted.addListener(
 		if (inspectedTabIds.indexOf(details.tabId) > -1) {
 			printRequestLog('webNavigation onCompleted', details);
 
+      // Send the first batch requests to safely paint. DOM has to be constructed in order to paint
 			chrome.runtime.sendMessage({
-         type: 'web-request-object', 
+         type: 'web-request-objects', 
          message: requests[details.tabId], 
          tabId: details.tabId, 
          from: 'webRequestListener.js'
+      }, function(){
+        delete requests[details.tabId];
       });
 		// if (isActiveTab(details)) {
 		// 	if (selectedTabId) {

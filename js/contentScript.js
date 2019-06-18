@@ -6,30 +6,44 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type !== 'content-script-paint') return;
-  $("body").find("img").wrap("<div class='cfdebugger-container'>");
-  $("body").find('.cfdebugger-container').append("<div class='cfdebugger-overlay'></div>");
-  sendResponse({result: true});
-  return true;
+
+  let targetUrls = message.urls;
+  var parsedUrls = [];
+
+  var parser = document.createElement('a');
+  for (var i=0; i < targetUrls.length; i++) {
+    parser.href = targetUrls[i];
+    parsedUrls.push({
+      path: parser.pathname,
+      full_url: targetUrls[i],
+      path_and_query: parser.pathname + parser.search,
+      path_without_slash: parser.pathname.substr(1)
+    });
+  }
+
+  $('img').each(function() {
+    let thisObj = $(this);
+    let src = $(this).attr('src');
+    for (var i=0; i < parsedUrls.length; i++) {
+      let targetObj = parsedUrls[i];
+      for (var key in targetObj) {
+        if (targetObj[key] === src) {
+          if (paintImgDom(thisObj)) {
+            console.log("Painting " + thisObj.prop('outerHTML'));
+          }  
+        }
+      }
+    }
+  });
+
 });
 
-
-$(document).ready(function() {
-  // var allElements = document.body.getElementsByTagName("*");
-  // var hightlightElements = [];
-  //
-  // for (var i=0; i < allElements.length; i++) {
-  //   let element = allElements[i];
-  //   if (element.tagName === 'IMG') {
-  //     hightlightElements.push(element);
-  //   }
-  // }
-
-  // $("body").find("img").wrap("<div class='cfdebugger-container'>");
-
-  // for (var i=0; i < hightlightElements.length; i++) {
-  //   $(hightlightElements[i]).wrap("<div class='cfdebugger-container'>");
-  // }
-  // $("body").find('.cfdebugger-container').append("<div class='cfdebugger-overlay'></div>")
-  // $("body").find("img").wrap("<div class='cfdebugger-container'>");
-  // $("body").find('.cfdebugger-container').append("<div class='cfdebugger-overlay'></div>");
-});
+function paintImgDom(imgjQueryObj) {
+  if (imgjQueryObj.parent().hasClass('cfdebugger-container')) {
+    return false;
+  } else {
+    imgjQueryObj.wrap("<div class='cfdebugger-container'>");
+    imgjQueryObj.after("<div class='cfdebugger-overlay'></div>");
+    return true;
+  }
+}
