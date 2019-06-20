@@ -3,18 +3,18 @@
 const PANEL_NAME = "Cloudflare Debugger";
 const PANEL_LOGO = "img/cloudflare-logo.png";
 const PANEL_HTML = "panel.html";
-
 const TABLE_ELEMENTS = ["requestId", "rayId", "url", "cache", "railgun", "polish"];
 
-var paintTargets = [];
 let tabId = chrome.devtools.inspectedWindow.tabId;
 
+var requestObjects = {};
+var requestObjectsImages = [];
+var pageOnCompleteEvent = false;
 var table;
 var win;
 
 if (tabId) {
   let backgroundPageConnectionPort = chrome.runtime.connect({name: "devtools-page" + "-" + tabId});
-  
 
   chrome.devtools.panels.create(PANEL_NAME, PANEL_LOGO, PANEL_HTML, function(panel) {
     // Panel Created
@@ -22,26 +22,65 @@ if (tabId) {
 
   chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     if (message.type.match('web-request-objects') && tabId == message.tabId) { 
-      console.log(message.message);
-      let webRequests = message.message;
-      var paintTargetUrls = [];
-      for (var requestId in webRequests) {
-        let request = webRequests[requestId];
-        if (request.objectType === "image" && request.tabId === tabId) {
-          paintTargetUrls.push(request.url);
-        } 
+      let request = message.message;
+      console.log("Request Object Delivered: "+ request.url + " " + request.objectType);
+
+      requestObjects[request.requestId] = request;
+      console.log("Total requests updated: " + Object.keys(requestObjects).length + " " + request.requestId);
+
+      if (request.objectType === "image") {
+        if (pageOnCompleteEvent) {
+          injectContentScript(tabId).then(function() {
+            paintElement([request]);
+          }); 
+        } else {
+          requestObjectsImages.push(request);
+        }
       }
-      if (paintTargetUrls.length > 0) paintElement(paintTargetUrls, tabId);
     }
   });
 }
 
-var paintElement = function(urls, tabId) {
-  injectContentScript(tabId).then(function() {
-    chrome.tabs.sendMessage(tabId, {type: 'content-script-paint', urls: urls, from: 'devTools.js'});
-  });
-}
+// Before the page gets refreshed
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  if (message.type.match('webnavigation-before-refresh') && tabId == message.tabId) {  
+    console.log("request object reset: " + Object.keys(requestObjects).length + "-----------------------------------------------------------------------------------------111111111111");
+    requestObjects = {};
+    requestObjectsImages = [];
+    pageOnCompleteEvent = false;
+    console.log("request object reset: " + Object.keys(requestObjects).length + "-----------------------------------------------------------------------------------------22222222222");
+  };
+});
 
+// when page onload-event happnes
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  if (message.type.match('page-onload-event') && tabId == message.tabId) {  
+
+    pageOnCompleteEvent = true;
+
+    console.log("onload event!!!!! let's paint --------------------------------------------------------------------------------------------");
+
+    injectContentScript(tabId).then(function() {
+      paintElement(requestObjectsImages, function() {
+        console.log("resetting requestObjectsImages");
+        requestObjectsImages = [];
+      });
+    });
+
+  };
+});
+
+
+var paintElement = function(requests, callback) {
+  var urls = [];
+  for (var i=0; i < requests.length; i++) {
+    urls.push(requests[i].url);
+  }
+  chrome.tabs.sendMessage(tabId, {type: 'content-script-paint', urls: urls, from: 'devTools.js'});
+  if (callback) {
+    callback();
+  }
+}
 
 var injectContentScript = function(tabId) {
   return new Promise(function(resolve, reject) {
@@ -52,7 +91,7 @@ var injectContentScript = function(tabId) {
       } else {
         chrome.tabs.insertCSS(tabId, {file: "css/overlay.css"}, function() {
           chrome.tabs.executeScript(tabId, {file: 'lib/jquery-3.1.1.min.js'}, function() {
-            chrome.tabs.executeScript(tabId, {file: 'js/contentScript.js'}, function(){
+            chrome.tabs.executeScript(tabId, {file: 'js/contentScript.js'}, function() {
               console.log("ContentScript inserted");
               resolve();
             });

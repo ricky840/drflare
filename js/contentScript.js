@@ -6,16 +6,14 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type !== 'content-script-paint') return;
-
-  let targetUrls = message.urls;
-  var parsedUrls = [];
-
+  var urls = message.urls;
   var parser = document.createElement('a');
-  for (var i=0; i < targetUrls.length; i++) {
-    parser.href = targetUrls[i];
+  var parsedUrls = [];
+  for (var i=0; i < urls.length; i++) {
+    parser.href = urls[i];
     parsedUrls.push({
       path: parser.pathname,
-      full_url: targetUrls[i],
+      full_url: urls[i],
       path_and_query: parser.pathname + parser.search,
       path_without_slash: parser.pathname.substr(1)
     });
@@ -24,18 +22,29 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   $('img').each(function() {
     let thisObj = $(this);
     let src = $(this).attr('src');
-    for (var i=0; i < parsedUrls.length; i++) {
-      let targetObj = parsedUrls[i];
-      for (var key in targetObj) {
-        if (targetObj[key] === src) {
-          if (paintImgDom(thisObj)) {
-            console.log("Painting " + thisObj.prop('outerHTML'));
-          }  
+    var domFound = false;
+
+    for (var j=0; j < parsedUrls.length; j++) {
+      var parsedUrl = parsedUrls[j];
+      for (var key in parsedUrl) {
+        if (parsedUrl[key] === src) {
+          domFound = true;
         }
       }
+      if (domFound) {
+        paintImgDom(thisObj);
+        // console.log("Found matching dom, painting " + thisObj.prop('outerHTML'));
+        break;
+      }
+    }
+
+    if (!domFound) {
+      // console.log("Matching URL doesn't exist for img dom " + src);
     }
   });
 
+  sendResponse({result: true});
+  return true;
 });
 
 function paintImgDom(imgjQueryObj) {
