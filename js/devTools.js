@@ -3,7 +3,6 @@
 const PANEL_NAME = "Cloudflare Debugger";
 const PANEL_LOGO = "img/cloudflare-logo.png";
 const PANEL_HTML = "panel.html";
-const TABLE_ELEMENTS = ["requestId", "rayId", "url", "cache", "railgun", "polish"];
 
 let tabId = chrome.devtools.inspectedWindow.tabId;
 
@@ -70,6 +69,17 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   };
 });
 
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  if (message.type.match('panel-ready')) {  
+    chrome.runtime.sendMessage({
+      type: 'web-requests-array',
+      message: requestObjects, 
+      tabId: tabId,
+      from: 'devTools.js'
+    });
+  };
+});
+
 
 var paintElement = function(requests, callback) {
   var urls = [];
@@ -101,14 +111,3 @@ var injectContentScript = function(tabId) {
     });
   });
 }
-
-
-
-
-
-
-
-
-
-
-

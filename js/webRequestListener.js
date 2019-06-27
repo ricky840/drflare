@@ -94,7 +94,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(
 
 function sendRequestObject(requestObj) {
   chrome.runtime.sendMessage({
-    type: 'web-request-objects', 
+    type: 'web-request-objects',
     message: requestObj, 
     tabId: requestObj.tabId, 
     from: 'webRequestListener.js'
