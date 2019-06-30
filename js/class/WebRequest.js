@@ -8,6 +8,7 @@ var WebRequest = class {
 		this.requestHeaders = this.parseHeaders(onSendHeadersWebRequest.requestHeaders);
 		this.statusCode;
 		this.responseHeaders;
+		this.contentLength = 0;
 
 		// Timestamps in Unix time
 		this.onSendHeadersTimeStamp = onSendHeadersWebRequest.timeStamp;
@@ -22,8 +23,9 @@ var WebRequest = class {
 		this.railguned = false;
 		this.polished = false;
 		this.imageResized = false;
-		this.rayId = null;
-		this.colo = null;
+		this.minified = false;
+		this.rayId = "";
+		this.colo = "";
 	}
 
 	parseHeaders(webRequestHeaders) {
@@ -69,6 +71,10 @@ var WebRequest = class {
 				case CONTENT_TYPE_HEADER:
 					// TODO
 					break;
+				case CONTENT_LENGTH_HEADER:
+					// TODO
+					this.contentLength = this.responseHeaders[header];
+					break;
 				default:
 					// Do nothing
 			}
@@ -86,6 +92,7 @@ var WebRequest = class {
 	getTTFB() { return "TODO getTTFB"; }
 	getRayId() { return this.rayId; }
 	getColo() { return this.colo; }
+	getContentLength() { return this.contentLength; }
 
 	// Setters
 	setStatusCode(statusCode) { this.statusCode = statusCode; }

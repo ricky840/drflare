@@ -1,52 +1,158 @@
 <div>
 	<link rel="stylesheet" type="text/css" href="/css/semantic.css">
+	<link rel="stylesheet" type="text/css" href="/css/panel.css">
 </div>
 <div>
-	<table id="status_table" class="ui sortable celled table">
+
+	<div class="column button">
+		<button id="view_table_button" class="ui button">
+		  View All Tables
+		</button>
+		<button id="hide_table_button" class="ui button">
+		  Hide All Tables
+		</button>
+		<button id="cached_table_button" class="ui button">
+		  Cached Table
+		</button>
+		<button id="not_cached_table_button" class="ui button">
+		  Could be cached Table
+		</button>
+		<button id="external_table_button" class="ui button">
+		  External Table
+		</button>
+		<button id="summary_table_button" class="ui button">
+		  Summary Table
+		</button>
+	</div>
+
+	<h1><b>'Command + Shift + 0'</b> to refresh</h1>
+
+	<h1>Cache Ratio (# cached requests / # requets)</h1>
+	<p id="cache">0</p>
+
+	<h1>External Ratio (# external requests / # requets)</h1>
+	<p id="external">0</p>
+
+	<h1>Offload (cached bytes / total byptes)</h1>
+	<p id="offload">0</p>
+
+
+	<h1>Cached Table</h1>
+	<table id="cached_table" class="ui sortable celled table">
 	  <thead>
-	    <tr>
+	  	<tr>
 	    	<th>RequestID</th>
-	      <th>RayID</th>
-	      <th>URL</th>
+	    	<th>URL</th>
+	      <th>Status</th>
+	      <th>Colo</th>
 	      <th>Cache</th>
 	      <th>Railgun</th>
 	      <th>Polish</th>
+	      <th>Minified</th>
 	    </tr>
 	  </thead>
 	  <tbody>
-	    <!-- <tr>
-	      <td>John</td>
-	      <td>No Action</td>
-	      <td>None</td>
-	      <td>No Action</td>
-	      <td>None</td>
-	      <td>No Action</td>
+	  </tbody>
+	  <tfoot>
+	  	<tr>
+	    	<th>RequestID footer</th>
+		    <th>URL footer</th>
+	      <th>Status footer</th>
+	      <th>Colo footer</th>
+	      <th>Cache footer</th>
+	      <th>Railgun footer</th>
+	      <th>Polish footer</th>
+	      <th>Minified footer</th>
+	  	</tr>
+	  </tfoot>
+	</table>
+
+	<h1>Could be Cached Table</h1>
+	<table id="not_cached_table" class="ui sortable celled table">
+	  <thead>
+	  	<tr>
+	    	<th>RequestID</th>
+	    	<th>URL</th>
+	      <th>Status</th>
+	      <th>Colo</th>
+	      <th>Cache</th>
+	      <th>Railgun</th>
+	      <th>Polish</th>
+	      <th>Minified</th>
 	    </tr>
-	    <tr>
-	      <td>John2</td>
-	      <td>No Action2</td>
-	      <td>None2</td>
-	      <td>No Action2</td>
-	      <td>None2</td>
-	      <td>No Action2</td>
+	  </thead>
+	  <tbody>
+	  </tbody>
+	  <tfoot>
+	  	 <tr>
+	    	<th>RequestID footer</th>
+		    <th>URL footer</th>
+	      <th>Status footer</th>
+	      <th>Colo footer</th>
+	      <th>Cache footer</th>
+	      <th>Railgun footer</th>
+	      <th>Polish footer</th>
+	      <th>Minified footer</th>
+	  	</tr>
+	  </tfoot>
+	</table>
+
+	<h1>External Table</h1>
+	<table id="external_table" class="ui sortable celled table">
+	  <thead>
+	  	<tr>
+	    	<th>RequestID</th>
+	    	<th>URL</th>
+	      <th>Status</th>
+	      <th>Colo</th>
+	      <th>Cache</th>
+	      <th>Railgun</th>
+	      <th>Polish</th>
+	      <th>Minified</th>
 	    </tr>
+	  </thead>
+	  <tbody>
+	  </tbody>
+	  <tfoot>
+	  	 <tr>
+	    	<th>RequestID footer</th>
+		    <th>URL footer</th>
+	      <th>Status footer</th>
+	      <th>Colo footer</th>
+	      <th>Cache footer</th>
+	      <th>Railgun footer</th>
+	      <th>Polish footer</th>
+	      <th>Minified footer</th>
+	  	</tr>
+	  </tfoot>
+	</table>
+
+	<h1>Summary Table</h1>
+	<table id="summary_table" class="ui sortable celled table">
+	  <thead>
 	    <tr>
-	      <td>John3</td>
-	      <td>No Action3</td>
-	      <td>None3</td>
-	      <td>No Action3</td>
-	      <td>None3</td>
-	      <td>No Action3</td>
-	    </tr> -->
+	    	<th>RequestID</th>
+	    	<th>URL</th>
+	      <th>Status</th>
+	      <th>Colo</th>
+	      <th>Cache</th>
+	      <th>Railgun</th>
+	      <th>Polish</th>
+	      <th>Minified</th>
+	    </tr>
+	  </thead>
+	  <tbody>
 	  </tbody>
 	  <tfoot>
 	    <tr>
 	    	<th>RequestID footer</th>
-		    <th>RayID footer</th>
-	      <th>URL footer</th>
+		    <th>URL footer</th>
+	      <th>Status footer</th>
+	      <th>Colo footer</th>
 	      <th>Cache footer</th>
 	      <th>Railgun footer</th>
 	      <th>Polish footer</th>
+	      <th>Minified footer</th>
 	  	</tr>
 		</tfoot>
 	</table>
@@ -54,6 +160,7 @@
 	<script type="text/javascript" src="/lib/jquery-3.1.1.min.js"></script>
 	<script type="text/javascript" src="/lib/semantic.min.js"></script>
 	<script type="text/javascript" src="/lib/sortTable.js"></script>
-	<script type="text/javascript" src="/js/debugBackground.js"></script>
+	<script type="text/javascript" src="/js/panel.js"></script>
+	<script type="text/javascript" src="/js/panelHelper.js"></script>
 </div>
 	

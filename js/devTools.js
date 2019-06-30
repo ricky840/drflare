@@ -69,18 +69,6 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   };
 });
 
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type.match('panel-ready')) {  
-    chrome.runtime.sendMessage({
-      type: 'web-requests-array',
-      message: requestObjects, 
-      tabId: tabId,
-      from: 'devTools.js'
-    });
-  };
-});
-
-
 var paintElement = function(requests, callback) {
   var urls = [];
   for (var i=0; i < requests.length; i++) {
