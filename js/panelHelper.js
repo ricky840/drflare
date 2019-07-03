@@ -52,44 +52,31 @@ $('.button').on("click", "button", function() {
       break;
 
     case 'cached_table_button':
-      if (isHidden('cached_table')) {
-        showTable('cached_table');
-      } else {
-        hideTable('cached_table');
-      }
-
+      viewOptionHandler('cached_table');
       break;
 
     case 'not_cached_table_button':
-      if (isHidden('not_cached_table')) {
-        showTable('not_cached_table');
-      } else {
-        hideTable('not_cached_table');
-      }
-
+      viewOptionHandler('not_cached_table');
       break;
 
     case 'external_table_button':
-      if (isHidden('external_table')) {
-        showTable('external_table');
-      } else {
-        hideTable('external_table');
-      }
-
+      viewOptionHandler('external_table');
       break;
 
     case 'summary_table_button':
-      if (isHidden('summary_table')) {
-        showTable('summary_table');
-      } else {
-        hideTable('summary_table');
-      }
-
+      viewOptionHandler('summary_table');
       break;
-
   }
 
 })
+
+function viewOptionHandler(tableName) {
+  if (isHidden(tableName)) {
+    showTable(tableName);
+  } else {
+    hideTable(tableName);
+  }
+}
 
 function showTable(tableId) {
   document.getElementById(tableId).style.display = "";
@@ -106,3 +93,7 @@ function isHidden(tableId) {
 
   return false;
 }
+
+$('.ui.accordion')
+  .accordion()
+;

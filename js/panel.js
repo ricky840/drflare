@@ -15,6 +15,10 @@ window.addEventListener('DOMContentLoaded', (event) => {
   sendPanelReadyMesssage();
 });
 
+// chrome.devtools.network.onRequestFinished.addListener(function request) {
+//   console.log(request);
+// }
+
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
   if (message.type.match('web-request-objects') && tabId == message.tabId && readyForIndividualWebRequest) { 
@@ -36,40 +40,24 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 });
 
 function addRow(requests) {
-  // var tableBody = document.getElementById("summary_table").getElementsByTagName('tbody')[0];
-  // console.log(requests);
-  let add = false;
+  let shouldWeAdd = false;
   let tableName = columnValue = '';
-  let tableBody = column = row = request = null;
+  let tableBody = column = titleRow = contentRow = request = null;
 
   for (let requestId in requests) {
     request = requests[requestId];
     for (let i = 0; i < TABLE_IDS.length; i++) {
-      add = false;
+      shouldWeAdd = false;
       tableName = TABLE_IDS[i];
 
-      switch(tableName) {
-        case "cached_table":
-          if (request.cfCached) { add = true; }
-          break;
+      shouldWeAdd = checkTable(tableName);
 
-        case "not_cached_table":
-          if (request.rayId && !request.cfCached) { add = true; }
-          break;
-
-        case "external_table":
-          if (!request.rayId) { add = true; }
-          break;
-
-        default:
-          add = true;
-      }
-
-      if (add) {
-        tableBody = document.getElementById(TABLE_IDS[i]).getElementsByTagName('tbody')[0];
-        row = tableBody.insertRow();
+      if (shouldWeAdd) {
+        tableBody = document.getElementById(tableName).getElementsByTagName('tbody')[0];
+        titleRow = tableBody.insertRow();
+        titleRow.className = "ui title";
         for (let j = 0; j < TABLE_ELEMENTS.length; j++) {
-          column = row.insertCell(j);
+          column = titleRow.insertCell(j);
           columnValue = '';
           if (typeof request[TABLE_ELEMENTS[j]] === "boolean") {
             if (request[TABLE_ELEMENTS[j]]) {
@@ -84,6 +72,11 @@ function addRow(requests) {
 
           column.innerHTML = columnValue;
         }
+        contentRow = tableBody.insertRow();
+        contentRow.className = "ui content";
+        column = contentRow.insertCell(0);
+        column.colSpan = `${TABLE_ELEMENTS.length}`;
+        column.innerHTML = toPrintResponseHeaders(request.responseHeaders);
       }
     }
   
@@ -116,6 +109,28 @@ function sendPanelReadyMesssage() {
   });
 }
 
+function checkTable(tableName) {
+  let ans = false;
+  switch(tableName) {
+    case "cached_table":
+      if (request.cfCached) { ans = true; }
+      break;
+
+    case "not_cached_table":
+      if (request.rayId && !request.cfCached) { ans = true; }
+      break;
+
+    case "external_table":
+      if (!request.rayId) { ans = true; }
+      break;
+
+    default:
+      ans = true;
+  }
+
+  return ans;
+}
+
 function updateOverview(request) {
   totalNumberOfRequests += 1;
   totalBytes = parseInt(totalBytes) + parseInt(request.contentLength);
@@ -123,4 +138,13 @@ function updateOverview(request) {
   calculateCacheHitRatio(request);
   calculateOffload(request);
   externalContentRatio(request);
+}
+
+function toPrintResponseHeaders(responseHeaders) {
+  let headersInString = "";
+  for (let header in responseHeaders) {
+    headersInString += `${header}: ${responseHeaders[header]} <br>`;
+  }
+
+  return headersInString;
 }
