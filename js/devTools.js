@@ -1,17 +1,10 @@
 'use strict';
 
-const PANEL_NAME = "Cloudflare Debugger";
-const PANEL_LOGO = "img/cloudflare-logo.png";
-const PANEL_HTML = "panel.html";
-const TABLE_ELEMENTS = ["requestId", "rayId", "url", "cache", "railgun", "polish"];
-
 let tabId = chrome.devtools.inspectedWindow.tabId;
 
 var requestObjects = {};
 var requestObjectsImages = [];
 var pageOnCompleteEvent = false;
-var table;
-var win;
 
 if (tabId) {
   let backgroundPageConnectionPort = chrome.runtime.connect({name: "devtools-page" + "-" + tabId});
@@ -45,8 +38,7 @@ if (tabId) {
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('webnavigation-before-refresh') && tabId == message.tabId) {  
     console.log("request object reset: " + Object.keys(requestObjects).length + "-----------------------------------------------------------------------------------------111111111111");
-    requestObjects = {};
-    requestObjectsImages = [];
+    requestObjects = {}; requestObjectsImages = [];
     pageOnCompleteEvent = false;
     console.log("request object reset: " + Object.keys(requestObjects).length + "-----------------------------------------------------------------------------------------22222222222");
   };
@@ -70,7 +62,6 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   };
 });
 
-
 var paintElement = function(requests, callback) {
   var urls = [];
   for (var i=0; i < requests.length; i++) {
@@ -89,9 +80,9 @@ var injectContentScript = function(tabId) {
         console.log("ContentScript already exists");
         resolve();
       } else {
-        chrome.tabs.insertCSS(tabId, {file: "css/overlay.css"}, function() {
-          chrome.tabs.executeScript(tabId, {file: 'lib/jquery-3.1.1.min.js'}, function() {
-            chrome.tabs.executeScript(tabId, {file: 'js/contentScript.js'}, function() {
+        chrome.tabs.insertCSS(tabId, {file: "css/overlay.css", allFrames: true}, function() {
+          chrome.tabs.executeScript(tabId, {file: 'lib/jquery-3.1.1.min.js', allFrames: true}, function() {
+            chrome.tabs.executeScript(tabId, {file: 'js/contentScript.js', allFrames: true}, function() {
               console.log("ContentScript inserted");
               resolve();
             });
