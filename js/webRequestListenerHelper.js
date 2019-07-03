@@ -43,7 +43,7 @@ function isInTab(tab, requestId) {
 
 function updateResponse(oldWebRequest, newWebRequest) {
 	oldWebRequest.setStatusCode(newWebRequest.statusCode);
-	oldWebRequest.setOnHeaderReceivedTimeStamp(newWebRequest.timeStamp);
+	// oldWebRequest.setOnHeaderReceivedTimeStamp(newWebRequest.timeStamp);
 	oldWebRequest.setResponseHeaders(newWebRequest.responseHeaders);
 	oldWebRequest.checkCFFeatures();
 	return oldWebRequest;

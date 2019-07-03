@@ -21,6 +21,7 @@ const CF_IMAGE_RESIZING_HEADER = "cf-resized";
 const CF_RAY_HEADER = "cf-ray";
 const CACHE_CONTROL_HEADER = "cache-control";
 const CONTENT_TYPE_HEADER = "content-type";
+const CONTENT_LENGTH_HEADER = "content-length";
 
 const CACHE_STATUS_HIT = "hit";
 const CACHE_REVALIDATE = "revalidate";
