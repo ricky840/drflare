@@ -19,3 +19,25 @@ chrome.runtime.onConnect.addListener(function(port) {
     });
   }
 });
+
+
+// init
+var initStorage = function() {
+  console.log('init');
+  chrome.storage.local.set({'domElements': {}}); 
+}
+
+// Fire when ext installed
+chrome.runtime.onInstalled.addListener(function() {
+  initStorage();
+});
+
+// Fires when Chrome starts or when user clicks refresh button in extension page
+chrome.runtime.onStartup.addListener(function() {
+  initStorage();
+});
+
+// Fires when user clicks disable / enable button in extension page
+window.onload = function() {
+  initStorage(); 
+};

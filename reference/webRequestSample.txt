@@ -127,3 +127,25 @@ function addRow(request) {
       cell.innerHTML = TABLE_ELEMENTS[i];
     }
   }
+
+
+<table class="ui table accordion">
+    <tbody>
+      <tr class="ui title">
+        <td>RequestID</td>
+        <td>URL</td>
+        <td>Status</td>
+      </tr>
+      <tr class="ui content">
+        <td>RequestID2</td>
+        <td>URL2</td>
+        <td>Status2</td>
+      </tr>
+
+      <tr>
+        <td>RequestID3</td>
+        <td>URL3</td>
+        <td>Status3</td>
+      </tr>
+    </tbody>
+  </table>

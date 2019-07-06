@@ -1,10 +1,6 @@
 'use strict';
 
-const PANEL_NAME = "Cloudflare Debugger";
-const PANEL_LOGO = "img/cloudflare-logo.png";
-const PANEL_HTML = "panel.html";
-
-let tabId = chrome.devtools.inspectedWindow.tabId;
+var tabId = chrome.devtools.inspectedWindow.tabId;
 
 var requestObjects = {};
 var requestObjectsImages = [];
@@ -71,7 +67,7 @@ var paintElement = function(requests, callback) {
   for (var i=0; i < requests.length; i++) {
     urls.push(requests[i].url);
   }
-  chrome.tabs.sendMessage(tabId, {type: 'content-script-paint', urls: urls, from: 'devTools.js'});
+  chrome.tabs.sendMessage(tabId, {type: 'content-script-paint', urls: urls, tabId: tabId, from: 'devTools.js'});
   if (callback) {
     callback();
   }

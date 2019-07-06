@@ -4,3 +4,8 @@ table {
 table td {
   word-wrap: break-word;
 }
+
+
+.ui.accordion .active.content, .ui.accordion .accordion .active.content {
+  display: table-row;
+}

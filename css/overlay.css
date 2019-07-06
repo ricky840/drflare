@@ -1,20 +1,20 @@
 .cfdebugger-overlay {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 100%;
-  width: 100%;
-  opacity: 0.5;
-  transition: .5s ease;
-  background-color: red;
+  position: absolute !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 100% !important;
+  width: 100% !important;
+  opacity: 0.5 !important;
+  transition: .5s ease !important;
+  background-color: red !important;
 }
 
 .cfdebugger-container {
   /* position: absolute; */
-  display: inline-block;
-  position: relative;
+  display: inline-block !important;
+  position: relative !important;
 }
 
 img {

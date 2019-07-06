@@ -4,20 +4,14 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   return true;
 });
 
-var previous_url = "";
-
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type !== 'content-script-paint') return;
+  var tabId = message.tabId;
   var urls = message.urls;
   var parser = document.createElement('a');
   var parsedUrls = [];
 
-  if (urls.length === 1 && previous_url === urls[0]) {
-    sendResponse({result: true});
-    return true;
-  } else if (urls.length === 1 && previous_url != "") {
-    previous_url = urls[0];
-  }
+  console.log(urls);
 
   for (var i=0; i < urls.length; i++) {
     parser.href = urls[i];
@@ -33,83 +27,125 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     });
   }
 
+
   paintTargetElements = [];
 
-  $("img)
 
-  $(this).css('background-image')
-
-
-  var imgs = Array.from(document.getElementsByTagName("img"));
-  kkkk
-  console.log(typeof imgs);
-  console.log(typeof paintTargetElements);
-
-  console.log(imgs);
+  // iframe -> body -> img
+  // elements in body
   
+  // console.log("event_arrived");
 
-  paintTargetElements = imgs.slice();
-  console.log(paintTargetElements);
+  var htmlElements = $("*:not(.cfdebugger-container) > img");
+  htmlElements.each(function(index, value) {
+    paintTargetElements.push($(this));
+  });
 
-
-  console.log("found img tags " + paintTargetElements.length);
-
-  // iframe
-  var iframes = document.getElementsByTagName('iframe');
-  console.log("found iframes = " + iframes.length);
-  
-  for (var i=0; i < iframes.length; i++) {
-    // var iframe_imgs = iframes[i].contentDocument.getElementsByTagName("img");
-    // var iframe_imgs = iframes[i].contentWindow.document.getElementsByTagName("img");
-    var innerDoc = iframes[i].contentDocument || iframes[i].contentWindow.document;
-    var iframe_imgs = innerDoc.getElementsByTagName("img");
-    // console.log(iframe_imgs.length);
-    for (var j=0; j < iframe_imgs.length; j++) {
-      paintTargetElements.push($(iframe_imgs[j]));
+  $("*:not(.cfdebugger-container) > div").filter(function() {
+    var temp = $(this).css("background-image");
+    if (temp !== "none") {
+      paintTargetElements.push($(this));
     }
-  }
+  });
 
-  console.log("found img tags including iframes " + paintTargetElements.length);
-
-
-  for (var i=0; i < paintTargetElements.length; i++) {
-    let thisObj = paintTargetElements[i];
-    var src = thisObj.attr('src');
-    if (src) {
-      src.trim();
+  $("*:not(.cfdebugger-container) > span").filter(function() {
+    var temp = $(this).css("background-image");
+    if (temp !== "none") {
+      paintTargetElements.push($(this));
     }
+  });
 
-    var domFound = false;
-
-    for (var j=0; j < parsedUrls.length; j++) {
-      var parsedUrl = parsedUrls[j];
-      for (var key in parsedUrl) {
-        if (parsedUrl[key] == src) {
-          domFound = true;
-        }
-      }
-      if (domFound) {
-        paintImgDom(thisObj);
-        // console.log("Found matching dom, painting " + thisObj.prop('outerHTML'));
-        break;
-      }
-    }
-
-    if (!domFound) {
-      // console.log("Matching URL doesn't exist for img dom " + src);
-    }
-  }
-  // $('img').each(function() {
+  // $("*:not(.cfdebugger-container) > span").filter(function() {
+  //   var temp2 = $(this).css("background-image");
+  //   if (temp2 !== "none") {
+  //     paintTargetElements.push($(this));
+  //     console.log(temp2);
+  //   }
   // });
 
-  sendResponse({result: true});
-  return true;
+  // $("*:not(.cfdebugger-container) > a").filter(function() {
+  //   var temp = $(this).css("background-image");
+  //   if (temp !== "none") {
+  //     paintTargetElements.push($(this));
+  //   }
+  // });
+ 
+  // console.log(hello);
+
+
+
+  // iframe
+  // var iframes = document.getElementsByTagName('iframe');
+  // // console.log("found iframes = " + iframes.length);
+  //
+  // for (var i=0; i < iframes.length; i++) {
+  //   // var iframe_imgs = iframes[i].contentDocument.getElementsByTagName("img");
+  //   // var iframe_imgs = iframes[i].contentWindow.document.getElementsByTagName("img");
+  //   var innerDoc = iframes[i].contentDocument || iframes[i].contentWindow.document;
+  //   var iframe_imgs = innerDoc.getElementsByTagName("*:not(.cfdebugger-container) > img");
+  //
+  //   // console.log(iframe_imgs.length);
+  //   for (var j=0; j < iframe_imgs.length; j++) {
+  //     paintTargetElements.push($(iframe_imgs[j]));
+  //   }
+  // }
+
+
+
+
+
+    for (var i=0; i < paintTargetElements.length; i++) {
+      let thisObj = paintTargetElements[i];
+      var src = thisObj.attr('src');
+      if (src) {
+        src.trim();
+      }
+
+      var backgroundImageUrl = thisObj.css("background-image");
+      backgroundImageUrl = backgroundImageUrl.replace('url(','').replace(')','');
+      if (backgroundImageUrl !== "none") {
+        backgroundImageUrl.trim();
+      }
+
+      // ################ css url compare
+
+      var domFound = false;
+
+      for (var j=0; j < parsedUrls.length; j++) {
+        var parsedUrl = parsedUrls[j];
+        for (var key in parsedUrl) {
+          if (parsedUrl[key] == src) {
+            domFound = true;
+          }
+          if (parsedUrl[key] == backgroundImageUrl) {
+            domFound = true;
+            console.log("matched " + backgroundImageUrl);
+          }
+        }
+        if (domFound) {
+          paintImgDom(thisObj);
+           // console.log("Found matching dom, painting " + thisObj.prop('outerHTML'));
+          break;
+        }
+      }
+
+      if (!domFound) {
+         // console.log("Matching URL doesn't exist for img dom " + src);
+      }
+    }
+
+    sendResponse({result: true});
+    return true;
+
+  // });
+
 });
 
 function paintImgDom(imgjQueryObj) {
   if (imgjQueryObj.parent().hasClass('cfdebugger-container')) {
     return false;
   } else {
+    imgjQueryObj.attr('style', 'position: unset !important');
     imgjQueryObj.wrap("<div class='cfdebugger-container'>");
     imgjQueryObj.after("<div class='cfdebugger-overlay'></div>");
     return true;
