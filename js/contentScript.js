@@ -1,153 +1,251 @@
+var tabId = requests = parser = parsedUrls = paintTargetElements = htmlElementsImg = htmlElementsFigure = null;
+var paintedObjectsImages = [];
+var domImgUrls = [];
+var urls = [];
+var matchedURLs = [];
+var matchCount = 0;
+var imageRequests = [];
+// var imageRequests = {};
+
+window.addEventListener('DOMContentLoaded', (event) => {
+  sendContentReadyMesssage();
+});
+
+// Inject ContentJS and check if the Content DOM is ready to be drawn
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type !== 'content-script-status') return;
+  tabId = message.tabId;
+
+  if(document.readyState === "complete") {
+    sendContentReadyMesssage(tabId);
+  }
+
   sendResponse({result: true});
   return true;
 });
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  if (message.type.match('reload-shortcut') && tabId == message.tabId) {
+    tabId = requests = parser = parsedUrls = paintTargetElements = htmlElementsImg = htmlElementsFigure = null;
+    paintedObjectsImages = [];
+    domImgUrls = [];
+    urls = [];
+    matchedURLs = [];
+    imageRequests = [];
+  }
+});
+
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type !== 'content-script-paint') return;
-  var tabId = message.tabId;
-  var urls = message.urls;
-  var parser = document.createElement('a');
-  var parsedUrls = [];
+  if (message.requests.length < 1) return;
 
-  console.log(urls);
+  console.log(requests);
 
-  for (var i=0; i < urls.length; i++) {
-    parser.href = urls[i];
-    parsedUrls.push({
-      path: parser.pathname,
-      full_url: urls[i],
-      path_and_query: parser.pathname + parser.search,
-      path_without_slash: parser.pathname.substr(1),
-      path_with_slash: parser.pathname,
-      path_with_two_slash: "/" + parser.pathname,
-      url_without_protocol: "//" + parser.hostname + parser.pathname,
-      url_without_protocol_with_query: "//" + parser.hostname + parser.pathname + parser.search
-    });
+  // Remove duplicates imageRequest
+  let add = false;
+  for (let i = 0; i < message.requests.length; i++) {
+    add = true;
+    for (let j = 0; j < imageRequests.length; j++) {
+      if (imageRequests[j].requestId == message.requests[i].requestId) { add = false; } 
+    }
+
+    if (add) { imageRequests.push(message.requests[i]); }
   }
 
+  // console.log(imageRequests);
 
   paintTargetElements = [];
 
-
-  // iframe -> body -> img
-  // elements in body
-  
-  // console.log("event_arrived");
-
-  var htmlElements = $("*:not(.cfdebugger-container) > img");
-  htmlElements.each(function(index, value) {
+  // Get all Image objects
+  htmlElementsImg = $("*:not(.cfdebugger-image-match) > img");
+  // htmlElementsImg = $("img");
+  htmlElementsImg.each(function(index, value) {
     paintTargetElements.push($(this));
   });
 
-  $("*:not(.cfdebugger-container) > div").filter(function() {
+  // Get all Figure objects
+  htmlElementsFigure = $("*:not(.cfdebugger-image-match) > figure");
+  // htmlElementsFigure = $("figure");
+  htmlElementsFigure.each(function(index, value) {
+    paintTargetElements.push($(this));
+  });
+
+  $("*:not(.cfdebugger-image-match) > div").filter(function() {
+  // $("div").filter(function() {
     var temp = $(this).css("background-image");
-    if (temp !== "none") {
+    if (temp.includes("url") && !temp.includes("data:image")) {
       paintTargetElements.push($(this));
     }
   });
 
-  $("*:not(.cfdebugger-container) > span").filter(function() {
+  $("*:not(.cfdebugger-image-match) > span").filter(function() {
+  // $("span").filter(function() {
     var temp = $(this).css("background-image");
-    if (temp !== "none") {
+    if (temp.includes("url") && !temp.includes("data:image")) {
       paintTargetElements.push($(this));
     }
   });
 
-  // $("*:not(.cfdebugger-container) > span").filter(function() {
-  //   var temp2 = $(this).css("background-image");
-  //   if (temp2 !== "none") {
-  //     paintTargetElements.push($(this));
-  //     console.log(temp2);
-  //   }
-  // });
-
-  // $("*:not(.cfdebugger-container) > a").filter(function() {
-  //   var temp = $(this).css("background-image");
-  //   if (temp !== "none") {
-  //     paintTargetElements.push($(this));
-  //   }
-  // });
- 
-  // console.log(hello);
-
-
-
-  // iframe
-  // var iframes = document.getElementsByTagName('iframe');
-  // // console.log("found iframes = " + iframes.length);
-  //
-  // for (var i=0; i < iframes.length; i++) {
-  //   // var iframe_imgs = iframes[i].contentDocument.getElementsByTagName("img");
-  //   // var iframe_imgs = iframes[i].contentWindow.document.getElementsByTagName("img");
-  //   var innerDoc = iframes[i].contentDocument || iframes[i].contentWindow.document;
-  //   var iframe_imgs = innerDoc.getElementsByTagName("*:not(.cfdebugger-container) > img");
-  //
-  //   // console.log(iframe_imgs.length);
-  //   for (var j=0; j < iframe_imgs.length; j++) {
-  //     paintTargetElements.push($(iframe_imgs[j]));
-  //   }
-  // }
-
-
-
-
-
-    for (var i=0; i < paintTargetElements.length; i++) {
-      let thisObj = paintTargetElements[i];
-      var src = thisObj.attr('src');
-      if (src) {
-        src.trim();
-      }
-
-      var backgroundImageUrl = thisObj.css("background-image");
-      backgroundImageUrl = backgroundImageUrl.replace('url(','').replace(')','');
-      if (backgroundImageUrl !== "none") {
-        backgroundImageUrl.trim();
-      }
-
-      // ################ css url compare
-
-      var domFound = false;
-
-      for (var j=0; j < parsedUrls.length; j++) {
-        var parsedUrl = parsedUrls[j];
-        for (var key in parsedUrl) {
-          if (parsedUrl[key] == src) {
-            domFound = true;
-          }
-          if (parsedUrl[key] == backgroundImageUrl) {
-            domFound = true;
-            console.log("matched " + backgroundImageUrl);
-          }
-        }
-        if (domFound) {
-          paintImgDom(thisObj);
-           // console.log("Found matching dom, painting " + thisObj.prop('outerHTML'));
-          break;
-        }
-      }
-
-      if (!domFound) {
-         // console.log("Matching URL doesn't exist for img dom " + src);
-      }
+  $("*:not(.cfdebugger-image-match) > a").filter(function() {
+  // $("a").filter(function() {
+    var temp = $(this).css("background-image");
+    if (temp.includes("url") && !temp.includes("data:image")) {
+      paintTargetElements.push($(this));
     }
+  });
 
-    sendResponse({result: true});
-    return true;
+  $("*:not(.cfdebugger-image-match) > i").filter(function() {
+  // $("i").filter(function() {
+    var temp = $(this).css("background-image");
+    if (temp.includes("url") && !temp.includes("data:image")) {
+      paintTargetElements.push($(this));
+    }
+  });
 
-  // });
+  markAllImg();
+
+  sendResponse({result: true});
+  return true;
 
 });
 
-function paintImgDom(imgjQueryObj) {
-  if (imgjQueryObj.parent().hasClass('cfdebugger-container')) {
-    return false;
-  } else {
-    imgjQueryObj.attr('style', 'position: unset !important');
-    imgjQueryObj.wrap("<div class='cfdebugger-container'>");
-    imgjQueryObj.after("<div class='cfdebugger-overlay'></div>");
-    return true;
+function sendContentReadyMesssage(tabId) {
+  chrome.runtime.sendMessage({
+    type: 'content-ready',
+    message: 'content-Ready', 
+    tabId: tabId,
+    from: 'contentScript.js'
+  });
+}
+
+
+function markAllImg() {
+  let imgjQueryObj;
+  let imgRequest;
+  for (let i = 0; i < paintTargetElements.length; i++) {
+    imgjQueryObj = paintTargetElements[i];
+
+    // If a Img DOM has `cfdebugger-image-match`, no need to do again.
+    if (!imgjQueryObj.hasClass('cfdebugger-image-match')) {
+      imgRequest = getImageRequest(imgjQueryObj);
+
+      if (imgRequest) {
+        imgjQueryObj.attr("cfdebugger-id", `${imgRequest.requestId}`);
+      }
+
+      ////////////////////////////////////////////////////////////////
+
+      ////Check ImgObj == Webrequest AND Cached
+      // if (imgRequest && imgRequest.cfCached) {
+
+      ////Check ImgObj == Webrequest
+      if (imgRequest) {
+
+      ////////////////////////////////////////////////////////////////
+        if (imgjQueryObj.hasClass('grayscale')) {
+          imgjQueryObj.removeClass('grayscale');
+        }
+        imgjQueryObj.addClass('cfdebugger-highlight');
+        imgjQueryObj.addClass('cfdebugger-image-match');
+      } else {
+        if (imgjQueryObj.hasClass('cfdebugger-image-match')) break;
+        paintImgDom(imgjQueryObj);
+      }
+    }
   }
 }
+
+function getImageRequest(imgjQueryObj) {
+  let srcURL;
+  let src;
+  let matchImageRequest;
+
+  src = imgjQueryObj.attr('src');
+
+  if (imgjQueryObj[0].currentSrc) {
+    srcURL = imgjQueryObj[0].currentSrc;
+  } else if (src) {
+    srcURL = src.trim();
+  } else {
+    srcURL = parseBackgroundURL(imgjQueryObj.css('background-image'));
+  }
+ 
+  // Requests based
+  for (let i = 0; i < imageRequests.length; i++) {
+    // console.log(`${imageRequests[i].url} == ${srcURL}`)
+    if (imageRequests[i].url == srcURL) {
+      matchedURLs.push(srcURL);
+      paintedObjectsImages.push(imageRequests[i]);
+      matchImageRequest = imageRequests[i];
+      // console.log(`Matchfound: ${i} : ${imageRequests[i].url} and ${srcURL}`);
+      // console.log(JSON.parse(JSON.stringify(imageRequests)));
+      imageRequests.splice(i,1);
+      // console.log(JSON.parse(JSON.stringify(imageRequests)));
+      return matchImageRequest;
+    }
+  }
+
+  // for (let i = 0; i < paintedObjectsImages.length; i++) {
+  //   if (paintedObjectsImages[i].url == srcURL) {
+  //     return paintedObjectsImages[i];
+  //   }
+  // }
+
+  return null;
+}
+
+function paintImgDom(imgjQueryObj) {
+  imgjQueryObj.addClass('cfdebugger-highlight');
+  imgjQueryObj.addClass('grayscale'); 
+}
+
+function parseBackgroundURL(backgroundImageURL) {
+  let firstQuote; 
+  let lastQuote;
+
+  firstQuote = backgroundImageURL.indexOf('"');
+  lastQuote = backgroundImageURL.lastIndexOf('"');
+
+  return backgroundImageURL.substring(firstQuote + 1, lastQuote);
+}
+
+function addPaintedObjectsImages(requests) {
+  if (requests.length > 1) {
+    paintedObjectsImages.push(...requests);
+  } else {
+    paintedObjectsImages.push(requests[0]);
+  }
+}
+
+
+
+function isCachedImage(imgjQueryObj) {
+  for (let i = 0; i < imageRequests.length; i++) {
+    // console.log(`${requests[i].url} and ${imgjQueryObj[0].currentSrc}`);
+    if (imageRequests[i].url.includes(imgjQueryObj[0].currentSrc)) {
+      return true;
+      // return requests[i].cfCached; 
+    }
+  }
+
+  return false;
+}
+
+// $('.activating.element')
+//   .popup()
+// ;
+
+// $('img')
+//   .popup({
+//     title   : 'Popup Title',
+//     content : `${$(this).val( $(this).attr("cfdebugger-id") )}`
+//   })
+  
+// ;
+
+// $('figure')
+//   .popup({
+//     title   : 'Popup Title',
+//     content : 'Hello I am a popup'
+//   })
+// ;

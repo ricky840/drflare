@@ -18,7 +18,8 @@
     "toggle-feature-foo": {
       "suggested_key": {
         "default": "Ctrl+Shift+5",
-        "mac": "Command+Shift+0"
+        "mac": "Command+Shift+0",
+        "windows": "Ctrl+Shift+0"
       },
       "description": "Toggle feature foo"
     },

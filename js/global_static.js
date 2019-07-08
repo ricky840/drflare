@@ -25,6 +25,6 @@ const CONTENT_LENGTH_HEADER = "content-length";
 
 const CACHE_STATUS_HIT = "hit";
 const CACHE_REVALIDATE = "revalidate";
+const CACHE_STALE = "revalidate";
 
-
-
+const CACHE_STATUSES = [CACHE_STATUS_HIT, CACHE_REVALIDATE, CACHE_STALE];

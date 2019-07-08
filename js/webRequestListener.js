@@ -67,7 +67,7 @@ chrome.webRequest.onCompleted.addListener(
     let tabId = details.tabId;
     if (inspectedTabIds.indexOf(tabId) > -1) {
 			if (isInTab(requests[details.tabId], details.requestId)) {
-				console.log(requests[details.tabId][details.requestId]);
+				// console.log(requests[details.tabId][details.requestId]);
         requests[details.tabId][details.requestId].setOnCompletedTimeStamp(details.timeStamp);
         requests[details.tabId][details.requestId] = updateResponse(requests[details.tabId][details.requestId], details);
         sendRequestObject(requests[details.tabId][details.requestId]);
@@ -85,14 +85,12 @@ chrome.webRequest.onCompleted.addListener(
 chrome.webNavigation.onBeforeNavigate.addListener(
 	function(details) {
 		if (inspectedTabIds.indexOf(details.tabId) > -1) {
-			// requests[details.tabId] = {};
       console.log("We're about to refresh the page please reset-------------------------------------------------------------------'");
       chrome.runtime.sendMessage({
         type: 'webnavigation-before-refresh', 
         tabId: details.tabId, 
         from: 'webRequestListener.js'
       });
-			// delete requests[details.tabId];
 		}
 	}
 );
@@ -106,13 +104,6 @@ function sendRequestObject(requestObj) {
   });
 }
 
-// Page onDomCompleted
-// chrome.webNavigation.onDOMContentLoaded.addListener(
-// 	function(details) {
-//     //
-// 	}
-// );
-//
 // onCompleted Page
 chrome.webNavigation.onCompleted.addListener(
 	function(details) {
@@ -131,7 +122,7 @@ function addToListener(newTabId, callback) {
   if (inspectedTabIds.indexOf(newTabId) < 0) {
     inspectedTabIds.push(newTabId);
     callback(newTabId);
-    console.log("inspectedTabIds: " + inspectedTabIds);
+    // console.log("inspectedTabIds: " + inspectedTabIds);
   } else {
     console.log("already listening");
   }
@@ -174,9 +165,22 @@ function reloadPage(tabId) {
 		type: "reload-shortcut",
 		tabId: tabId
 	});
-	// chrome.tabs.update(currentTab.id, {url: currentTab.url});
+
+	requests[tabId] = {};
+
+	sleep(2000);
 
 	requests[tabId] = {};
 
 	chrome.tabs.reload(tabId, {bypassCache: true});
+}
+
+
+function sleep(milliseconds) {
+  var start = new Date().getTime();
+  for (var i = 0; i < 1e7; i++) {
+    if ((new Date().getTime() - start) > milliseconds){
+      break;
+    }
+  }
 }

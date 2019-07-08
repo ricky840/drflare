@@ -6,7 +6,7 @@ chrome.runtime.onConnect.addListener(function(port) {
     var inspectedWindowTabId = parseInt(port.name.split("-")[2]);
     console.log("DevTool Window Open TabId: " + inspectedWindowTabId);
     addToListener(inspectedWindowTabId, function(refreshTabId) {
-      chrome.tabs.reload(refreshTabId, {bypassCache: true});
+      // chrome.tabs.reload(refreshTabId, {bypassCache: true});
     });
 
     port.onDisconnect.addListener(function(port) {

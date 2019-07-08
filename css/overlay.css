@@ -4,19 +4,48 @@
   bottom: 0 !important;
   left: 0 !important;
   right: 0 !important;
+  /*height: auto !important;
+  width: auto !important;*/
+  opacity: 0.5 !important;
+  transition: .5s ease !important;
+  background-color: red !important;
+
+  /*position: absolute !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
   height: 100% !important;
   width: 100% !important;
   opacity: 0.5 !important;
   transition: .5s ease !important;
-  background-color: red !important;
+  background-color: red !important;*/
 }
 
 .cfdebugger-container {
-  /* position: absolute; */
-  display: inline-block !important;
-  position: relative !important;
+  /*display: inline-block !important;*/
+  /*position: relative !important;*/
 }
 
-img {
-  /* opacity: 0.1; */
+/*img:hover {
+  opacity: 0;
+}
+
+figure:hover {
+  opacity: 0;
+}*/
+.cf-debugging-blur {
+  -webkit-filter: blur(4px);
+  filter: blur(4px);
+}
+
+.saturate {
+  -webkit-filter: saturate(7);
+  filter: saturate(7);
+}
+
+.grayscale {
+  opacity: 0.3;
+  -webkit-filter: grayscale(100%);
+  filter: grayscale(100%);
 }
