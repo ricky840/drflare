@@ -15,7 +15,7 @@ var requests = {};
 // onSendHeaders: Before the requests are sent to the network.
 chrome.webRequest.onSendHeaders.addListener(
 	function(details) {
-		if (listen && inspectedTabIds.indexOf(details.tabId) > -1) {
+		if (listen && (inspectedTabIds.indexOf(details.tabId) > -1)) {
 			let request = new WebRequest(details);
      
 			if (!isInRequests(requests, details.tabId)) {
@@ -107,9 +107,25 @@ function sendRequestObject(requestObj) {
 }
 
 // onCompleted Page
+chrome.webNavigation.onDOMContentLoaded.addListener(
+// chrome.webNavigation.onCompleted.addListener(
+	function(details) {
+		if (listen && inspectedTabIds.indexOf(details.tabId) > -1) {
+			chrome.runtime.sendMessage({
+         type: 'page-onDOMContentLoaded-event', 
+         message: details,
+         tabId: details.tabId, 
+         from: 'webRequestListener.js'
+      });
+		}
+	}
+);
+
+// onCompleted Page
+// chrome.webNavigation.onDOMContentLoaded.addListener(
 chrome.webNavigation.onCompleted.addListener(
 	function(details) {
-		if (inspectedTabIds.indexOf(details.tabId) > -1) {
+		if (listen && (inspectedTabIds.indexOf(details.tabId) > -1)) {
 			chrome.runtime.sendMessage({
          type: 'page-onload-event', 
          message: details, 
@@ -152,6 +168,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
 // Testing customized Keyboard shortcut
 chrome.commands.onCommand.addListener(function(command) {
+	console.log(`Command: ${command}`);
   if (command.match('toggle-feature-foo')) {
   	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
   		let currentTab = tabs[0];
@@ -168,6 +185,7 @@ chrome.commands.onCommand.addListener(function(command) {
 
 function reloadPage(tabId) {
 	listen = false;
+	// console.log('-----Lets reset-----');
 	chrome.runtime.sendMessage({
 		type: "reload-shortcut",
 		tabId: tabId
@@ -175,17 +193,12 @@ function reloadPage(tabId) {
 
 	requests[tabId] = {};
 
-	sleep(2000);
+	sleep(1000);
+	sleep(1000);
 
-	chrome.runtime.sendMessage({
-		type: "reload-shortcut",
-		tabId: tabId
-	});
-	requests[tabId] = {};
-
-	
 	chrome.tabs.reload(tabId, {bypassCache: true});
 	listen = true;
+	// console.log('-----Start Listening again!-----');
 }
 
 

@@ -34,25 +34,36 @@ if (tabId) {
       requestObjects[request.requestId] = request;
 
       if (request.objectType === "image" && request.statusCode == 200) {
-
+        requestObjectsImages.push(request);
         // Ready for OnCompleteEvent AND ContentDom to complete
         if (pageOnCompleteEvent && contentScriptReadyToDraw) {
+          isReadyForTimer();
 
-          if (!timer && requestObjectsImages.length > 0) {
-            requestObjectsImages.push(request);
-            paintedObjectsImages.push(...requestObjectsImages);
-            paintElement(requestObjectsImages);
-            requestObjectsImages = [];
-          } else {
-            // paintedObjectsImages.push(request);
-            // paintElement([request]);
-            requestObjectsImages.push(request);
-          }
 
-          if (!timer) {
-            timer = true;
-            startInterval();
-          }
+          // if (!timer && requestObjectsImages.length > 0) {
+          //   requestObjectsImages.push(request);
+          //   paintedObjectsImages.push(...requestObjectsImages);
+          //   paintElement(requestObjectsImages);
+          //   requestObjectsImages = [];
+          // } 
+
+          
+
+          // if (!timer && requestObjectsImages.length > 0) {
+          //   requestObjectsImages.push(request);
+          //   paintedObjectsImages.push(...requestObjectsImages);
+          //   paintElement(requestObjectsImages);
+          //   requestObjectsImages = [];
+          // } else {
+          //   // paintedObjectsImages.push(request);
+          //   // paintElement([request]);
+          //   requestObjectsImages.push(request);
+          // }
+
+          // if (!timer) {
+          //   timer = true;
+          //   startInterval();
+          // }
 
           // // Send the initial bulk requestObjectsImages
           // if (requestObjectsImages.length > 0) {
@@ -68,7 +79,8 @@ if (tabId) {
           // Send the initial bulk requestObjectsImages
           
         } else {
-          requestObjectsImages.push(request);
+          // injectContentScript(tabId);
+          isContentDOMReady(tabId);
         }
       }
     }
@@ -85,7 +97,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     pageOnCompleteEvent = false;
     contectScriptInjected = false;
     contentScriptReadyToDraw = false;
-    interval = null;
+    clearInterval(interval);
     timer = false;
     count = 0;
   };
@@ -100,6 +112,13 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     pageOnCompleteEvent = true;
     checkAndSendToContent();
     console.log("onload event!!!!! let's paint --------------------------------------------------------------------------------------------");
+  };
+});
+
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  if (message.type.match('page-onDOMContentLoaded-event') && tabId == message.tabId) {  
+
+    console.log("onDOMContentLoaded event!!! --------------------------------------------------------------------------------------------");
   };
 });
 
@@ -149,20 +168,31 @@ var injectContentScript = function(tabId) {
   });
 }
 
+function isContentDOMReady(tabId) {
+  chrome.tabs.sendMessage(
+    tabId, 
+    {
+      type: 'content-script-dom-status',
+      tabId: tabId,
+      message: 'alive?',
+      from: 'devTools.js'
+    }
+  );
+}
+
 function checkAndSendToContent() {
   // Ready for OnCompleteEvent AND ContentDom to complete
   if (pageOnCompleteEvent && contentScriptReadyToDraw) {
     // Send the initial bulk requestObjectsImages
-    if (requestObjectsImages.length > 0) {
+    isReadyForTimer();
+  }
+}
 
-      paintElement(requestObjectsImages);
-      requestObjectsImages = [];
-
-      if (!timer) {
-        timer = true;
-        startInterval();
-      }
-    } 
+function isReadyForTimer() {
+  if (!timer) {
+    console.log('Timer On');
+    timer = true;
+    startInterval();
   }
 }
 
@@ -170,8 +200,9 @@ function startInterval() {
   interval = setInterval(function() { 
     console.log(`every 1 seconds: count = ${counter + 1}`);
     if (requestObjectsImages.length > 0) {
-      paintElement(requestObjectsImages);
+      paintedObjectsImages = requestObjectsImages;
       requestObjectsImages = [];
+      paintElement(paintedObjectsImages);
     }
   }, 1000);
 }

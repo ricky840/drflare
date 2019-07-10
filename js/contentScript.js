@@ -18,14 +18,20 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
   // console.log('contentJS yes');
   tabId = message.tabId;
+  sendResponse({result: true});
+  return true;
+});
+
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  if (message.type !== 'content-script-dom-status') return;
+
+  // console.log('contentJS yes');
+  tabId = message.tabId;
 
   if(document.readyState === "complete") {
     // console.log('contentJS DOM ready');
     sendContentReadyMesssage(tabId);
   }
-
-  sendResponse({result: true});
-  return true;
 });
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
@@ -265,6 +271,15 @@ function isCachedImage(imgjQueryObj) {
   }
 
   return false;
+}
+
+function sleep(milliseconds) {
+  var start = new Date().getTime();
+  for (var i = 0; i < 1e7; i++) {
+    if ((new Date().getTime() - start) > milliseconds){
+      break;
+    }
+  }
 }
 
 // $('.activating.element')
