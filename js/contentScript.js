@@ -207,7 +207,7 @@ function getImageRequest(imgjQueryObj) {
   for (let i = 0; i < imageRequests.length; i++) {
     // console.log(`${imageRequests[i].url} == ${srcURL}`)
     if (imageRequests[i].url == srcURL) {
-      
+
       if (paintedObjectsImages.indexOf(imageRequests[i])) {
         paintedObjectsImages.push(imageRequests[i]);
         matchedURLs.push(srcURL);

@@ -5,6 +5,7 @@
 
 // Global variables for webRequestListener
 var inspectedTabIds = [];
+var listen = false;
 
 // Collections of requests per tabId 
 // ex) tabId => {requestId1: webRequest1, requestId2: webRequest2, ...}
@@ -14,7 +15,7 @@ var requests = {};
 // onSendHeaders: Before the requests are sent to the network.
 chrome.webRequest.onSendHeaders.addListener(
 	function(details) {
-		if (inspectedTabIds.indexOf(details.tabId) > -1) {
+		if (listen && inspectedTabIds.indexOf(details.tabId) > -1) {
 			let request = new WebRequest(details);
      
 			if (!isInRequests(requests, details.tabId)) {
@@ -166,6 +167,7 @@ chrome.commands.onCommand.addListener(function(command) {
 });
 
 function reloadPage(tabId) {
+	listen = false;
 	chrome.runtime.sendMessage({
 		type: "reload-shortcut",
 		tabId: tabId
@@ -175,9 +177,15 @@ function reloadPage(tabId) {
 
 	sleep(2000);
 
+	chrome.runtime.sendMessage({
+		type: "reload-shortcut",
+		tabId: tabId
+	});
 	requests[tabId] = {};
 
+	
 	chrome.tabs.reload(tabId, {bypassCache: true});
+	listen = true;
 }
 
 

@@ -10,6 +10,9 @@ var pageOnCompleteEvent = false;
 var contectScriptInjected = false;
 var contentScriptReadyToDraw = false;
 var urls = [];
+var timer = false;
+var counter = 0;
+var interval = null;
 
 if (tabId) {
   let backgroundPageConnectionPort = chrome.runtime.connect({name: "devtools-page" + "-" + tabId});
@@ -34,16 +37,36 @@ if (tabId) {
 
         // Ready for OnCompleteEvent AND ContentDom to complete
         if (pageOnCompleteEvent && contentScriptReadyToDraw) {
-          // Send the initial bulk requestObjectsImages
-          if (requestObjectsImages.length > 0) {
+
+          if (!timer && requestObjectsImages.length > 0) {
             requestObjectsImages.push(request);
             paintedObjectsImages.push(...requestObjectsImages);
             paintElement(requestObjectsImages);
             requestObjectsImages = [];
           } else {
-            paintedObjectsImages.push(request);
-            paintElement([request]);
+            // paintedObjectsImages.push(request);
+            // paintElement([request]);
+            requestObjectsImages.push(request);
           }
+
+          if (!timer) {
+            timer = true;
+            startInterval();
+          }
+
+          // // Send the initial bulk requestObjectsImages
+          // if (requestObjectsImages.length > 0) {
+          //   requestObjectsImages.push(request);
+          //   paintedObjectsImages.push(...requestObjectsImages);
+          //   paintElement(requestObjectsImages);
+          //   requestObjectsImages = [];
+          // } else {
+          //   paintedObjectsImages.push(request);
+          //   paintElement([request]);
+          // }
+
+          // Send the initial bulk requestObjectsImages
+          
         } else {
           requestObjectsImages.push(request);
         }
@@ -62,6 +85,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     pageOnCompleteEvent = false;
     contectScriptInjected = false;
     contentScriptReadyToDraw = false;
+    interval = null;
+    timer = false;
+    count = 0;
   };
 });
 
@@ -79,7 +105,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
 // when Content DOM is ready
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  console.log(`${message.type}: ${tabId == message.tabId} : ${tabId} : ${message.tabId}`);
+  // console.log(`${message.type}: ${tabId == message.tabId} : ${tabId} : ${message.tabId}`);
   if (message.type.match('content-ready') && tabId == message.tabId) {
     contentScriptReadyToDraw = true;
     console.log('Received: content-ready');
@@ -128,10 +154,26 @@ function checkAndSendToContent() {
   if (pageOnCompleteEvent && contentScriptReadyToDraw) {
     // Send the initial bulk requestObjectsImages
     if (requestObjectsImages.length > 0) {
+
       paintElement(requestObjectsImages);
       requestObjectsImages = [];
+
+      if (!timer) {
+        timer = true;
+        startInterval();
+      }
     } 
   }
+}
+
+function startInterval() {
+  interval = setInterval(function() { 
+    console.log(`every 1 seconds: count = ${counter + 1}`);
+    if (requestObjectsImages.length > 0) {
+      paintElement(requestObjectsImages);
+      requestObjectsImages = [];
+    }
+  }, 1000);
 }
 
 
