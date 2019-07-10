@@ -90,6 +90,7 @@ if (tabId) {
 // Before the page gets refreshed
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('reload-shortcut') && tabId == message.tabId) {
+    console.log(`reload timeStamp: ${Date.now()}`);
     requestObjects = {};
     requestObjectsImages = [];
     paintedObjectsImages = [];
@@ -107,18 +108,24 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('page-onload-event') && tabId == message.tabId) {  
 
-    // if (!pageOnCompleteEvent) {
     injectContentScript(tabId);
-    pageOnCompleteEvent = true;
-    checkAndSendToContent();
-    console.log("onload event!!!!! let's paint --------------------------------------------------------------------------------------------");
+
+    // Whenever a page reload framId becomes 0
+    if (!pageOnCompleteEvent && (message.frameId == 0)) {
+      pageOnCompleteEvent = true;
+    }
+
+    if (pageOnCompleteEvent) {
+      checkAndSendToContent();
+      console.log("onload event!!!!! let's paint --------------------------------------------------------------------------------------------");
+    }
   };
 });
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('page-onDOMContentLoaded-event') && tabId == message.tabId) {  
 
-    console.log("onDOMContentLoaded event!!! --------------------------------------------------------------------------------------------");
+    // console.log("onDOMContentLoaded event!!! --------------------------------------------------------------------------------------------");
   };
 });
 
