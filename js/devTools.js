@@ -29,6 +29,7 @@ if (tabId) {
       let request = message.message;
 
       requestObjects[request.requestId] = request;
+
       if (request.objectType === "image" && request.statusCode == 200) {
 
         // Ready for OnCompleteEvent AND ContentDom to complete
@@ -69,7 +70,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('page-onload-event') && tabId == message.tabId) {  
 
     // if (!pageOnCompleteEvent) {
-    // injectContentScript(tabId);
+    injectContentScript(tabId);
     pageOnCompleteEvent = true;
     checkAndSendToContent();
     console.log("onload event!!!!! let's paint --------------------------------------------------------------------------------------------");
@@ -78,11 +79,11 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
 // when Content DOM is ready
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  // console.log(`${message.type}: ${tabId == message.tabId} : ${tabId} : ${message.tabId}`);
+  console.log(`${message.type}: ${tabId == message.tabId} : ${tabId} : ${message.tabId}`);
   if (message.type.match('content-ready') && tabId == message.tabId) {
     contentScriptReadyToDraw = true;
-    checkAndSendToContent();
     console.log('Received: content-ready');
+    checkAndSendToContent();
   }
 });
 

@@ -8,15 +8,19 @@ var imageRequests = [];
 // var imageRequests = {};
 
 window.addEventListener('DOMContentLoaded', (event) => {
-  sendContentReadyMesssage();
+  // console.log('content DOM ready');
+  sendContentReadyMesssage(tabId);
 });
 
 // Inject ContentJS and check if the Content DOM is ready to be drawn
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type !== 'content-script-status') return;
+
+  // console.log('contentJS yes');
   tabId = message.tabId;
 
   if(document.readyState === "complete") {
+    // console.log('contentJS DOM ready');
     sendContentReadyMesssage(tabId);
   }
 
@@ -39,7 +43,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type !== 'content-script-paint') return;
   if (message.requests.length < 1) return;
 
-  console.log(requests);
+  // console.log(message.requests);
 
   // Remove duplicates imageRequest
   let add = false;
@@ -124,7 +128,6 @@ function markAllImg() {
   let imgRequest;
   for (let i = 0; i < paintTargetElements.length; i++) {
     imgjQueryObj = paintTargetElements[i];
-
     // If a Img DOM has `cfdebugger-image-match`, no need to do again.
     if (!imgjQueryObj.hasClass('cfdebugger-image-match')) {
       imgRequest = getImageRequest(imgjQueryObj);
@@ -137,20 +140,50 @@ function markAllImg() {
 
       ////Check ImgObj == Webrequest AND Cached
       // if (imgRequest && imgRequest.cfCached) {
+      //   if (imgjQueryObj.hasClass('grayscale')) {
+      //       imgjQueryObj.removeClass('grayscale');
+      //   }
+      //   imgjQueryObj.addClass('cfdebugger-highlight');
+      //   imgjQueryObj.addClass('cfdebugger-image-match');
+      // } else {
+      //   if (imgjQueryObj.hasClass('cfdebugger-image-match')) break;
+      //   paintImgDom(imgjQueryObj);
+      // }
 
       ////Check ImgObj == Webrequest
       if (imgRequest) {
-
-      ////////////////////////////////////////////////////////////////
-        if (imgjQueryObj.hasClass('grayscale')) {
-          imgjQueryObj.removeClass('grayscale');
-        }
         imgjQueryObj.addClass('cfdebugger-highlight');
         imgjQueryObj.addClass('cfdebugger-image-match');
+        if (imgRequest.cfCached) {
+          if (imgjQueryObj.hasClass('grayscale')) {
+            imgjQueryObj.removeClass('grayscale');
+          }
+        } else if (imgRequest.rayId.length > 0) {
+          if (imgjQueryObj.hasClass('grayscale')) {
+            imgjQueryObj.removeClass('grayscale');
+          }
+          imgjQueryObj.addClass('invert'); 
+        } else {
+          if (imgjQueryObj.hasClass('grayscale')) {
+            imgjQueryObj.removeClass('grayscale');
+          }
+          imgjQueryObj.addClass('cf-debugging-blur');
+        }
       } else {
         if (imgjQueryObj.hasClass('cfdebugger-image-match')) break;
         paintImgDom(imgjQueryObj);
       }
+
+      // if (imgRequest) {
+      //   if (imgjQueryObj.hasClass('grayscale')) {
+      //     imgjQueryObj.removeClass('grayscale');
+      //   }
+      //   imgjQueryObj.addClass('cfdebugger-highlight');
+      //   imgjQueryObj.addClass('cfdebugger-image-match');
+      // } else {
+      //   if (imgjQueryObj.hasClass('cfdebugger-image-match')) break;
+      //   paintImgDom(imgjQueryObj);
+      // }
     }
   }
 }
@@ -174,8 +207,11 @@ function getImageRequest(imgjQueryObj) {
   for (let i = 0; i < imageRequests.length; i++) {
     // console.log(`${imageRequests[i].url} == ${srcURL}`)
     if (imageRequests[i].url == srcURL) {
-      matchedURLs.push(srcURL);
-      paintedObjectsImages.push(imageRequests[i]);
+      
+      if (paintedObjectsImages.indexOf(imageRequests[i])) {
+        paintedObjectsImages.push(imageRequests[i]);
+        matchedURLs.push(srcURL);
+      }
       matchImageRequest = imageRequests[i];
       // console.log(`Matchfound: ${i} : ${imageRequests[i].url} and ${srcURL}`);
       // console.log(JSON.parse(JSON.stringify(imageRequests)));
@@ -185,11 +221,11 @@ function getImageRequest(imgjQueryObj) {
     }
   }
 
-  // for (let i = 0; i < paintedObjectsImages.length; i++) {
-  //   if (paintedObjectsImages[i].url == srcURL) {
-  //     return paintedObjectsImages[i];
-  //   }
-  // }
+  for (let i = 0; i < paintedObjectsImages.length; i++) {
+    if (paintedObjectsImages[i].url == srcURL) {
+      return paintedObjectsImages[i];
+    }
+  }
 
   return null;
 }
