@@ -97,6 +97,20 @@ chrome.webNavigation.onBeforeNavigate.addListener(
 	}
 );
 
+// onCommitted
+chrome.webNavigation.onCommitted.addListener(
+	function(details) {
+		if (inspectedTabIds.indexOf(details.tabId) > -1) {
+      console.log("oncommitted event");
+      chrome.runtime.sendMessage({
+        type: 'webnavigation-onCommitted', 
+        tabId: details.tabId, 
+        from: 'webRequestListener.js'
+      });
+		}
+	}
+);
+
 function sendRequestObject(requestObj) {
   chrome.runtime.sendMessage({
     type: 'web-request-objects',
@@ -106,13 +120,12 @@ function sendRequestObject(requestObj) {
   });
 }
 
-// onCompleted Page
+// onDOMContentLoaded Event
 chrome.webNavigation.onDOMContentLoaded.addListener(
-// chrome.webNavigation.onCompleted.addListener(
 	function(details) {
 		if (listen && inspectedTabIds.indexOf(details.tabId) > -1) {
 			chrome.runtime.sendMessage({
-         type: 'page-onDOMContentLoaded-event', 
+         type: 'page-onDOMContentLoad-event', 
          message: details,
          tabId: details.tabId, 
          from: 'webRequestListener.js'
@@ -120,6 +133,18 @@ chrome.webNavigation.onDOMContentLoaded.addListener(
 		}
 	}
 );
+
+chrome.tabs.onUpdated.addListener (
+	function(tabId, changeInfo, tab) {
+		if (listen && (inspectedTabIds.indexOf(tabId) > -1) && changeInfo.status == "loading") {
+			chrome.runtime.sendMessage({
+         type: 'tab-updated', 
+         message: {}, 
+         tabId: tabId, 
+         from: 'webRequestListener.js'
+      });
+		}
+});
 
 // onCompleted Page
 // chrome.webNavigation.onDOMContentLoaded.addListener(
@@ -166,6 +191,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   };
 });
 
+
+
+
 // Testing customized Keyboard shortcut
 chrome.commands.onCommand.addListener(function(command) {
 	console.log(`Command: ${command}`);
@@ -193,7 +221,6 @@ function reloadPage(tabId) {
 
 	requests[tabId] = {};
 
-	sleep(1000);
 	sleep(1000);
 
 	chrome.tabs.reload(tabId, {bypassCache: true});
