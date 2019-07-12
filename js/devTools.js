@@ -107,5 +107,5 @@ function startInterval() {
         });
       }
     }
-  }, 500);
+  }, 100);
 }
