@@ -11,7 +11,8 @@
       "js/global_static.js",
       "js/webRequestListener.js",
       "js/webRequestListenerHelper.js",
-      "js/class/WebRequest.js"
+      "js/class/WebRequest.js",
+      "js/class/NetworkRequest.js"
     ]
   },
   "commands": {

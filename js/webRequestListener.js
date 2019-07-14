@@ -72,7 +72,7 @@ chrome.webRequest.onCompleted.addListener(
 				// console.log(requests[details.tabId][details.requestId]);
         requests[details.tabId][details.requestId].setOnCompletedTimeStamp(details.timeStamp);
         requests[details.tabId][details.requestId] = updateResponse(requests[details.tabId][details.requestId], details);
-        sendRequestObject(requests[details.tabId][details.requestId]);
+        // sendRequestObject(requests[details.tabId][details.requestId]);
 			}
 		}
 	 },
@@ -123,7 +123,8 @@ function sendRequestObject(requestObj) {
 // onDOMContentLoaded Event
 chrome.webNavigation.onDOMContentLoaded.addListener(
 	function(details) {
-		if (listen && inspectedTabIds.indexOf(details.tabId) > -1) {
+		if (inspectedTabIds.indexOf(details.tabId) > -1) {
+		// if (listen && inspectedTabIds.indexOf(details.tabId) > -1) {
 			chrome.runtime.sendMessage({
          type: 'page-onDOMContentLoad-event', 
          message: details,
@@ -136,7 +137,8 @@ chrome.webNavigation.onDOMContentLoaded.addListener(
 
 chrome.tabs.onUpdated.addListener (
 	function(tabId, changeInfo, tab) {
-		if (listen && (inspectedTabIds.indexOf(tabId) > -1) && changeInfo.status == "loading") {
+		if ((inspectedTabIds.indexOf(tabId) > -1) && changeInfo.status == "loading") {
+		// if (listen && (inspectedTabIds.indexOf(tabId) > -1) && changeInfo.status == "loading") {
 			chrome.runtime.sendMessage({
          type: 'tab-updated', 
          message: {}, 
@@ -151,6 +153,7 @@ chrome.tabs.onUpdated.addListener (
 chrome.webNavigation.onCompleted.addListener(
 	function(details) {
 		if (listen && (inspectedTabIds.indexOf(details.tabId) > -1)) {
+		// if (listen && (inspectedTabIds.indexOf(details.tabId) > -1)) {
 			chrome.runtime.sendMessage({
          type: 'page-onload-event', 
          message: details, 

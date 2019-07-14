@@ -12,6 +12,7 @@ var cachedBytes = 0;
 var totalNumberOfRequests = 0;
 var externalNumberOfRequests = 0;
 var cachedNumberOfRequests = 0;
+var cachableNumberOfRequests = 0;
 
 var requestObjectsImages = [];
 
@@ -24,27 +25,11 @@ window.addEventListener('DOMContentLoaded', (event) => {
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('web-request-objects') && tabId == message.tabId && readyForIndividualWebRequest) { 
     let request = message.message;
-    // console.log("DebugBackground Each Object Delivered: " + request);
-    // console.log(request);
     addTableRow({request});
-
-    
-    // if (request.objectType === "image") {
-    //   if (readyToPaint) {
-    //     paintElement([request]);
-    //   }
-    // }
 
   } else if (message.type.match('web-requests-array') && tabId == message.tabId) {
     let requests = message.message;
     addTableRow(requests);
-    // console.log("DebugBackground REQUESTS Array Object Delivered: " + requests);
-
-
-    // if (readyToPaint) {
-    //   paintElement(requestObjectsImages);
-    // }
-    
     
   } else if (message.type.match('reload-shortcut') && tabId == message.tabId) {
     resetTables();
@@ -118,6 +103,7 @@ function resetOverviewValues() {
   totalNumberOfRequests = 0;
   externalNumberOfRequests = 0;
   cachedNumberOfRequests = 0;
+  cachableNumberOfRequests = 0;
   requestObjectsImages = [];
 }
 
@@ -166,6 +152,7 @@ function updateOverview(request) {
 
   if (readyForIndividualWebRequest) {
     calculateCacheHitRate(request);
+    calculateCachableHitRate(request);
     calculateOffload(request);
     externalContentRatio(request);
   }
@@ -187,6 +174,16 @@ function calculateCacheHitRate(request) {
   
   if (document.getElementById("cache")) {
     document.getElementById("cache").innerHTML = `${cachedNumberOfRequests} / ${totalNumberOfRequests}`;
+  }
+}
+
+function calculateCachableHitRate(request) {
+  if (!request.cfCached && request.rayId) {
+    cachableNumberOfRequests += 1;
+  }
+  
+  if (document.getElementById("cacheable")) {
+    document.getElementById("cacheable").innerHTML = `${cachableNumberOfRequests} / ${totalNumberOfRequests}`;
   }
 }
 

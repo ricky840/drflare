@@ -9,6 +9,7 @@ var contectScriptInjected = false;
 var urls = [];
 var timer = false;
 var interval = null;
+var requestId = 0;
 
 var injectContentScript = function(tabId) {
   return new Promise(function(resolve, reject) {
@@ -46,17 +47,42 @@ if (tabId) {
 
   chrome.devtools.panels.create(PANEL_NAME, PANEL_LOGO, PANEL_HTML, function(panel) {
     // Panel Created
+
   });
 
-  chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    if (message.type.match('web-request-objects') && tabId == message.tabId) {
-      let request = message.message;
-      requestObjects[request.requestId] = request;
-      if (request.objectType === "image" && request.statusCode === 200) {
-        requestObjectsImages.push(request);
+  //Network Tab onRequestFinished
+  chrome.devtools.network.onRequestFinished.addListener(
+    function(request) {
+      requestId += 1;
+      let networkRequest = new NetworkRequest(requestId);
+      networkRequest.setDetails(request);
+
+      if (!networkRequest.url.startsWith("data:")) {
+        chrome.runtime.sendMessage({
+          type: 'web-request-objects',
+          message: networkRequest, 
+          tabId: tabId, 
+          from: 'webRequestListener.js'
+        });
+
+        requestObjects[networkRequest.requestId] = networkRequest;
+        // console.log(`${networkRequest.objectType} : ${networkRequest.objectType.includes("image")} && ${networkRequest.statusCode == 200}`);
+        if (networkRequest.objectType.includes("image") && networkRequest.statusCode === 200) {
+          requestObjectsImages.push(networkRequest);
+        }
       }
     }
-  });
+  );
+
+  chrome.devtools.network.onNavigated.addListener(
+    function(url) {
+      // resetDevTools();
+      chrome.runtime.sendMessage({
+        type: "reload-shortcut",
+        tabId: tabId
+      });
+    }
+  );
 }
 
 // onRefresh or onUrlChange
@@ -64,13 +90,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
   if (message.type.match('tab-updated') && tabId == message.tabId) {
     console.log("Tab Updated (Refreshed) Reset All");
-    requestObjects = {};
-    requestObjectsImages = [];
-    paintedObjectsImages = [];
-    pageOnCompleteEvent = false;
-    contectScriptInjected = false;
-    clearInterval(interval);
-    timer = false;
+    resetDevTools();
   }
 });
 
@@ -109,4 +129,15 @@ function startInterval() {
       }
     }
   }, 100);
+}
+
+function resetDevTools() {
+  requestObjects = {};
+  requestObjectsImages = [];
+  paintedObjectsImages = [];
+  pageOnCompleteEvent = false;
+  contectScriptInjected = false;
+  clearInterval(interval);
+  timer = false;
+  requestId = 0;
 }
