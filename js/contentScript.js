@@ -3,6 +3,7 @@ var imageRequests = {};
 // Check if ContentJS is injected
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type !== 'content-script-status') return;
+
   tabId = message.tabId;
   sendResponse({result: true});
   return true;
@@ -12,6 +13,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type !== 'content-script-dom-status') return;
   tabId = message.tabId;
+
   if(document.readyState === "interactive" || document.readyState === "complete") {
     sendResponse({result: true});
   }

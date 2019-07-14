@@ -61,6 +61,7 @@ if (tabId) {
 
 // onRefresh or onUrlChange
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+
   if (message.type.match('tab-updated') && tabId == message.tabId) {
     console.log("Tab Updated (Refreshed) Reset All");
     requestObjects = {};

@@ -154,7 +154,9 @@ chrome.webNavigation.onCompleted.addListener(
 			chrome.runtime.sendMessage({
          type: 'page-onload-event', 
          message: details, 
-         tabId: details.tabId, 
+         tabId: details.tabId,
+         timeStamp: details.timeStamp,
+         frameId: details.frameId,
          from: 'webRequestListener.js'
       });
 		}
@@ -196,7 +198,6 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
 // Testing customized Keyboard shortcut
 chrome.commands.onCommand.addListener(function(command) {
-	console.log(`Command: ${command}`);
   if (command.match('toggle-feature-foo')) {
   	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
   		let currentTab = tabs[0];
