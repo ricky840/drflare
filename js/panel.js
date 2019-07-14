@@ -50,7 +50,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     resetTables();
     resetOverviewValues();
   } else if (message.type.match('page-onload-event') && tabId == message.tabId) {
-    console.log('Ready to Paint from devTools.js');
+    // console.log('Ready to Paint from devTools.js');
     readyToPaint = true;
   }
 });
