@@ -1,4 +1,3 @@
-'use strict';
 
 var tabId = chrome.devtools.inspectedWindow.tabId;
 var requestObjects = {};
@@ -20,10 +19,10 @@ var injectContentScript = function(tabId) {
       } else {
         chrome.tabs.insertCSS(tabId, {file: "css/overlay.css", allFrames: true}, function() {
           chrome.tabs.executeScript(tabId, {file: 'lib/jquery-3.1.1.min.js', allFrames: true}, function() {
-            chrome.tabs.executeScript(tabId, {file: 'js/contentScript.js', allFrames: true}, function() {
-              console.log("ContentScript inserted");
-              resolve();
-            });
+							chrome.tabs.executeScript(tabId, {file: 'js/contentScript.js', allFrames: true}, function() {
+								console.log("ContentScript inserted");
+								resolve();
+							});
           });
         });
       }
@@ -45,49 +44,43 @@ var paintElement = function(requests, callback) {
 if (tabId) {
   let backgroundPageConnectionPort = chrome.runtime.connect({name: "devtools-page" + "-" + tabId});
 
+
   chrome.devtools.panels.create(PANEL_NAME, PANEL_LOGO, PANEL_HTML, function(panel) {
     // Panel Created
-
   });
 
   //Network Tab onRequestFinished
-  chrome.devtools.network.onRequestFinished.addListener(
-    function(request) {
-      requestId += 1;
-      let networkRequest = new NetworkRequest(requestId);
-      networkRequest.setDetails(request);
+  chrome.devtools.network.onRequestFinished.addListener(function(request) {
+    requestId += 1;
+    let networkRequest = new NetworkRequest(requestId);
+    networkRequest.setDetails(request);
 
-      if (!networkRequest.url.startsWith("data:")) {
-        chrome.runtime.sendMessage({
-          type: 'web-request-objects',
-          message: networkRequest, 
-          tabId: tabId, 
-          from: 'webRequestListener.js'
-        });
+    if (!networkRequest.url.startsWith('data:')) {
+      chrome.runtime.sendMessage({
+        type: 'web-request-objects',
+        message: networkRequest, 
+        tabId: tabId, 
+        from: 'webRequestListener.js'
+      });
 
-        requestObjects[networkRequest.requestId] = networkRequest;
-        // console.log(`${networkRequest.objectType} : ${networkRequest.objectType.includes("image")} && ${networkRequest.statusCode == 200}`);
-        if (networkRequest.objectType.includes("image") && networkRequest.statusCode === 200) {
-          requestObjectsImages.push(networkRequest);
-        }
+      requestObjects[networkRequest.requestId] = networkRequest;
+      // console.log(`${networkRequest.objectType} : ${networkRequest.objectType.includes("image")} && ${networkRequest.statusCode == 200}`);
+      if (networkRequest.objectType.includes("image") && networkRequest.statusCode === 200) {
+        requestObjectsImages.push(networkRequest);
       }
     }
-  );
+  });
 
-  chrome.devtools.network.onNavigated.addListener(
-    function(url) {
-      // resetDevTools();
-      chrome.runtime.sendMessage({
-        type: "reload-shortcut",
-        tabId: tabId
-      });
-    }
-  );
+  chrome.devtools.network.onNavigated.addListener(function(url) {
+    chrome.runtime.sendMessage({
+      type: 'reload-shortcut',
+			tabId: tabId
+		});
+  });
 }
 
 // onRefresh or onUrlChange
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-
   if (message.type.match('tab-updated') && tabId == message.tabId) {
     console.log("Tab Updated (Refreshed) Reset All");
     resetDevTools();
@@ -101,6 +94,10 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     if (!contectScriptInjected) {
       console.log("Injecting ContentScript");
       injectContentScript(tabId).then(function() {
+
+         const inspectString = "inspect(handleRequest(document.querySelectorAll('*:not(.cfdebugger-image-match) > img')))";
+         chrome.devtools.inspectedWindow.eval(inspectString, { useContentScriptContext: true });
+
         contectScriptInjected = true;
       });
     }
@@ -110,8 +107,45 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
       timer = true;
       startInterval();
     }
-  };
+
+
+
+    const HIGHLIGHT_COLOR = {
+      r: 155,
+      g: 11,
+      b: 239,
+      a: 0.7
+    };
+
+    highlightConfig = {
+      contentColor: HIGHLIGHT_COLOR,
+      showInfo: true,
+      showStyles: true
+    }
+
+        const inspectString = "inspect(img)";
+    chrome.devtools.inspectedWindow.eval(inspectString, function(result){
+      console.log(result);
+    });
+    var version = "1.3";
+    chrome.debugger.attach({tabId: tabId}, version, function() {
+      chrome.debugger.sendCommand({tabId: tabId}, 'DOM.getDocument', function(result) {
+        var rootNodeId = result.root.nodeId;
+        console.log(rootNodeId);
+        chrome.debugger.sendCommand({tabId: tabId}, 'DOM.querySelectorAll', {nodeId: rootNodeId, selector: "img"}, function(result) {
+          console.log(result);
+          var arr_node_ids = result.nodeIds;
+          console.log(arr_node_ids[0]);
+          chrome.debugger.sendCommand({tabId: tabId}, 'DOM.highlightNode', {highlightConfig: highlightConfig, nodeId: arr_node_ids[1]}, function(result) {
+            console.log(result);
+          });
+        });
+      });
+    });
+
+  }
 });
+
 
 function startInterval() {
   interval = setInterval(function() { 
@@ -128,7 +162,7 @@ function startInterval() {
         });
       }
     }
-  }, 100);
+  }, 300);
 }
 
 function resetDevTools() {

@@ -1,5 +1,13 @@
 var imageRequests = {};
 
+function handleRequest(el) {
+    // do something with the selected element
+ console.log(el);
+  console.log("hi");
+  console.log($(el[0]));
+  // $(el).
+}
+
 // Check if ContentJS is injected
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type !== 'content-script-status') return;
@@ -97,8 +105,20 @@ function markAllImg() {
 
         if (imgRequest.cfCached) {
           imgjQueryObj.addClass('cf-debugger-invert');
+          // imgjQueryObj.siblings().each(function(){
+          //   $(this).css("pointer-events", "none");
+          // });
+          // imgjQueryObj.mouseover(function() {
+          //   console.log("hi");
+          // });
         } else {
           imgjQueryObj.addClass('cf-debugger-blur');
+          // imgjQueryObj.siblings().each(function(){
+          //   $(this).css("pointer-events", "none");
+          // });
+          //   imgjQueryObj.mouseover(function() {
+          //     console.log("hi2");
+          //   });
         }
       } else {
         // if (!imgjQueryObj.hasClass('cfdebugger-image-match')) {

@@ -15,8 +15,7 @@
       "js/class/NetworkRequest.js"
     ]
   },
-  "commands": {
-    "toggle-feature-foo": {
+  "commands": { "toggle-feature-foo": {
       "suggested_key": {
         "default": "Ctrl+Shift+5",
         "mac": "Command+Shift+0",
@@ -49,6 +48,12 @@
     "webRequest",
     "webRequestBlocking",
     "webNavigation",
+    "debugger",
     "<all_urls>"
+  ],
+  "web_accessible_resources": [
+    "css/tooltipster.bundle.min.css",
+    "lib/tooltipster.bundle.min.js",
+		"css/balloon.min.css"
   ]
 }
