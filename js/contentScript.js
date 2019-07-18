@@ -1,5 +1,10 @@
 var imageRequests = {};
 
+var prevImageMatch = null;
+var found_flag = false;
+var childMatch = [];
+
+
 var mouseX = 0;
 var mouseY = 0;
 
@@ -7,57 +12,133 @@ $("body").on('mousemove', '*', function(event){
   mouseX = event.clientX;
   mouseY = event.clientY;
   // console.log(`lastest - ${mouseX}, ${mouseY}`);
+  checker();
 });
 
 $("body").on('mouseenter', '*', function(event){
-  console.log(`when mouseover - ${mouseX}, ${mouseY}`);
-  test();
+  // console.log(`when mouseover - ${mouseX}, ${mouseY}`);
+  hoverChecker();
 });
 
 function getCurrentMousePosition() {
   return [mouseX, mouseY];
 }
 
-function test() {
-  var current = getCurrentMousePosition();
-  mX2 = current[0];
-  mY2 = current[1];
-  var elementMouseIsOver = $(document.elementFromPoint(mX2, mY2));
-  // console.log(elementMouseIsOver);
-  // console.log(`${mouseX}, ${mouseY}`);
+function hoverChecker() {
+  let elementHoverOver = $(document.querySelectorAll(":hover"));
+  if (elementHoverOver.length < 1) return;
 
-  // if (elementMouseIsOver.attr("class") && elementMouseIsOver.attr("class").match("cfdebugger-image-match")) {
-  //   console.log("direct match");
-  //   elementMouseIsOver.addClass("cf-debugger-grayscale");
-  //   // console.log(elementMouseIsOver);
-  //   return;
-  // }
-  //
-  element_image_match = elementMouseIsOver.find(".cfdebugger-image-match");
-  // console.log(element_image_match);
+  let lastIndex = elementHoverOver.length - 1;
 
-  if(element_image_match.length > 0 && element_image_match.length < 50) {
-  // if(element_image_match.length == 2) {
-    console.log("Found underlying images - " + element_image_match.length);
-    element_image_match.each(function() {
-      console.log($(this).prop("tagName"));
+  // targetParentNode will be used as a stopping point
+  let targetParentNode;
+  if (lastIndex > 0) {
+    targetParentNode = $(elementHoverOver[lastIndex].parentNode);
+  }
+  
+  let currentNode;
+  for (let i = lastIndex; i >= 0; i--) {
+    currentNode = $(elementHoverOver[i]);
+
+    // Found ParentNode, stop searching after this round
+    if (currentNode.is(targetParentNode)) { i = -1; }
+
+    if (currentNode.attr("class") && currentNode.attr("class").match("cfdebugger-image-match")) {
+      resetPrevIMG(currentNode);
+      currentNode.addClass("cf-debugger-grayscale");
+      return;
+    } else {
+      childMatch = currentNode.find(".cfdebugger-image-match");
+    }
+  }
+}
+
+
+function checker() {
+  let current = getCurrentMousePosition();
+  let mX2 = current[0];
+  let mY2 = current[1];
+
+  let elementMouseIsOver = $(document.elementFromPoint(mX2, mY2));
+
+  if (elementMouseIsOver.attr("class") && elementMouseIsOver.attr("class").match("cfdebugger-image-match")) {
+    resetPrevIMG(elementMouseIsOver);
+    elementMouseIsOver.addClass("cf-debugger-grayscale");
+    return;
+  } else if (childMatch.length > 0) {
+    let found = false;
+    childMatch.each(function() {
       tempObj = $(this)[0].getBoundingClientRect();
-      console.log(tempObj);
-      var current = getCurrentMousePosition();
+      let current = getCurrentMousePosition();
       mX = current[0];
       mY = current[1];
-      console.log(`${mX}, ${mY}`);
       if (mX >= tempObj.left 
         && mX <= tempObj.right
         && mY >= tempObj.top
         && mY <= tempObj.bottom
       ) {
-        console.log("Found match!");
+        // console.log("Found match!");
+        found = true;
+        resetPrevIMG($(this));
         $(this).addClass("cf-debugger-grayscale");
       }
     });
+
+    if (!found) { resetPrevIMG(null); }
+  } else {
+    resetPrevIMG(null);
   }
 }
+
+
+function resetPrevIMG(newImageMatch) {
+  if (prevImageMatch) {
+    prevImageMatch.removeClass("cf-debugger-grayscale");
+  }
+  prevImageMatch = newImageMatch;
+}
+
+
+// function test() {
+//   var current = getCurrentMousePosition();
+//   mX2 = current[0];
+//   mY2 = current[1];
+//   var elementMouseIsOver = $(document.elementFromPoint(mX2, mY2));
+//   // console.log(elementMouseIsOver);
+//   // console.log(`${mouseX}, ${mouseY}`);
+
+//   // if (elementMouseIsOver.attr("class") && elementMouseIsOver.attr("class").match("cfdebugger-image-match")) {
+//   //   console.log("direct match");
+//   //   elementMouseIsOver.addClass("cf-debugger-grayscale");
+//   //   // console.log(elementMouseIsOver);
+//   //   return;
+//   // }
+//   //
+//   element_image_match = elementMouseIsOver.find(".cfdebugger-image-match");
+//   // console.log(element_image_match);
+
+//   if(element_image_match.length > 0 && element_image_match.length < 50) {
+//   // if(element_image_match.length == 2) {
+//     console.log("Found underlying images - " + element_image_match.length);
+//     element_image_match.each(function() {
+//       console.log($(this).prop("tagName"));
+//       tempObj = $(this)[0].getBoundingClientRect();
+//       console.log(tempObj);
+//       var current = getCurrentMousePosition();
+//       mX = current[0];
+//       mY = current[1];
+//       console.log(`${mX}, ${mY}`);
+//       if (mX >= tempObj.left 
+//         && mX <= tempObj.right
+//         && mY >= tempObj.top
+//         && mY <= tempObj.bottom
+//       ) {
+//         console.log("Found match!");
+//         $(this).addClass("cf-debugger-grayscale");
+//       }
+//     });
+//   }
+// }
 
 // function test2(elementMouseIsOver, mouseX, mouseY) {
 //   var elements = [];
