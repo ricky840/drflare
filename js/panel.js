@@ -27,9 +27,10 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     let request = message.message;
     addTableRow({request});
 
-  } else if (message.type.match('web-requests-array') && tabId == message.tabId) {
-    let requests = message.message;
-    addTableRow(requests);
+  // } else if (message.type.match('web-requests-array') && tabId == message.tabId) {
+  //   let requests = message.message;
+  //   console.log("fc222222222");
+  //   addTableRow(requests);
     
   } else if (message.type.match('reload-shortcut') && tabId == message.tabId) {
     resetTables();
@@ -44,7 +45,7 @@ function addTableRow(requests) {
   let shouldWeAdd = false;
   let tableName, columnValue, tableBody, column, titleRow, contentRow, request;
 
-  for (let requestId in requests) {
+  for (var requestId in requests) {
     request = requests[requestId];
     // filterImageReqeust(request);
     for (let i = 0; i < TABLE_IDS.length; i++) {
@@ -57,7 +58,8 @@ function addTableRow(requests) {
         if (document.getElementById(tableName) != null) {
           tableBody = document.getElementById(tableName).getElementsByTagName('tbody')[0];
           titleRow = tableBody.insertRow();
-          titleRow.className = "ui title";
+          titleRow.className = "ui title cfdebugger-test-hover";
+          titleRow.setAttribute("request-id", request.requestId)
           for (let j = 0; j < TABLE_ELEMENTS.length; j++) {
             column = titleRow.insertCell(j);
             columnValue = '';
@@ -86,6 +88,17 @@ function addTableRow(requests) {
     updateOverview(requests[requestId]);
   }
 }
+
+$(document).on({
+    mouseenter: function () {
+      var request_id = $(this).attr("request-id");
+      chrome.tabs.sendMessage(tabId, {type: 'show-tooltip', requestId: request_id, from: 'panel.js'});
+    },
+    mouseleave: function () {
+      var request_id = $(this).attr("request-id");
+      chrome.tabs.sendMessage(tabId, {type: 'hide-tooltip', requestId: request_id, from: 'panel.js'});
+    }
+}, ".cfdebugger-test-hover");
 
 function resetTables() {
   for (let i = 0; i < TABLE_IDS.length; i++) {
