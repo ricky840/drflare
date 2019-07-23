@@ -50,10 +50,5 @@
     "webNavigation",
     "debugger",
     "<all_urls>"
-  ],
-  "web_accessible_resources": [
-    "css/tooltipster.bundle.min.css",
-    "lib/tooltipster.bundle.min.js",
-		"css/balloon.min.css"
   ]
 }

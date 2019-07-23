@@ -1,22 +1,38 @@
 var imageRequests = {};
 
 var prevImageMatch = null;
-var found_flag = false;
+var injectedPopupDOM = false;
 var childMatch = [];
+var contentInveral = null;
+var REFRESH_RATE = 2000;
+var frameImage = null;
 
+var something = false;
+var newsomething = false;
 
 var mouseX = 0;
 var mouseY = 0;
 
+var mouseEnterX = 0;
+var mouseEnterY = 0;
+
+var mouseMovementCounterForIFrame = 0;
+var mouseMovementCounterForParent = 0;
+
+var mouseMoveThreashold = 25;
+var mouseMoveIFrameTheshold = 20;
+
 $("body").on('mousemove', '*', function(event){
   mouseX = event.clientX;
   mouseY = event.clientY;
-  // console.log(`lastest - ${mouseX}, ${mouseY}`);
-  checker();
+  if (mouseMovementCounter()) {
+    checker();
+  }
 });
 
 $("body").on('mouseenter', '*', function(event){
-  // console.log(`when mouseover - ${mouseX}, ${mouseY}`);
+  mouseEnterX = event.clientX;
+  mouseEnterY = event.clientY;
   hoverChecker();
 });
 
@@ -32,64 +48,118 @@ function hoverChecker() {
 
   // targetParentNode will be used as a stopping point
   let targetParentNode;
-  if (lastIndex > 0) {
-    targetParentNode = $(elementHoverOver[lastIndex].parentNode);
-  }
+  if (lastIndex > 0) { targetParentNode = $(elementHoverOver[lastIndex].parentNode); }
   
   let currentNode;
+  let current = getCurrentMousePosition();
+  let mX2 = current[0];
+  let mY2 = current[1];
+
   for (let i = lastIndex; i >= 0; i--) {
     currentNode = $(elementHoverOver[i]);
-
-    // Found ParentNode, stop searching after this round
     if (currentNode.is(targetParentNode)) { i = -1; }
 
     if (currentNode.attr("class") && currentNode.attr("class").match("cfdebugger-image-match")) {
       resetPrevIMG(currentNode);
       currentNode.addClass("cf-debugger-grayscale");
+
+      if (checkIFrameImage()) {
+        if (iFrameMouseMovementCounter()) {
+          let imageRequest = getImageRequest(currentNode);
+          sendImageToDevTools(imageRequest);
+        }
+      } else {
+        showPopup(mouseEnterX, mouseEnterY);
+      }
       return;
     } else {
+      // Pass to Checker
       childMatch = currentNode.find(".cfdebugger-image-match");
     }
   }
+
+  hidePopup();
 }
 
 
 function checker() {
   let current = getCurrentMousePosition();
-  let mX2 = current[0];
-  let mY2 = current[1];
+  let mX = current[0];
+  let mY = current[1];
 
-  let elementMouseIsOver = $(document.elementFromPoint(mX2, mY2));
-
+  let elementMouseIsOver = $(document.elementFromPoint(mX, mY));
+  let found = false;
   if (elementMouseIsOver.attr("class") && elementMouseIsOver.attr("class").match("cfdebugger-image-match")) {
     resetPrevIMG(elementMouseIsOver);
+    let imageRequest = getImageRequest(elementMouseIsOver);
     elementMouseIsOver.addClass("cf-debugger-grayscale");
+
+    if (checkIFrameImage()) {
+      if (iFrameMouseMovementCounter()) {
+        sendImageToDevTools(imageRequest);
+      } 
+    } else {
+      updatePopupDOM(imageRequest);
+      showPopup(mouseEnterX, mouseEnterY);
+    }
     return;
+
   } else if (childMatch.length > 0) {
-    let found = false;
     childMatch.each(function() {
       tempObj = $(this)[0].getBoundingClientRect();
-      let current = getCurrentMousePosition();
-      mX = current[0];
-      mY = current[1];
+
       if (mX >= tempObj.left 
         && mX <= tempObj.right
         && mY >= tempObj.top
         && mY <= tempObj.bottom
       ) {
-        // console.log("Found match!");
         found = true;
         resetPrevIMG($(this));
         $(this).addClass("cf-debugger-grayscale");
+        let imageRequest = getImageRequest($(this));
+        if (checkIFrameImage()) {
+          if (iFrameMouseMovementCounter()) {
+          // if (iFrameMouseMovementCounter()) {
+            sendImageToDevTools(imageRequest);
+          } 
+        } else {
+          updatePopupDOM(imageRequest);
+          showPopup(mouseEnterX, mouseEnterY);
+        }
       }
     });
 
-    if (!found) { resetPrevIMG(null); }
+    if (!found) { 
+      resetPrevIMG(null); 
+      hidePopup();
+    }
+
+    return ;
+  }
+
+  resetPrevIMG(null);
+  hidePopup();
+}
+
+function iFrameMouseMovementCounter() {
+  if (mouseMovementCounterForIFrame < mouseMoveIFrameTheshold) {
+    mouseMovementCounterForIFrame += 1;
+    return false;
   } else {
-    resetPrevIMG(null);
+    mouseMovementCounterForIFrame = 0;
+    return true;
   }
 }
 
+function mouseMovementCounter() {
+  if (mouseMovementCounterForParent < mouseMoveThreashold) {
+    mouseMovementCounterForParent += 1;
+    return false;
+  } else {
+    mouseMovementCounterForParent = 0;
+    return true;
+  }
+}
 
 function resetPrevIMG(newImageMatch) {
   if (prevImageMatch) {
@@ -98,109 +168,102 @@ function resetPrevIMG(newImageMatch) {
   prevImageMatch = newImageMatch;
 }
 
+function updatePopupDOM(imageRequest) {
+  if (imageRequest) {
+    let popupTitle = document.getElementsByClassName('cf-debugger-popup-title')[0];
+    let popupDetail = document.getElementsByClassName('cf-debugger-popup-detail')[0];
+    popupTitle.innerHTML = imageRequest.url;
+    popupDetail.innerHTML = imageRequest.responseHeaders;
+  }
+}
 
-// function test() {
-//   var current = getCurrentMousePosition();
-//   mX2 = current[0];
-//   mY2 = current[1];
-//   var elementMouseIsOver = $(document.elementFromPoint(mX2, mY2));
-//   // console.log(elementMouseIsOver);
-//   // console.log(`${mouseX}, ${mouseY}`);
+// Append Popup HTML format
+function appendPopupDOMToBody() {
+  let popupDiv = document.createElement('div');
+  popupDiv.className = 'cf-debugger-popup';
 
-//   // if (elementMouseIsOver.attr("class") && elementMouseIsOver.attr("class").match("cfdebugger-image-match")) {
-//   //   console.log("direct match");
-//   //   elementMouseIsOver.addClass("cf-debugger-grayscale");
-//   //   // console.log(elementMouseIsOver);
-//   //   return;
-//   // }
-//   //
-//   element_image_match = elementMouseIsOver.find(".cfdebugger-image-match");
-//   // console.log(element_image_match);
+  let popupDivHeader = document.createElement('h2');
+  popupDivHeader.className = 'cf-debugger-popup-title';
+  let headerNode = document.createTextNode('Pop-up div Successfully Displayed');
+  popupDivHeader.appendChild(headerNode);
 
-//   if(element_image_match.length > 0 && element_image_match.length < 50) {
-//   // if(element_image_match.length == 2) {
-//     console.log("Found underlying images - " + element_image_match.length);
-//     element_image_match.each(function() {
-//       console.log($(this).prop("tagName"));
-//       tempObj = $(this)[0].getBoundingClientRect();
-//       console.log(tempObj);
-//       var current = getCurrentMousePosition();
-//       mX = current[0];
-//       mY = current[1];
-//       console.log(`${mX}, ${mY}`);
-//       if (mX >= tempObj.left 
-//         && mX <= tempObj.right
-//         && mY >= tempObj.top
-//         && mY <= tempObj.bottom
-//       ) {
-//         console.log("Found match!");
-//         $(this).addClass("cf-debugger-grayscale");
-//       }
-//     });
-//   }
-// }
+  let popupDivText = document.createElement('p');
+  popupDivText.className = 'cf-debugger-popup-detail';
+  let textNode = document.createTextNode('his div only appears when the trigger link is hovered over.');
+  popupDivText.appendChild(textNode);
 
-// function test2(elementMouseIsOver, mouseX, mouseY) {
-//   var elements = [];
-//
-//   if (elementMouseIsOver.prop("tagName") != "HTML" && elementMouseIsOver.prop("tagName") != "BODY") {
-//
-//     elements.push(elementMouseIsOver);
-//     console.log("Pushed");
-//     console.log(elementMouseIsOver);
-//
-//     elementMouseIsOver.hide("fast", function(){
-//       elementMouseIsOver = $(document.elementFromPoint(mouseX, mouseY));
-//       if (elementMouseIsOver == undefined) {
-//         console.log("dead end!");
-//         return elements;
-//       } else if(elementMouseIsOver.attr("class") == undefined) {
-//         console.log("this dom has no class attribute");
-//         test2(elementMouseIsOver, mouseX, mouseY);
-//       } else if(elementMouseIsOver.attr("class").match("cfdebugger-image-match")) {
-//         console.log("found cfdebugger-image-match");
-//         console.log(elementMouseIsOver);
-//         return elements;
-//       } else {
-//         console.log("loop");
-//         test2(elementMouseIsOver, mouseX, mouseY);
-//       }
-//     });
-//   }
-// }
+  popupDiv.appendChild(popupDivHeader);
+  popupDiv.appendChild(popupDivText);
+  // document.documentElement.appendChild(popupDiv);
+  document.body.appendChild(popupDiv);
+}
 
+function showPopup(mX, mY) {
+  let scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+  $('.cf-debugger-popup').show()
+    .css('top', mY + 10 + scrollTop)
+    .css('left', mX + 10);
+}
 
+function hidePopup() {
+  $('.cf-debugger-popup').hide();
+}
 
+function sendImageToDevTools(imageRequest) {
+  chrome.runtime.sendMessage({
+    type: 'found-image',
+    message: imageRequest,
+    url: imageRequest.url,
+    tabId: tabId
+  });
+}
 
-
-
-
-
-
-
-
-
-
-
+function checkIFrameImage() {
+  if ($('body').attr('class') && $('body').attr('class').match('cfdebugger-iframe-body')) { return true; } 
+  
+  return false;
+}
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type !== 'show-tooltip') return;
-  let requestId = message.requestId;
-  // $("[cfdebugger-request-id="+ requestId +"]").addClass("cf-debugger-grayscale");
-  // $("[cfdebugger-request-id="+ requestId +"]").attr('aria-label', 'hello');
+  if (message.type.match('found-image-response') && tabId == message.tabId) {
+    if ($('body').attr('class') && $('body').attr('class').match('cfdebugger-iframe-body')) {
+      // DO NOTHING
+    } else {
+      // console.log('drawing iFrameImage');
+      updatePopupDOM(message.message)
+
+      let current = getCurrentMousePosition();
+      let mX2 = current[0];
+      let mY2 = current[1];
+      showPopup(mX2, mY2);
+    }
+  }
 });
 
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type !== 'hide-tooltip') return;
-  let requestId = message.requestId;
-  $("[cfdebugger-request-id="+ requestId +"]").removeClass("cf-debugger-grayscale");
-});
+// chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+//   if (message.type !== 'show-tooltip') return;
+//   let requestId = message.requestId;
+//   // $("[cfdebugger-request-id="+ requestId +"]").addClass("cf-debugger-grayscale");
+//   // $("[cfdebugger-request-id="+ requestId +"]").attr('aria-label', 'hello');
+// });
+
+// chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+//   if (message.type !== 'show-tooltip') return;
+//   let requestId = message.requestId;
+//   // $("[cfdebugger-request-id="+ requestId +"]").addClass("cf-debugger-grayscale");
+//   // $("[cfdebugger-request-id="+ requestId +"]").attr('aria-label', 'hello');
+// });
+
+// chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+//   if (message.type !== 'hide-tooltip') return;
+//   let requestId = message.requestId;
+//   $("[cfdebugger-request-id="+ requestId +"]").removeClass("cf-debugger-grayscale");
+// });
 
 
 // Check if ContentJS is injected
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type !== 'content-script-status') return;
-
   tabId = message.tabId;
   sendResponse({result: true});
   return true;
@@ -212,11 +275,38 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   tabId = message.tabId;
 
   if(document.readyState === "interactive" || document.readyState === "complete") {
+    
+    // add special class for iframe tags
+    let documentDOM = $(document);
+
+    for (let i = 0; i < documentDOM.length; i++) {
+      if (message.currentURL.match(documentDOM[i].URL)) {
+        if (!hasPopUpDOM()) {
+          appendPopupDOMToBody();
+        }
+      } else {
+        iframeBodyDOM = $(documentDOM[i].querySelectorAll('body'));
+        if (iframeBodyDOM.attr("class") && iframeBodyDOM.attr("class").match("cfdebugger-iframe-body")) {
+
+        } else {
+          iframeBodyDOM.addClass('cfdebugger-iframe-body');
+        }
+      }
+    }
+
     sendResponse({result: true});
   }
+
   sendResponse({result: false});
   return true;
 });
+
+function hasPopUpDOM() {
+  let popUpDOM = $('.cf-debugger-popup');
+  if (popUpDOM.length > 0) return true;
+
+  return false;
+}
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type !== 'content-script-paint') return;
@@ -296,20 +386,9 @@ function markAllImg() {
         if (imgRequest.cfCached) {
           imgjQueryObj.addClass('cf-debugger-invert');
 
-          // imgjQueryObj.siblings().each(function(){
-          //   $(this).css("pointer-events", "none");
-          // });
-          // imgjQueryObj.mouseover(function() {
-          //   console.log("hi");
-          // });
         } else {
           imgjQueryObj.addClass('cf-debugger-blur');
-          // imgjQueryObj.siblings().each(function(){
-          //   $(this).css("pointer-events", "none");
-          // });
-          //   imgjQueryObj.mouseover(function() {
-          //     console.log("hi2");
-          //   });
+          
         }
       } else {
         // if (!imgjQueryObj.hasClass('cfdebugger-image-match')) {
@@ -337,7 +416,7 @@ function getImageRequest(imgjQueryObj) {
     }
   }
 
-  return false;
+  return null;
 }
 
 function parseBackgroundURL(backgroundImageURL) {
