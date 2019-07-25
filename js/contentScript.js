@@ -173,7 +173,14 @@ function updatePopupDOM(imageRequest) {
     let popupTitle = document.getElementsByClassName('cf-debugger-popup-title')[0];
     let popupDetail = document.getElementsByClassName('cf-debugger-popup-detail')[0];
     popupTitle.innerHTML = imageRequest.url;
-    popupDetail.innerHTML = imageRequest.responseHeaders;
+    // popupDetail.innerHTML = JSON.stringify([...imageRequest.responseHeaders]);
+
+    let headersInString = "";
+    for (let header in imageRequest.responseHeaders) {
+      headersInString += `${header}: ${imageRequest.responseHeaders[header]} <br>`;
+    }
+
+    popupDetail.innerHTML = headersInString;
   }
 }
 
