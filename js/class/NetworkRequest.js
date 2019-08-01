@@ -15,7 +15,7 @@ const CACHE_STALE = "revalidate";
 
 const CACHE_STATUSES = [CACHE_STATUS_HIT, CACHE_REVALIDATE, CACHE_STALE];
 
-var NetworkRequest = class {
+class NetworkRequest {
   constructor(requestId) {
     this.requestId = requestId;
     this.method = "";
@@ -23,12 +23,12 @@ var NetworkRequest = class {
     this.objectType = "";
     this.requestHeaders;
     this.responseHeaders;
-    this.statusCode;
-    this.contentLength;
-    this.serverIPAddress;
+    this.statusCode = "";
+    this.contentLength = 0;
+    this.serverIPAddress = "";
 
     // connect, dns, receive, send ssl, wait, etc.
-    this.timings;
+    this.timings = "";
 
     // CF features
     this.cfCached = false;
@@ -45,7 +45,6 @@ var NetworkRequest = class {
   setDetails(networkRequest) {
     this.parseRequest(networkRequest.request);
     this.parseResponse(networkRequest.response);
-    
     this.checkCFFeatures();
   }
 

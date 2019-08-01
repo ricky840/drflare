@@ -148,23 +148,19 @@ chrome.tabs.onUpdated.addListener (
 		}
 });
 
-// onCompleted Page
-// chrome.webNavigation.onDOMContentLoaded.addListener(
-chrome.webNavigation.onCompleted.addListener(
-	function(details) {
-		if (listen && (inspectedTabIds.indexOf(details.tabId) > -1)) {
-		// if (listen && (inspectedTabIds.indexOf(details.tabId) > -1)) {
-			chrome.runtime.sendMessage({
-         type: 'page-onload-event', 
-         message: details, 
-         tabId: details.tabId,
-         timeStamp: details.timeStamp,
-         frameId: details.frameId,
-         from: 'webRequestListener.js'
-      });
-		}
-	}
-);
+// onCompleted Page (onLoadEvent)
+// chrome.webNavigation.onCompleted.addListener(
+// 	function(details) {
+// 		if (inspectedTabIds.indexOf(details.tabId) > -1) {
+// 			chrome.runtime.sendMessage({
+//          type: 'page-onload-event', 
+//          message: details, 
+//          tabId: details.tabId,
+//          frameId: details.frameId,
+//          from: 'webRequestListener.js'
+//       });
+// 		}
+// });
 
 function addToListener(newTabId, callback) {
   if (inspectedTabIds.indexOf(newTabId) < 0) {

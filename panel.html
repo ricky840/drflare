@@ -1,168 +1,223 @@
-<div>
-	<link rel="stylesheet" type="text/css" href="/css/semantic.css">
-	<link rel="stylesheet" type="text/css" href="/css/panel.css">
-</div>
-<div>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="css/semantic.css">
+    <link rel="stylesheet" type="text/css" href="css/panel.css">
+  </head>
+  <body class="dark-background">
 
-	<div class="column button">
-		<button id="view_table_button" class="ui button">
-		  View All Tables
-		</button>
-		<button id="hide_table_button" class="ui button">
-		  Hide All Tables
-		</button>
-		<button id="cached_table_button" class="ui button">
-		  Cached Table
-		</button>
-		<button id="not_cached_table_button" class="ui button">
-		  Could be cached Table
-		</button>
-		<button id="external_table_button" class="ui button">
-		  External Table
-		</button>
-		<button id="summary_table_button" class="ui button">
-		  Summary Table
-		</button>
-	</div>
+    <div class="ui container">
 
-	<h1><b>'Command + Shift + 0'</b> to refresh</h1>
+      <!-- Menu -->
+      <div class="ui inverted menu border-noradius zero-magin-bottom">
+        <a class="item active" tab="overview">Overview</a>
+        <a class="item" tab="analysis">Analysis</a>
+        <a class="item" tab="cached">Cached Objects</a>
+        <a class="item" tab="nocached">None Cached</a>
+        <a class="item" tab="3rdparty">3rd Party Objects</a>
+        <a class="item" tab="polish">Polish</a>
+        <a class="item" tab="imgresize">Image Resize</a>
+        <a class="item" tab="railgun">Railgun</a>
+        <a class="item" tab="minify">Minification</a>
+        <a class="item" tab="summary">Summary</a>
+        <div class="right menu">
+          <a class="ui item" tab="feedback">Feedback</a>
+        </div>
+      </div>
 
-	<h1>Cache Rate (# cached requests / # requets)</h1>
-	<p id="cache">0</p>
+      <div id="overview-content" class="tab-content">
 
-	<h1>Cachable Rate (# cachable requests / # requets)</h1>
-	<p id="cacheable">0</p>
+        <div class="ui grid padded">
 
-	<h1>External Rate (# external requests / # requets)</h1>
-	<p id="external">0</p>
+          <!-- row 1 -->
+          <div class="stretched row">
+            <div class="ten wide column overview-column">
+              <div id="request-count-bar-chart" style="height: 310px"></div>
+            </div>
 
-	<h1>Offload (cached bytes / total byptes)</h1>
-	<p id="offload">0</p>
+            <div class="two wide column overview-column">
+              <div class="row">
+                <div class="sixteen wide column">
+                  <div class="ui statistic inverted padding-top orange small">
+                    <div class="value"><span id="overview-cf-proxied-ratio">0</span><span>%</span></div>
+                    <div class="label">Cloudflare Proxied</div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="sixteen wide column">
+                  <div class="ui statistic inverted violet small">
+                    <div class="value"><span id="overview-cf-cache-hit-ratio">0</span><span>%</span></div>
+                    <div class="label">Request Cache HIT Ratio</div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-	<h1>Cached Table</h1>
-	<table id="cached_table" class="ui sortable celled table accordion">
-	  <thead>
-	  	<tr>
-	    	<th>RequestID</th>
-	    	<th>URL</th>
-	      <th>Status</th>
-	      <th>Colo</th>
-	      <th>Cache</th>
-	      <th>Railgun</th>
-	      <th>Polish</th>
-	      <th>Minified</th>
-	    </tr>
-	  </thead>
-	  <tbody>
-	  </tbody>
-	  <tfoot>
-	  	<tr>
-	    	<th>RequestID footer</th>
-		    <th>URL footer</th>
-	      <th>Status footer</th>
-	      <th>Colo footer</th>
-	      <th>Cache footer</th>
-	      <th>Railgun footer</th>
-	      <th>Polish footer</th>
-	      <th>Minified footer</th>
-	  	</tr>
-	  </tfoot>
-	</table>
+            <div class="two wide column overview-column">
+              <div class="row">
+                <div class="sixteen wide column">
+                  <div class="ui statistic inverted padding-top green small">
+                    <div class="value"><span id="overview-total-bytes">0</span></div>
+                    <div class="label">Total Bytes</div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="sixteen wide column">
+                  <div class="ui statistic inverted orange brown small">
+                    <div class="value"><span id="overview-cf-proxied-bytes">0</span></div>
+                    <div class="label">CF Proxied Bytes</div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-	<h1>Could be Cached Table</h1>
-	<table id="not_cached_table" class="ui sortable celled table accordion">
-	  <thead>
-	  	<tr>
-	    	<th>RequestID</th>
-	    	<th>URL</th>
-	      <th>Status</th>
-	      <th>Colo</th>
-	      <th>Cache</th>
-	      <th>Railgun</th>
-	      <th>Polish</th>
-	      <th>Minified</th>
-	    </tr>
-	  </thead>
-	  <tbody>
-	  </tbody>
-	  <tfoot>
-	  	 <tr>
-	    	<th>RequestID footer</th>
-		    <th>URL footer</th>
-	      <th>Status footer</th>
-	      <th>Colo footer</th>
-	      <th>Cache footer</th>
-	      <th>Railgun footer</th>
-	      <th>Polish footer</th>
-	      <th>Minified footer</th>
-	  	</tr>
-	  </tfoot>
-	</table>
+            <div class="two wide column overview-column">
+              <div class="row"></div>
+              <div class="row">
+                <div class="sixteen wide column">
+                  <div class="ui statistic inverted olive small">
+                    <div class="value"><span id="overview-cf-cached-bytes-ratio">0</span><span>%</span></div>
+                    <div class="label">Bytes Offload<br>(Cache Hit)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-	<h1>External Table</h1>
-	<table id="external_table" class="ui sortable celled table accordion">
-	  <thead>
-	  	<tr>
-	    	<th>RequestID</th>
-	    	<th>URL</th>
-	      <th>Status</th>
-	      <th>Colo</th>
-	      <th>Cache</th>
-	      <th>Railgun</th>
-	      <th>Polish</th>
-	      <th>Minified</th>
-	    </tr>
-	  </thead>
-	  <tbody>
-	  </tbody>
-	  <tfoot>
-	  	 <tr>
-	    	<th>RequestID footer</th>
-		    <th>URL footer</th>
-	      <th>Status footer</th>
-	      <th>Colo footer</th>
-	      <th>Cache footer</th>
-	      <th>Railgun footer</th>
-	      <th>Polish footer</th>
-	      <th>Minified footer</th>
-	  	</tr>
-	  </tfoot>
-	</table>
+          </div>
 
-	<h1>Summary Table</h1>
-	<table id="summary_table" class="ui sortable celled table accordion">
-	  <thead>
-	    <tr>
-	    	<th>RequestID</th>
-	    	<th>URL</th>
-	      <th>Status</th>
-	      <th>Colo</th>
-	      <th>Cache</th>
-	      <th>Railgun</th>
-	      <th>Polish</th>
-	      <th>Minified</th>
-	    </tr>
-	  </thead>
-	  <tbody>
-	  </tbody>
-	  <tfoot>
-	    <tr>
-	    	<th>RequestID footer</th>
-		    <th>URL footer</th>
-	      <th>Status footer</th>
-	      <th>Colo footer</th>
-	      <th>Cache footer</th>
-	      <th>Railgun footer</th>
-	      <th>Polish footer</th>
-	      <th>Minified footer</th>
-	  	</tr>
-		</tfoot>
-	</table>
+          <!-- row 2 -->
+          <div class="stretched row">
+            <div class="six wide column overview-column">
+              <div id="content-type-chart" style="height: 400px"></div>
+              <div class="chart-title">Content-Type Break Down</div>
+            </div>
+            <div class="two wide column overview-column">
+              <div id="routing-colo-chart" style="height: 400px"></div>
+            </div>
+          </div>
+          
+        </div> <!-- Grid End -->
 
-	<script type="text/javascript" src="/lib/jquery-3.1.1.min.js"></script>
-	<script type="text/javascript" src="/lib/semantic.min.js"></script>
-	<script type="text/javascript" src="/lib/sortTable.js"></script>
-	<script type="text/javascript" src="/js/panelHelper.js"></script>
-	<script type="text/javascript" src="/js/panel.js"></script>
-</div>
-	
+      </div> <!-- Overview Content -->
+
+
+
+
+
+
+
+
+      <div id="analysis-content" class="tab-content" style="display: none;">
+        Analysis
+      </div>
+
+      <div id="cached-content" class="tab-content" style="display: none;">
+        <table id="cached-table" class="ui selectable celled table inverted">
+          <thead>
+            <tr>
+              <th class="one wide">ReqId</th>
+              <th class="six wide">URL</th>
+              <th class="one wide">Status</th>
+              <th class="two wide">RayId</th>
+              <th class="one wide">Colo</th>
+              <th class="one wide">Cached</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="nocached-content" class="tab-content" style="display: none;">
+        Non Cached
+      </div>
+
+      <div id="3rdparty-content" class="tab-content" style="display: none;">
+        3rd Party
+      </div>
+
+      <div id="polish-content" class="tab-content" style="display: none;">
+        polish
+      </div>
+
+      <div id="imgresize-content" class="tab-content" style="display: none;">
+        resize
+      </div>
+
+      <div id="railgun-content" class="tab-content" style="display: none;">
+        Railgun
+      </div>
+
+      <div id="minify-content" class="tab-content" style="display: none;">
+        Minify
+      </div>
+
+      <!-- Summary -->
+      <div id="summary-content" class="tab-content" style="display: none;">
+
+        <div class="ui four column stackable padded grid">
+          <div class="column statistic-item">
+            <div class="ui orange statistic inverted">
+              <div id="summary-stat-total-num-req" class="value">0</div>
+              <div class="label">Total Requests</div>
+            </div>
+          </div>
+          <div class="column statistic-item">
+            <div class="ui orange statistic inverted">
+              <div id="summary-stat-total-num-cf-req" class="value">0</div>
+              <div class="label">CF Proxied Requests</div>
+            </div>
+          </div>
+          <div class="column statistic-item">
+            <div class="ui orange statistic inverted">
+              <div id="summary-stat-total-num-cf-cached" class="value">0</div>
+              <div class="label">Served From CF Cache (HIT)</div>
+            </div>
+          </div>
+          <div class="column statistic-item">
+            <div class="ui orange statistic inverted">
+              <div id="summary-stat-total-num-3rd-party-req" class="value">0</div>
+              <div class="label">Not CF Proxied</div>
+            </div>
+          </div>
+        </div>
+
+        <table id="summary-table" class="ui selectable celled table inverted">
+          <thead>
+            <tr>
+              <th class="one wide">ReqId</th>
+              <th class="six wide">URL</th>
+              <th class="one wide">Status</th>
+              <th class="two wide">RayId</th>
+              <th class="one wide">Colo</th>
+              <th class="one wide">Cached</th>
+              <th class="one wide">Polish</th>
+              <th class="one wide">Image Resize</th>
+              <th class="one wide">Railgun</th>
+              <th class="one wide">Minified</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+
+    </div>
+
+    <script type="text/javascript" src="lib/jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="lib/semantic.min.js"></script>
+
+    <script type="text/javascript" src="lib/core.js"></script>
+    <script type="text/javascript" src="lib/charts.js"></script>
+    <script type="text/javascript" src="lib/dark.js"></script>
+    <script type="text/javascript" src="lib/animated.js"></script>
+
+    <script type="text/javascript" src="js/panelStatic.js"></script>
+    <script type="text/javascript" src="js/panelHelper.js"></script>
+    <script type="text/javascript" src="js/panelCharts.js"></script>
+    <script type="text/javascript" src="js/panel.js"></script>
+
+  </body>
+</html>
+
+

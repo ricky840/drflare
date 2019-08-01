@@ -11,38 +11,6 @@ var requestId = 0;
 const REFRESH_RATE = 300;
 
 var contentInterval = false;
-// Test
-// const inspectString = "inspect(handleRequest(document.querySelectorAll('*:not(.cfdebugger-image-match) > img')))";
-// chrome.devtools.inspectedWindow.eval(inspectString, { useContentScriptContext: true });
-
-const version = "1.3";
-const HIGHLIGHT_COLOR = {
-  r: 155,
-  g: 11,
-  b: 239,
-  a: 0.7
-};
-
-highlightConfig = {
-  contentColor: HIGHLIGHT_COLOR,
-  showInfo: true,
-  showStyles: true
-}
-
-// chrome.debugger.attach({tabId: tabId}, version, function() {
-//   chrome.debugger.sendCommand({tabId: tabId}, 'DOM.getDocument', function(result) {
-//     var rootNodeId = result.root.nodeId;
-//     console.log(rootNodeId);
-//     chrome.debugger.sendCommand({tabId: tabId}, 'DOM.querySelectorAll', {nodeId: rootNodeId, selector: "img"}, function(result) {
-//       console.log(result);
-//       var arr_node_ids = result.nodeIds;
-//       console.log(arr_node_ids[0]);
-//       chrome.debugger.sendCommand({tabId: tabId}, 'DOM.highlightNode', {highlightConfig: highlightConfig, nodeId: arr_node_ids[1]}, function(result) {
-//         console.log(result);
-//       });
-//     });
-//   });
-// });
 
 
 if (tabId) {
@@ -67,29 +35,11 @@ if (tabId) {
       });
 
       requestObjects[networkRequest.requestId] = networkRequest;
-      // console.log(`${networkRequest.objectType} : ${networkRequest.objectType.includes("image")} && ${networkRequest.statusCode == 200}`);
       if (networkRequest.objectType.includes("image") && networkRequest.statusCode === 200) {
         requestObjectsImages.push(networkRequest);
       }
     }
   });
-
-  chrome.devtools.network.onNavigated.addListener(function(url) {
-    chrome.runtime.sendMessage({
-      type: 'reload-shortcut',
-			tabId: tabId
-		});
-  });
-
-  // chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  //   if (message.type.match('web-request-objects') && tabId == message.tabId) {
-  //     let request = message.message;
-  //     requestObjects[request.requestId] = request;
-  //     if (request.objectType === "image" && request.statusCode === 200) {
-  //       requestObjectsImages.push(request);
-  //     }
-  //   }
-  // });
 }
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
