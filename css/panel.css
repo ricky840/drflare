@@ -9,3 +9,52 @@ table td {
 .ui.accordion .active.content, .ui.accordion .accordion .active.content {
   display: table-row;
 }
+
+/* Ricky */
+.dark-background {
+  background-color:rgb(33, 33, 36);
+}
+.border-noradius {
+  border-radius: 0 !important;
+}
+.zero-magin-bottom {
+  margin-bottom: 0px !important;
+}
+.zero-magin-top {
+  margin-top: 0px !important;
+}
+
+.padding-top {
+  padding-top: 40px;
+}
+
+.ui.container {
+  width: 100% !important;
+}
+
+.overview-column {
+  border-style: solid;
+  border-width: 0.1px;
+  text-align: center;
+}
+
+.row {
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+}
+
+.chart-title {
+  color: white;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+
+
+
+
+
+
+
+
+

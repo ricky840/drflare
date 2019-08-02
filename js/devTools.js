@@ -11,23 +11,6 @@ var requestId = 0;
 const REFRESH_RATE = 300;
 
 var contentInterval = false;
-// Test
-// const inspectString = "inspect(handleRequest(document.querySelectorAll('*:not(.cfdebugger-image-match) > img')))";
-// chrome.devtools.inspectedWindow.eval(inspectString, { useContentScriptContext: true });
-
-const version = "1.3";
-const HIGHLIGHT_COLOR = {
-  r: 155,
-  g: 11,
-  b: 239,
-  a: 0.7
-};
-
-highlightConfig = {
-  contentColor: HIGHLIGHT_COLOR,
-  showInfo: true,
-  showStyles: true
-}
 
 if (tabId) {
   let backgroundPageConnectionPort = chrome.runtime.connect({name: "devtools-page" + "-" + tabId});
@@ -51,18 +34,10 @@ if (tabId) {
       });
 
       requestObjects[networkRequest.requestId] = networkRequest;
-      // console.log(`${networkRequest.objectType} : ${networkRequest.objectType.includes("image")} && ${networkRequest.statusCode == 200}`);
       if (networkRequest.objectType.includes("image") && networkRequest.statusCode === 200) {
         requestObjectsImages.push(networkRequest);
       }
     }
-  });
-
-  chrome.devtools.network.onNavigated.addListener(function(url) {
-    chrome.tabs.sendMessage(tabId, {
-      type: 'reload-shortcut',
-			tabId: tabId
-		});
   });
 }
 
