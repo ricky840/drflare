@@ -149,18 +149,20 @@ chrome.tabs.onUpdated.addListener (
 });
 
 // onCompleted Page (onLoadEvent)
-// chrome.webNavigation.onCompleted.addListener(
-// 	function(details) {
-// 		if (inspectedTabIds.indexOf(details.tabId) > -1) {
-// 			chrome.runtime.sendMessage({
-//          type: 'page-onload-event', 
-//          message: details, 
-//          tabId: details.tabId,
-//          frameId: details.frameId,
-//          from: 'webRequestListener.js'
-//       });
-// 		}
-// });
+chrome.webNavigation.onCompleted.addListener(
+	function(details) {
+		if (inspectedTabIds.indexOf(details.tabId) > -1) {
+      if (details.frameId == 0) {
+        chrome.runtime.sendMessage({
+           type: 'page-onload-event', 
+           message: details, 
+           tabId: details.tabId,
+           frameId: details.frameId,
+           from: 'webRequestListener.js'
+        });
+      }
+		}
+});
 
 function addToListener(newTabId, callback) {
   if (inspectedTabIds.indexOf(newTabId) < 0) {
