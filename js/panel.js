@@ -9,8 +9,11 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
 // Network Request Event Listner
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  console.dir(message);
   if (message.type.match('web-request-objects') && tabId == message.tabId) { 
     let request = message.message;
+
+
     updateStatValue(request);
     addTableRow({request});
   } 
