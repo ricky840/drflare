@@ -18,7 +18,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
 // WebNavigation OnLoad Event Listner
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type.match('page-onDOMContentLoad-event') && tabId == message.tabId) {
+  if (message.type.match('page-onload-event') && tabId == message.tabId) {
 		console.log("onDOMContentLoad-event-panel");
     pageOnCompleteEventForPanel = true;
   }
