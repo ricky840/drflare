@@ -13,12 +13,12 @@ $('.checkbox').on("change", "input", function() {
 
 $('.button').on("click", "button", function() {
 	console.log("Button Clicked");
-	chrome.runtime.sendMessage(
-		{
-  		type: "string",
-  		message: "test",
-  		from: "popup.js"
-  	}
+	// chrome.runtime.sendMessage(
+	// 	{
+ //  		type: "string",
+ //  		message: "test",
+ //  		from: "popup.js"
+ //  	}
 
   // Debugging message from devTools.js
     // {
@@ -26,5 +26,12 @@ $('.button').on("click", "button", function() {
     //   message: "12",
     //   from: "devTools.js"
     // }
-	);
-})
+	// );
+});
+
+$('.ui.button')
+  .popup({
+    title   : 'Popup Title',
+    content : 'Hello I am a popup'
+  })
+;

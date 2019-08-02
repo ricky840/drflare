@@ -29,22 +29,6 @@ highlightConfig = {
   showStyles: true
 }
 
-// chrome.debugger.attach({tabId: tabId}, version, function() {
-//   chrome.debugger.sendCommand({tabId: tabId}, 'DOM.getDocument', function(result) {
-//     var rootNodeId = result.root.nodeId;
-//     console.log(rootNodeId);
-//     chrome.debugger.sendCommand({tabId: tabId}, 'DOM.querySelectorAll', {nodeId: rootNodeId, selector: "img"}, function(result) {
-//       console.log(result);
-//       var arr_node_ids = result.nodeIds;
-//       console.log(arr_node_ids[0]);
-//       chrome.debugger.sendCommand({tabId: tabId}, 'DOM.highlightNode', {highlightConfig: highlightConfig, nodeId: arr_node_ids[1]}, function(result) {
-//         console.log(result);
-//       });
-//     });
-//   });
-// });
-
-
 if (tabId) {
   let backgroundPageConnectionPort = chrome.runtime.connect({name: "devtools-page" + "-" + tabId});
 
@@ -59,7 +43,7 @@ if (tabId) {
     networkRequest.setDetails(request);
 
     if (!networkRequest.url.startsWith('data:')) {
-      chrome.runtime.sendMessage({
+      chrome.tabs.sendMessage(tabId, {
         type: 'web-request-objects',
         message: networkRequest, 
         tabId: tabId, 
@@ -75,32 +59,27 @@ if (tabId) {
   });
 
   chrome.devtools.network.onNavigated.addListener(function(url) {
-    chrome.runtime.sendMessage({
+    chrome.tabs.sendMessage(tabId, {
       type: 'reload-shortcut',
 			tabId: tabId
 		});
   });
-
-  // chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  //   if (message.type.match('web-request-objects') && tabId == message.tabId) {
-  //     let request = message.message;
-  //     requestObjects[request.requestId] = request;
-  //     if (request.objectType === "image" && request.statusCode === 200) {
-  //       requestObjectsImages.push(request);
-  //     }
-  //   }
-  // });
 }
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('found-image') && tabId == message.tabId) {
-    // sendResponse({result: 'response'});
-
-    // console.log('foundimage message sent');
     chrome.tabs.sendMessage(tabId, {
       type: 'found-image-response',
-      message: message.message,
-      url: message.url, 
+      message: message.message, 
+      tabId: tabId
+    });
+  }
+});
+
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  if (message.type.match('reset-previous-image') && tabId == message.tabId) {
+    chrome.tabs.sendMessage(tabId, {
+      type: 'remove-grey-scale',
       tabId: tabId
     });
   }
