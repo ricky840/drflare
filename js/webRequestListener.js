@@ -48,6 +48,12 @@ chrome.webRequest.onHeadersReceived.addListener(
 	["responseHeaders"]
 )
 
+
+var ALL_SITES = { urls: ['<all_urls>'] }
+
+// Mozilla doesn't use tlsInfo in extraInfoSpec 
+var extraInfoSpec = ['blocking']; 
+
 // onResponseStarted: For onResponseStarted timestamp.
 chrome.webRequest.onResponseStarted.addListener(
 	function(details) {
@@ -193,9 +199,6 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     });
   };
 });
-
-
-
 
 // Testing customized Keyboard shortcut
 chrome.commands.onCommand.addListener(function(command) {

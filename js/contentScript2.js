@@ -64,17 +64,17 @@ function hoverChecker() {
 
   hoveredImages = [];
 
-  // if (targetParentNode.attr("class") && targetParentNode.attr("class").match("cfdebugger-request-id")) {
+  // if (targetParentNode.attr("class") && targetParentNode.attr("class").match("cfdebugger-image-match")) {
   //   // hoveredImages
   //   // handleHoveredImage(currentNode);
   //   hoveredImages.push(targetParentNode[0]);
-  //   hoveredImages.push(...targetParentNode.find(".cfdebugger-request-id"));
+  //   hoveredImages.push(...targetParentNode.find(".cfdebugger-image-match"));
   //   // console.log('edgeCase');
   //   // console.log(hoveredImages);
   //   return;
   // } else {
-  //   hoveredImages = targetParentNode.find(".cfdebugger-request-id");
-  //   // childMatch = targetParentNode.find(".cfdebugger-request-id");
+  //   hoveredImages = targetParentNode.find(".cfdebugger-image-match");
+  //   // childMatch = targetParentNode.find(".cfdebugger-image-match");
   //   // console.log('normal case');
   //   // console.log(hoveredImages);
   // }
@@ -89,12 +89,12 @@ function hoverChecker() {
   //   currentNode = $(elementHoverOver[i]);
   //   if (currentNode.is(targetParentNode)) { i = -1; }
 
-  //   if (currentNode.attr("class") && currentNode.attr("class").match("cfdebugger-request-id")) {
+  //   if (currentNode.attr("class") && currentNode.attr("class").match("cfdebugger-image-match")) {
   //     handleHoveredImage(currentNode);
   //     return;
   //   } else {
   //     // Pass to Checker
-  //     childMatch = currentNode.find(".cfdebugger-request-id");
+  //     childMatch = currentNode.find(".cfdebugger-image-match");
   //   }
   // }
 
@@ -105,13 +105,12 @@ function hoverChecker() {
     currentNode = $(elementHoverOver[i]);
     if (currentNode.is(targetParentNode)) { i = -1; }
 
-    if (currentNode.attr("cfdebugger-request-id")) {
+    if (currentNode.attr("class") && currentNode.attr("class").match("cfdebugger-image-match")) {
       handleHoveredImage(currentNode);
       return;
     } else {
       // Pass to Checker
-      childMatch = currentNode.find("[cfdebugger-request-id]");
-      // childMatch = currentNode.filter(".cfdebugger-request-id");
+      childMatch = currentNode.find(".cfdebugger-image-match");
     }
   }
 
@@ -121,7 +120,7 @@ function hoverChecker() {
 function moveChecker(mX, mY) {
   let elementMouseIsOver = $(document.elementFromPoint(mX, mY));
   let found = false;
-  if (elementMouseIsOver.attr("cfdebugger-request-id")) {
+  if (elementMouseIsOver.attr("class") && elementMouseIsOver.attr("class").match("cfdebugger-image-match")) {
     found = true;
     handleHoveredImage(elementMouseIsOver);
   } else if (childMatch.length > 0) {
@@ -151,11 +150,9 @@ function moveChecker(mX, mY) {
 
 function handleHoveredImage(imageDOM) {
   resetPrevIMG(imageDOM);
-  let style = imageDOM.attr("cf-debugger-style");
-  // console.log(`${style} : ${style.match('grayscale')}`);
-  if (!style.match('grayscale')) {
+  if (!imageDOM.hasClass("cf-debugger-grayscale")) {
 
-    imageDOM.attr("cf-debugger-style", 'grayscale');
+    imageDOM.addClass("cf-debugger-grayscale");
     let imageRequest = getImageRequest(imageDOM);
     // hoveredImages[imageRequest.requestId] = imageRequest;
     if (checkIFrameImage()) {
@@ -212,13 +209,7 @@ function mouseMovementCounter() {
 }
 
 function resetPrevIMG(newImageMatch) {
-  if (prevImageMatch) prevImageMatch.attr("cf-debugger-style", 'blur');
-
-  // if (imgRequest.cfCached) {
-  //   imgjQueryObj.attr('cf-debugger-style', 'invert');
-  // } else {
-  //   imgjQueryObj.attr('cf-debugger-style', 'blur');
-  // }
+  if (prevImageMatch) prevImageMatch.removeClass("cf-debugger-grayscale");
   prevImageMatch = newImageMatch;
 }
 
@@ -244,28 +235,28 @@ function appendPopupDOMToBody() {
   textNode = document.createTextNode('Cloudflare Features');
   popupDivBodyCFFeatures.appendChild(textNode);
 
-  let popupDivBodyStatusCode = document.createElement('p');
-  popupDivBodyStatusCode.className = 'cf-debugger-popup-detail-cf-status-code cf-label';
+  let popupDivBodyStatusCode = document.createElement('h2');
+  popupDivBodyStatusCode.className = 'cf-debugger-popup-detail-cf-status-code';
   textNode = document.createTextNode('Status:');
   popupDivBodyStatusCode.appendChild(textNode);
 
-  let popupDivBodyCache = document.createElement('p');
-  popupDivBodyCache.className = 'cf-debugger-popup-detail-cf-cache cf-label';
+  let popupDivBodyCache = document.createElement('h2');
+  popupDivBodyCache.className = 'cf-debugger-popup-detail-cf-cache';
   textNode = document.createTextNode('CF Cache:');
   popupDivBodyCache.appendChild(textNode);
 
-  let popupDivBodyPolish = document.createElement('p');
-  popupDivBodyPolish.className = 'cf-debugger-popup-detail-cf-polish cf-label';
+  let popupDivBodyPolish = document.createElement('h2');
+  popupDivBodyPolish.className = 'cf-debugger-popup-detail-cf-polish';
   textNode = document.createTextNode('Polish:');
   popupDivBodyPolish.appendChild(textNode);
 
-  let popupDivBodyRailgun = document.createElement('p');
-  popupDivBodyRailgun.className = 'cf-debugger-popup-detail-cf-railgun cf-label';
+  let popupDivBodyRailgun = document.createElement('h2');
+  popupDivBodyRailgun.className = 'cf-debugger-popup-detail-cf-railgun';
   textNode = document.createTextNode('Railgun:');
   popupDivBodyRailgun.appendChild(textNode);
 
-  let popupDivBodyImageResizing = document.createElement('p');
-  popupDivBodyImageResizing.className = 'cf-debugger-popup-detail-cf-image-resizing cf-label';
+  let popupDivBodyImageResizing = document.createElement('h2');
+  popupDivBodyImageResizing.className = 'cf-debugger-popup-detail-cf-image-resizing';
   textNode = document.createTextNode('Image Resizing:');
   popupDivBodyImageResizing.appendChild(textNode);
 
@@ -359,6 +350,14 @@ function updatePopupDOM(imageRequest) {
     let popupDetailRailgun = document.getElementsByClassName('cf-debugger-popup-detail-cf-railgun')[0];
     let popupDetailImageResizing = document.getElementsByClassName('cf-debugger-popup-detail-cf-image-resizing')[0];
     let popupDetailHeaders = document.getElementsByClassName('cf-debugger-popup-detail-headers-detail')[0];
+
+    // if (imageRequest.url.length > 40) {
+    //   popupTitle.innerHTML = shortenURL(imageRequest.url);
+    // } else {
+    //   popupTitle.innerHTML = imageRequest.url;
+    // }
+
+    // popupTitle.innerHTML = "";
     
     let headersInString = "";
     for (let header in imageRequest.responseHeaders) {
@@ -369,35 +368,7 @@ function updatePopupDOM(imageRequest) {
 
     popupDetailHeaders.innerHTML = headersInString;
 
-    popupDetailStatusCode.classList.add('cf-label-green');
     popupDetailStatusCode.innerHTML = `Status: ${imageRequest.statusCode}`;
-
-    if (imageRequest.cfCached || false) {
-      popupDetailCache.classList.add('cf-label-green');
-    } else {
-      popupDetailCache.classList.add('cf-label-red');
-    }
-
-    
-
-    if (imageRequests.polished || false) {
-      popupDetailPolish.classList.add('cf-label-green');
-    } else {
-      popupDetailPolish.classList.add('cf-label-red');
-    }
-    
-    if (imageRequests.railguned || false) {
-      popupDetailRailgun.classList.add('cf-label-green');
-    } else {
-      popupDetailRailgun.classList.add('cf-label-red');
-    }
-
-    if (imageRequests.imageResized || false) {
-      popupDetailImageResizing.classList.add('cf-label-green');
-    } else {
-      popupDetailImageResizing.classList.add('cf-label-red');
-    }
-    
     popupDetailCache.innerHTML = `Cache: ${imageRequest.cfCached || false}`;
     popupDetailPolish.innerHTML = `Polish: ${imageRequests.polished || false}`;
     popupDetailRailgun.innerHTML = `Railgun: ${imageRequests.railguned || false}`;
@@ -500,39 +471,39 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   paintTargetElements = [];
 
   // Get all Image objects
-  htmlElementsImg = $("*:not([cfdebugger-request-id]) > img");
+  htmlElementsImg = $("*:not(.cfdebugger-image-match) > img");
   htmlElementsImg.each(function(index, value) {
     paintTargetElements.push($(this));
   });
 
   // Get all Figure objects
-  htmlElementsFigure = $("*:not([cfdebugger-request-id]) > figure");
+  htmlElementsFigure = $("*:not(.cfdebugger-image-match) > figure");
   htmlElementsFigure.each(function(index, value) {
     paintTargetElements.push($(this));
   });
 
-  $("*:not([cfdebugger-request-id]) > div").filter(function() {
+  $("*:not(.cfdebugger-image-match) > div").filter(function() {
     var temp = $(this).css("background-image");
     if (temp.includes("url") && !temp.includes("data:image")) {
       paintTargetElements.push($(this));
     }
   });
 
-  $("*:not([cfdebugger-request-id]) > span").filter(function() {
+  $("*:not(.cfdebugger-image-match) > span").filter(function() {
     var temp = $(this).css("background-image");
     if (temp.includes("url") && !temp.includes("data:image")) {
       paintTargetElements.push($(this));
     }
   });
 
-  $("*:not([cfdebugger-request-id]) > a").filter(function() {
+  $("*:not(.cfdebugger-image-match) > a").filter(function() {
     var temp = $(this).css("background-image");
     if (temp.includes("url") && !temp.includes("data:image")) {
       paintTargetElements.push($(this));
     }
   });
 
-  $("*:not([cfdebugger-request-id]) > i").filter(function() {
+  $("*:not(.cfdebugger-image-match) > i").filter(function() {
     var temp = $(this).css("background-image");
     if (temp.includes("url") && !temp.includes("data:image")) {
       paintTargetElements.push($(this));
@@ -551,21 +522,23 @@ function markAllImg() {
   let imgRequest = null;
   for (let i = 0; i < paintTargetElements.length; i++) {
     imgjQueryObj = paintTargetElements[i];
-    // If a Img DOM has `cfdebugger-request-id`, no need to do again.
-    if (!imgjQueryObj[0].hasAttribute('cfdebugger-request-id')) {
+    // If a Img DOM has `cfdebugger-image-match`, no need to do again.
+    if (!imgjQueryObj.hasClass('cfdebugger-image-match')) {
       imgRequest = getImageRequest(imgjQueryObj);
       if (imgRequest) {
+        imgjQueryObj.addClass('cfdebugger-image-match');
         imgjQueryObj.attr('cfdebugger-request-id', imgRequest.requestId);
+        imgjQueryObj.removeClass("cf-debugger-blur cf-debugger-opacity cf-debugger-saturate cf-debugger-grayscale cf-debugger-invert");
 
         if (imgRequest.cfCached) {
-          imgjQueryObj.attr('cf-debugger-style', 'invert');
+          imgjQueryObj.addClass('cf-debugger-invert');
 
         } else {
-          imgjQueryObj.attr('cf-debugger-style', 'blur');
+          imgjQueryObj.addClass('cf-debugger-blur');
           
         }
       } else {
-        
+
       }
     }
   }

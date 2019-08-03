@@ -23,10 +23,12 @@ if (tabId) {
   chrome.devtools.network.onRequestFinished.addListener(function(request) {
     requestId += 1;
     let networkRequest = new NetworkRequest(requestId);
+
+    console.dir(request);
     networkRequest.setDetails(request);
 
     if (!networkRequest.url.startsWith('data:')) {
-      chrome.tabs.sendMessage(tabId, {
+      chrome.runtime.sendMessage({
         type: 'web-request-objects',
         message: networkRequest, 
         tabId: tabId, 
@@ -57,17 +59,6 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
       type: 'remove-grey-scale',
       tabId: tabId
     });
-  }
-});
-
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type.match('content-interval') && tabId == message.tabId) {
-    if (!contentInterval) { 
-      sendResponse({result: contentInterval});
-      contentInterval = true; 
-    } else {
-      sendResponse({result: contentInterval});
-    }
   }
 });
 
