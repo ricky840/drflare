@@ -19,7 +19,7 @@ var mouseMovementCounterForIFrame = 0;
 var mouseMovementCounterForParent = 0;
 var mouseMovementCounterForHover = 0;
 
-var mouseMoveThreashold = 30;
+var mouseMoveThreashold = 100;
 var mouseMoveIFrameTheshold = 2;
 var mouseMoveHoverTheshold = 5;
 
@@ -30,14 +30,21 @@ var hoveredImageCount = 0;
 
 var previousHoveredImages = [];
 
-var isReadyToCheck = false;
+var isReadyToCheck = true;
 
 var popupResponseHeaders = ['content-type', 'cf-cache-status', 'content-length', 'expires'];
 
-$("body").on('mousemove', '*', function(event){
+var timestamp = null;
+var lastMouseX = null;
+var lastMouseY = null;
+
+$("body").on('mousemove', '*', function(event) {
   mouseX = event.clientX;
   mouseY = event.clientY;
-  if (mouseMovementCounter() && isReadyToCheck) {
+
+  let speed = calculateVelocity(mouseX, mouseY);
+
+  if (mouseMovementCounter() && isReadyToCheck && (speed < 0.3)) {
     moveChecker(mouseX, mouseY);
     if (iFrameImage && !checkIFrameImage()) {
       iFrameImage = true;
@@ -56,6 +63,30 @@ $("body").on('mouseenter', '*', function(event){
   if (!checkIFrameImage()) resetPreviousImageMatch();
 });
 
+function calculateVelocity(currentX, currentY) {
+  if (timestamp === null) {
+    timestamp = Date.now();
+    lastMouseX = currentX;
+    lastMouseY = currentY;
+    return 0;
+  }
+
+  let now = Date.now();
+  let dt =  now - timestamp;
+  let dx = currentX - lastMouseX;
+  let dy = currentY - lastMouseY;
+
+  let speed = Math.sqrt((dx * dx + dy * dy) / dt);
+
+  timestamp = now;
+  lastMouseX = currentX;
+  lastMouseY = currentY;
+
+  if (isNaN(speed)) speed = 0;
+
+  return speed;
+}
+
 function hoverChecker() {
   let elementHoverOver = $(document.querySelectorAll(":hover"));
   
@@ -63,37 +94,37 @@ function hoverChecker() {
 
   let lastIndex = elementHoverOver.length - 1;
 
-  // targetParentNode will be used as a stopping point
+  // firstLevelParentNode will be used as a stopping point
   let secondLevelParentNode = null;
-  let targetParentNode = null;
+  let firstLevelParentNode = null;
   let currentNode;
 
-  if (lastIndex > 0) targetParentNode = $(elementHoverOver[lastIndex].parentNode);
+  if (lastIndex > 0) firstLevelParentNode = $(elementHoverOver[lastIndex].parentNode);
 
-  if (targetParentNode[0].parentNode && targetParentNode[0].parentNode != undefined && lastIndex > 0) {
-    secondLevelParentNode = $(targetParentNode[0].parentNode);
+  if (firstLevelParentNode[0].parentNode && firstLevelParentNode[0].parentNode != undefined && lastIndex > 0) {
+    secondLevelParentNode = $(firstLevelParentNode[0].parentNode);
   }
 
-  isReadyToCheck = false;
+  // isReadyToCheck = false;
   if (secondLevelParentNode) {
     childMatch = secondLevelParentNode.find("[cfdebugger-request-id]").addBack("[cfdebugger-request-id]");
   } 
 
   // not sure about this threshold
-  if (targetParentNode && childMatch.length > 80) {
-    childMatch = targetParentNode.find("[cfdebugger-request-id]").addBack("[cfdebugger-request-id]");
+  if (firstLevelParentNode && childMatch.length > 80) {
+    childMatch = firstLevelParentNode.find("[cfdebugger-request-id]").addBack("[cfdebugger-request-id]");
   }
-  isReadyToCheck = true;
+  // isReadyToCheck = true;
 
   hidePopup();
 }
 
 function moveChecker(mX, mY) {
+  isReadyToCheck = false;
   let elementMouseIsOver = $(document.elementFromPoint(mX, mY));
   let found = false;
   hoveredImages = [];
   hoveredImageCount = 0;
-  
 
   if (elementMouseIsOver.attr("cfdebugger-request-id")) {
     found = true;
@@ -117,12 +148,11 @@ function moveChecker(mX, mY) {
 
   handleHoveredImage(hoveredImages, hoveredImageCount);
 
-  
-
   if (!found) { 
     resetPrevIMG(null); 
     hidePopup();
   }
+  isReadyToCheck = true;
 }
 
 function handleHoveredImage(imageDOMs) {

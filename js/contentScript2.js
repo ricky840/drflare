@@ -29,7 +29,35 @@ var isReadyToCheck = false;
 
 var popupResponseHeaders = ['content-type', 'cf-cache-status', 'content-length', 'expires'];
 
+
+var timestamp = null;
+var lastMouseX = null;
+var lastMouseY = null;
+
+
 $("body").on('mousemove', '*', function(event){
+  if (timestamp === null) {
+    timestamp = Date.now();
+    lastMouseX = event.screenX;
+    lastMouseY = event.screenY;
+    return;
+  }
+
+  let now = Date.now();
+  let dt =  now - timestamp;
+  let dx = event.screenX - lastMouseX;
+  let dy = event.screenY - lastMouseY;
+  let speedX = Math.round(dx / dt * 100);
+  let speedY = Math.round(dy / dt * 100);
+
+  timestamp = now;
+  lastMouseX = event.screenX;
+  lastMouseY = event.screenY;
+
+  console.log(`${speedX} : ${speedY}`);
+
+
+
   mouseX = event.clientX;
   mouseY = event.clientY;
   if (mouseMovementCounter()) {
