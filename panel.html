@@ -10,7 +10,6 @@
       <!-- Menu -->
       <div class="ui inverted menu border-noradius zero-magin-bottom">
         <a class="item active" tab="overview">Overview</a>
-        <a class="item" tab="analysis">Analysis</a>
         <a class="item" tab="cached">Cached Objects</a>
         <a class="item" tab="nocached">None Cached</a>
         <a class="item" tab="3rdparty">3rd Party Objects</a>
@@ -24,11 +23,13 @@
         </div>
       </div>
 
+      <!-- Content -->
       <div id="overview-content" class="tab-content">
 
+        <!-- Grid -->
         <div class="ui grid padded">
 
-          <!-- row 1 -->
+          <!-- Row 1 -->
           <div class="stretched row">
             <div class="ten wide column overview-column">
               <div id="request-count-bar-chart" style="height: 310px"></div>
@@ -38,7 +39,7 @@
               <div class="row">
                 <div class="sixteen wide column">
                   <div class="ui statistic inverted padding-top orange small">
-                    <div class="value"><span id="overview-cf-proxied-ratio">0</span><span>%</span></div>
+                    <div class="value"><span id="overview-cf-proxied-ratio">0</span><span class="percent-char">%</span></div>
                     <div class="label">Cloudflare Proxied</div>
                   </div>
                 </div>
@@ -46,7 +47,7 @@
               <div class="row">
                 <div class="sixteen wide column">
                   <div class="ui statistic inverted violet small">
-                    <div class="value"><span id="overview-cf-cache-hit-ratio">0</span><span>%</span></div>
+                    <div class="value"><span id="overview-cf-cache-hit-ratio">0</span><span class="percent-char">%</span></div>
                     <div class="label">Request Cache HIT Ratio</div>
                   </div>
                 </div>
@@ -64,7 +65,7 @@
               </div>
               <div class="row">
                 <div class="sixteen wide column">
-                  <div class="ui statistic inverted orange brown small">
+                  <div class="ui statistic inverted brown small">
                     <div class="value"><span id="overview-cf-proxied-bytes">0</span></div>
                     <div class="label">CF Proxied Bytes</div>
                   </div>
@@ -77,40 +78,97 @@
               <div class="row">
                 <div class="sixteen wide column">
                   <div class="ui statistic inverted olive small">
-                    <div class="value"><span id="overview-cf-cached-bytes-ratio">0</span><span>%</span></div>
+                    <div class="value"><span id="overview-cf-cached-bytes-ratio">0</span><span class="percent-char">%</span></div>
                     <div class="label">Bytes Offload<br>(Cache Hit)</div>
                   </div>
                 </div>
               </div>
             </div>
 
-          </div>
+          </div> <!-- Row 1 End -->
 
-          <!-- row 2 -->
+          <!-- Row 2 -->
           <div class="stretched row">
             <div class="six wide column overview-column">
               <div id="content-type-chart" style="height: 400px"></div>
-              <div class="chart-title">Content-Type Break Down</div>
+              <div class="chart-title">Content-Type for All Requests</div>
             </div>
             <div class="two wide column overview-column">
               <div id="routing-colo-chart" style="height: 400px"></div>
             </div>
-          </div>
+
+            <div class="two wide column overview-column">
+              <div class="row">
+                <div class="sixteen wide column">
+                  <div class="ui statistic padding-top inverted brown small">
+                    <div class="value"><span id="overview-avg-waiting-cf-cached">0</span><span class="msecond">ms</span></div>
+                    <div class="label">TTFB CF Cached (Avg)</div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="sixteen wide column">
+                  <div class="ui statistic inverted brown small">
+                    <div class="value"><span id="overview-avg-waiting-cf-uncached">0</span><span class="msecond">ms</span></div>
+                    <div class="label">TTFB CF UnCached (Avg)</div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="sixteen wide column">
+                  <div class="ui statistic inverted brown small">
+                    <div class="value"><span id="overview-avg-waiting-not-proxied">0</span><span class="msecond">ms</span></div>
+                    <div class="label">TTFB None CF Proxied (Avg)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="six wide column overview-column">
+              <div id="uncached-content-type-chart" style="height: 400px"></div>
+              <div class="chart-title">Content-Type for CF Proxied Cache MISS</div>
+            </div>
+
+          </div> <!-- Row 2 End -->
+
+          <!-- Row 3 -->
+          <div class="stretched row">
+            <div class="two wide column overview-column">
+              <div class="row">
+                <div class="sixteen wide column">
+                  <div class="ui statistic padding-top inverted brown small">
+                    <div class="value"><span id="overview-num-of-minified">0</span></div>
+                    <div class="label">Auto Minify Applied</div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="sixteen wide column">
+                  <div class="ui statistic padding-top inverted brown small">
+                    <div class="value"><span id="overview-saved-bytes-minify">0</span></div>
+                    <div class="label">Saved Bytes by Auto Minify</div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="sixteen wide column">
+                  <div class="ui statistic padding-top inverted brown small">
+                    <div class="value"><span id="overview-minify-saved-rate">0</span><span class="percent-char">%</span></div>
+                    <div class="label">Offload by Auto Minify</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="four wide column overview-column">
+              <div id="chartdiv" style="height: 400px"></div>
+						</div>
+          </div> <!-- Row 3 End -->
           
         </div> <!-- Grid End -->
 
       </div> <!-- Overview Content -->
 
 
-
-
-
-
-
-
-      <div id="analysis-content" class="tab-content" style="display: none;">
-        Analysis
-      </div>
 
       <div id="cached-content" class="tab-content" style="display: none;">
         <table id="cached-table" class="ui selectable celled table inverted">

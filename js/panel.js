@@ -13,17 +13,11 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     let request = message.message;
     updateStatValue(request);
     addTableRow({request});
+
+    // temp
+    console.log(request);
   } 
 });
-
-// WebNavigation OnLoad Event Listner
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type.match('page-onload-event') && tabId == message.tabId) {
-		console.log("onDOMContentLoad-event-panel");
-    pageOnCompleteEventForPanel = true;
-  }
-});
-
 
 const TABLE_IDS = [
   "cached-table",
@@ -52,7 +46,21 @@ function resetStats() {
   cfProxiedByteCached = 0;
 
   contentTypes = {}; 
+  unCachedContentTypes = {}; 
   routingColo = {};
+
+  waitingCfCached = [];
+  waitingCfUncached = [];
+  waitingNotProxied = [];
+
+  autoMinifyNumberOfRequest = 0;
+  autoMinifyOriginal = [];
+  autoMinifyOptimized = [];
+
+  numberOfPolishedImages = 0;
+  numberOfPolishedImagesFormatConverted = 0;
+  imagePolishOriginal = [];
+  imagePolishOptimized = [];
 }
 
 function updateStatValue(request) {
@@ -67,17 +75,46 @@ function updateStatValue(request) {
   // externalRequestRatio = ((externalNumberOfRequests/totalNumberOfRequests) * 100).toFixed();
 
   // Size of requests
-  totalBytes = totalBytes + parseInt(request.contentLength);
-  if (request.rayId !== "") cfProxiedBytes = cfProxiedBytes + parseInt(request.contentLength); 
-  if (request.cfCached) cfProxiedByteCached = cfProxiedByteCached + parseInt(request.contentLength);
+  totalBytes = totalBytes + request.contentLength;
+  if (request.cfCached) cfProxiedByteCached = cfProxiedByteCached + request.contentLength;
   cfProxiedByteCachedRatio =  ((cfProxiedByteCached/totalBytes) * 100).toFixed();
+  if (request.rayId !== "") cfProxiedBytes = cfProxiedBytes + request.contentLength; 
 
   // Content Type Count
   (contentTypes[request.objectType] == undefined) ? contentTypes[request.objectType] = 1 : contentTypes[request.objectType] = contentTypes[request.objectType] + 1;
 
+  // Content Type Count Uncached
+  if (!request.cfCached && request.rayId !== "") {
+    (unCachedContentTypes[request.objectType] == undefined) ? unCachedContentTypes[request.objectType] = 1 : unCachedContentTypes[request.objectType] = unCachedContentTypes[request.objectType] + 1;
+  }
+
   // Routing Count
-  if(request.colo) {
+  if (request.colo) {
     (routingColo[request.colo] == undefined) ? routingColo[request.colo] = 1 : routingColo[request.colo] = routingColo[request.colo] + 1;
+  }
+
+  // TTFB
+  if (request.cfCached) waitingCfCached.push(request.timingWait);
+  if (!request.cfCached && request.rayId !== "") waitingCfUncached.push(request.timingWait);
+  if (request.rayId == "") waitingNotProxied.push(request.timingWait);
+  
+  // Auto Minify
+  if (request.minified) {
+    autoMinifyNumberOfRequest += 1;
+    if (request.polished) {
+      autoMinifyOriginal.push(request.origSize);
+      autoMinifyOptimized.push(request.contentLength);
+    }
+  }
+
+  // Image Polish
+  if (request.imagePolished) {
+    numberOfPolishedImages += 1;
+    if (!request.imagePolishOrigFmt == "") numberOfPolishedImagesFormatConverted += 1;
+    if (request.origSize > 0) {
+      imagePolishOriginal.push(request.origSize);
+      imagePolishOptimized.push(request.contentLength);
+    }
   }
 
   drawStats();
@@ -91,9 +128,13 @@ function drawStats() {
   $("#overview-total-bytes").html(sizeWording(totalBytes));
   $("#overview-cf-proxied-bytes").html(sizeWording(cfProxiedBytes));
   $("#overview-cf-cached-bytes-ratio").html(cfProxiedByteCachedRatio);
+  $("#overview-avg-waiting-cf-cached").html(getAvgArray(waitingCfCached));
+  $("#overview-avg-waiting-cf-uncached").html(getAvgArray(waitingCfUncached));
+  $("#overview-avg-waiting-not-proxied").html(getAvgArray(waitingNotProxied));
+  $("#overview-num-of-minified").html(autoMinifyNumberOfRequest);
+  $("#overview-saved-bytes-minify").html(sizeWording(getArraySum(autoMinifyOriginal)-getArraySum(autoMinifyOptimized)));
+  $("#overview-minify-saved-rate").html(getAutoMinifyRate());
 }
-
-
 
 function addTableRow(requests) {
   var tableBody = document.getElementById("summary-table").tBodies[0];

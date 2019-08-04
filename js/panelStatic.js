@@ -1,8 +1,13 @@
-// Current TabId
-var tabId = chrome.devtools.inspectedWindow.tabId;
+const WAIT_FOR_ONLOAD_EVENT = 4000; // ms
+const LOAD_INDICATOR = "img/indicator.gif";
 
+// Event Flags ------------------------------------------------------------
+//
 // Indicator for Onload Event (Navigation page, not panel or devltool)
 var pageOnCompleteEventForPanel = false;
+
+// Current TabId
+var tabId = chrome.devtools.inspectedWindow.tabId;
 
 // Total Number of Requests
 var totalNumberOfRequests = 0;
@@ -43,15 +48,50 @@ var cfProxiedByteCached = 0;
 // Total Content Type (ObjecType)
 var contentTypes = {};
 
+// Total Content Type Uncached
+var unCachedContentTypes = {};
+
 // Routing Count
 var routingColo = {};
 
-// var cachableNumberOfRequests = 0;
+// TTFB CF Cached
+var waitingCfCached = [];
+
+// TTFB CF Uncached
+var waitingCfUncached = [];
+
+// TTFB Not Proxied
+var waitingNotProxied = [];
+
+// Auto Minify Original Size
+var autoMinifyOriginal = [];
+
+// Auto Minify Minified Size
+var autoMinifyOptimized = [];
+
+// Auto Minify Number of Requests
+var autoMinifyNumberOfRequest = 0;
+
+// Image Polish Number of Requests
+var numberOfPolishedImages = 0;
+
+// Image Polish Number of Requests (format converted)
+var numberOfPolishedImagesFormatConverted = 0;
+
+// Image Polish Original Size
+var imagePolishOriginal = [];
+
+// Image Polish Optimized Size
+var imagePolishOptimized = [];
 
 
 
 
 
+
+
+
+// Tables
 const CACHED_TABLE_COLUMNS = [
   "requestId", 
   "url", 

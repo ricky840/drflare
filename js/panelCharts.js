@@ -3,6 +3,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('tab-updated') && tabId == message.tabId) {
     resetChartData();
     showLoadingIndicators(); // Show Loading Data when we start listening network requests
+    startCounterForEvent();
   }
 });
 
@@ -16,14 +17,15 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 // WebNavigation OnLoad Event Listner
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('page-onload-event') && tabId == message.tabId) {
-    hideLoadingIndicators();
-    drawCharts();
+    if (pageOnCompleteEventForPanel) {
+      drawCharts();
+    } else {
+      hideLoadingIndicators();
+      drawCharts();
+    }
+    pageOnCompleteEventForPanel = true;
   }
 });
-
-// To avoid duplicated ContentLoadedEvent
-var indicatorDisplayStatus = false;
-const LOAD_INDICATOR = "img/indicator.gif";
 
 // Create Charts
 am4core.useTheme(am4themes_dark);
@@ -53,25 +55,25 @@ requestCountBarChart.data = [{
 ];
 
 // create category axis
-var categoryAxis = requestCountBarChart.yAxes.push(new am4charts.CategoryAxis());
-categoryAxis.dataFields.category = "category";
-categoryAxis.renderer.inversed = true;
-categoryAxis.renderer.grid.template.location = 0;
+var categoryAxisReqCount = requestCountBarChart.yAxes.push(new am4charts.CategoryAxis());
+categoryAxisReqCount.dataFields.category = "category";
+categoryAxisReqCount.renderer.inversed = true;
+categoryAxisReqCount.renderer.grid.template.location = 0;
 
 // create value axis
-var valueAxis = requestCountBarChart.xAxes.push(new am4charts.ValueAxis());
-valueAxis.renderer.opposite = true;
-valueAxis.cursorTooltipEnabled = false;
+var valueAxisReqCount = requestCountBarChart.xAxes.push(new am4charts.ValueAxis());
+valueAxisReqCount.renderer.opposite = true;
+valueAxisReqCount.cursorTooltipEnabled = false;
 
 //create columns
-var series = requestCountBarChart.series.push(new am4charts.ColumnSeries());
-series.dataFields.categoryY = "category";
-series.dataFields.valueX = "value";
-series.name = "Number of Requests";
-series.columns.template.fillOpacity = 0.8;
-series.columns.template.strokeOpacity = 0;
-series.tooltipText = "{valueX.value}";
-series.columns.template.adapter.add("fill", function(fill, target) {
+var seriesReqCount = requestCountBarChart.series.push(new am4charts.ColumnSeries());
+seriesReqCount.dataFields.categoryY = "category";
+seriesReqCount.dataFields.valueX = "value";
+seriesReqCount.name = "Number of Requests";
+seriesReqCount.columns.template.fillOpacity = 0.5;
+seriesReqCount.columns.template.strokeOpacity = 0;
+seriesReqCount.tooltipText = "# of Request: {valueX.value}";
+seriesReqCount.columns.template.adapter.add("fill", function(fill, target) {
   return requestCountBarChart.colors.getIndex(target.dataItem.index);
 });
 
@@ -102,6 +104,8 @@ pieSeries.dataFields.category = "category";
 pieSeries.slices.template.stroke = am4core.color("#fff");
 pieSeries.slices.template.strokeWidth = 2;
 pieSeries.slices.template.strokeOpacity = 0.5;
+pieSeries.slices.template.fillOpacity = 0.5;
+pieSeries.labels.template.text = "{category}: {value.value}";
 
 // This creates initial animation
 pieSeries.hiddenState.properties.opacity = 1;
@@ -140,6 +144,7 @@ function createSeries(field, name) {
   
   // Configure columns
   series.columns.template.width = am4core.percent(60);
+  series.columns.template.fillOpacity = 0.5;
   series.columns.template.tooltipText = "[bold]{name}[/]\n[font-size:14px]Number of Request: {valueY}";
   
   // Add label
@@ -155,17 +160,179 @@ routingColoChart.legend = new am4charts.Legend();
 
 
 // ******************************************************************
+// Content Type Chart CF Uncached
+//
+var unCachedContentTypeChart = am4core.create("uncached-content-type-chart", am4charts.PieChart);
+
+// Add data
+unCachedContentTypeChart.data = [{
+  "category": "No data",
+  "value": 1
+}];
+
+// Add and configure Series
+var pieSeriesUnCached = unCachedContentTypeChart.series.push(new am4charts.PieSeries());
+pieSeriesUnCached.dataFields.value = "value";
+pieSeriesUnCached.dataFields.category = "category";
+pieSeriesUnCached.slices.template.stroke = am4core.color("#fff");
+pieSeriesUnCached.slices.template.strokeWidth = 2;
+pieSeriesUnCached.slices.template.strokeOpacity = 0.5;
+pieSeriesUnCached.slices.template.fillOpacity = 0.5;
+pieSeriesUnCached.labels.template.text = "{category}: {value.value}";
+pieSeriesUnCached.colors.list = [
+  new am4core.color("#845EC2"),
+  new am4core.color("#D65DB1"),
+  new am4core.color("#FF6F91"),
+  new am4core.color("#FF9671"),
+  new am4core.color("#FFC75F"),
+  new am4core.color("#F9F871")
+];
+
+// This creates initial animation
+pieSeriesUnCached.hiddenState.properties.opacity = 1;
+pieSeriesUnCached.hiddenState.properties.endAngle = -90;
+pieSeriesUnCached.hiddenState.properties.startAngle = -90;
+
+// ******************************************************************
+// Image Polish Saved Bytes Chart
+//
+
+var chart = am4core.create("chartdiv", am4charts.XYChart);
+// chart.numberFormatter.numberFormat = "#.0b";
+
+// Add data
+chart.data = [{
+  "category": "Original",
+  "value": 0
+}, {
+  "category": "Optimized",
+  "value": 0
+}];
+
+// Populate data
+for (let i = 0; i < (chart.data.length - 1); i++) {
+  chart.data[i].valueNext = chart.data[i + 1].value;
+}
+
+// Create axes
+var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+categoryAxis.dataFields.category = "category";
+categoryAxis.renderer.grid.template.location = 0;
+categoryAxis.renderer.minGridDistance = 30;
+// categoryAxis.renderer.grid.template.disabled = true;
+// categoryAxis.renderer.minGridDistance = 40;
+// categoryAxis.renderer.labels.template.location = 0.25;
+// categoryAxis.startLocation = -0.3;
+// categoryAxis.endLocation = 0.9;
+
+var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+valueAxis.min = 0;
+
+// Create series
+var series = chart.series.push(new am4charts.ColumnSeries());
+series.dataFields.valueY = "value";
+series.dataFields.categoryX = "category";
+// series.columns.template.width = am4core.percent(100);
+
+// Add series for showing variance arrows
+var series2 = chart.series.push(new am4charts.ColumnSeries());
+series2.dataFields.valueY = "valueNext";
+series2.dataFields.openValueY = "value";
+series2.dataFields.categoryX = "category";
+series2.columns.template.width = 1;
+series2.fill = am4core.color("#555");
+series2.stroke = am4core.color("#555");
+
+// Add a triangle for arrow tip
+var arrow = series2.bullets.push(new am4core.Triangle);
+arrow.width = 10;
+arrow.height = 10;
+arrow.horizontalCenter = "middle";
+arrow.verticalCenter = "top";
+arrow.dy = -1;
+
+// Set up a rotation adapter which would rotate the triangle if its a negative change
+arrow.adapter.add("rotation", function(rotation, target) {
+  return getVariancePercent(target.dataItem) < 0 ? 180 : rotation;
+});
+
+// Set up a rotation adapter which adjusts Y position
+arrow.adapter.add("dy", function(dy, target) {
+  return getVariancePercent(target.dataItem) < 0 ? 1 : dy;
+});
+
+// Add a label
+var label = series2.bullets.push(new am4core.Label);
+label.padding(10, 10, 10, 10);
+label.text = "";
+label.fill = am4core.color("#0c0");
+label.strokeWidth = 0;
+label.horizontalCenter = "middle";
+label.verticalCenter = "top";
+label.fontWeight = "bolder";
+label.fontSize = "30px";
+
+// Adapter for label text which calculates change in percent
+label.adapter.add("textOutput", function(text, target) {
+  var percent = getVariancePercent(target.dataItem);
+  return percent ? percent + "%" : text;
+});
+
+// Adapter which shifts the label if it's below the variance column
+label.adapter.add("verticalCenter", function(center, target) {
+  return getVariancePercent(target.dataItem) < 0 ? "bottom" : center;
+});
+
+// Adapter which changes color of label to red
+label.adapter.add("fill", function(fill, target) {
+  return getVariancePercent(target.dataItem) < 0 ? am4core.color("#c00") : fill;
+});
+
+function getVariancePercent(dataItem) {
+  if (dataItem) {
+    var value = dataItem.valueY;
+    var openValue = dataItem.openValueY;
+    var change = value - openValue;
+    return Math.round(change / openValue * 100);
+  }
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ******************************************************************
 // Loading Indicator
 //
 var indicators = [];
 
 function showLoadingIndicators() {
-  if (indicatorDisplayStatus) return;
-  indicatorDisplayStatus = true;
-
   indicators.push(requestCountBarChart.tooltipContainer.createChild(am4core.Container));
   indicators.push(totalContentTypeChart.tooltipContainer.createChild(am4core.Container));
   indicators.push(routingColoChart.tooltipContainer.createChild(am4core.Container));
+  indicators.push(unCachedContentTypeChart.tooltipContainer.createChild(am4core.Container));
 
   for(let i=0; i < indicators.length; i++) {
     indicators[i].background.fill = am4core.color("#212124");
@@ -191,8 +358,6 @@ function showLoadingIndicators() {
 }
 
 function hideLoadingIndicators() {
-  if (!indicatorDisplayStatus) return;
-  indicatorDisplayStatus = false;
   for(let i=0; i < indicators.length; i++) { 
     indicators[i].hide();
   }
@@ -208,9 +373,9 @@ function drawCharts() {
   requestCountBarChart.invalidateRawData();
 
   // totalContentTypeChart
-  for (var type in contentTypes) {
-    var typeExists = false;
-    for(var i=0; i < totalContentTypeChart.data.length; i++) {
+  for (let type in contentTypes) {
+    let typeExists = false;
+    for(let i=0; i < totalContentTypeChart.data.length; i++) {
       if(totalContentTypeChart.data[i].category == type) {
         typeExists = true;
         totalContentTypeChart.data[i].value = contentTypes[type];
@@ -225,6 +390,24 @@ function drawCharts() {
   }
   totalContentTypeChart.invalidateData();
 
+  // unCachedContentTypeChart
+  for (let type in unCachedContentTypes) {
+    let typeExists = false;
+    for(let i=0; i < unCachedContentTypeChart.data.length; i++) {
+      if(unCachedContentTypeChart.data[i].category == type) {
+        typeExists = true;
+        unCachedContentTypeChart.data[i].value = unCachedContentTypes[type];
+      }
+    }
+    if (!typeExists) {
+      unCachedContentTypeChart.data.push({
+        category: type,
+        value: contentTypes[type]
+      })
+    }
+  }
+  unCachedContentTypeChart.invalidateData();
+
   // Routing Colo Chart
   for (var colo in routingColo) {
     if(routingColoChart.data[0][colo] == undefined) {
@@ -233,12 +416,36 @@ function drawCharts() {
     routingColoChart.data[0][colo] = routingColo[colo];
   }
   routingColoChart.invalidateData();
+
+	// Polish...........
+	chart.data[0].value = getArraySum(imagePolishOriginal);
+  chart.data[1].value = getArraySum(imagePolishOptimized);
+  // Populate data
+  for (let i = 0; i < (chart.data.length - 1); i++) {
+    chart.data[i].valueNext = chart.data[i + 1].value;
+  }
+  // chart.invalidateRawData();
+  chart.invalidateData();
+
+
 }
 
 function resetChartData() {
   console.log("Tab Refreshed Resetting Chart data");
   totalContentTypeChart.data = [];
+  unCachedContentTypeChart.data = [];
+
   routingColoChart.data = [{"colo": "Routed Datacenters"}];
   routingColoChart.series.clear();
 }
 
+function startCounterForEvent() {
+  setTimeout(function() { 
+    // Fire if the onload event was not arrived for 4 seconds
+    if (!pageOnCompleteEventForPanel) {
+      hideLoadingIndicators();
+      drawCharts();
+      pageOnCompleteEventForPanel = true;
+    } 
+  }, WAIT_FOR_ONLOAD_EVENT);
+}

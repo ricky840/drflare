@@ -49,6 +49,21 @@ table td {
   padding-bottom: 10px;
 }
 
+.msecond {
+  text-transform: lowercase;
+  font-size: 25px;
+  padding-left: 5px;
+}
+
+.percent-char {
+  font-size: 25px;
+  padding-left: 5px;
+}
+
+.bytes-char {
+  font-size: 25px;
+  padding-left: 5px;
+}
 
 
 

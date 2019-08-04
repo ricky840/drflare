@@ -1,7 +1,7 @@
 // types of headers
 const CF_CACHE_STATUS_HEADER = "cf-cache-status";
 const CF_POLISH_HEADER = "cf-polished";
-const CF_BGJ_HEADER = "cf-bgj"; // used for polish
+const CF_BGJ_HEADER = "cf-bgj"; // used for minification / image polish / mirage? no..
 const CF_RAILGUN_HEADER = "cf-railgun";
 const CF_IMAGE_RESIZING_HEADER = "cf-resized";
 const CF_RAY_HEADER = "cf-ray";
@@ -28,7 +28,8 @@ class NetworkRequest {
     this.serverIPAddress = "";
 
     // connect, dns, receive, send ssl, wait, etc.
-    this.timings = "";
+    // this.timings = "";
+    this.timingWait = 0;
 
     // CF features
     this.cfCached = false;
@@ -37,15 +38,24 @@ class NetworkRequest {
     this.railguned = false;
     this.polished = false;
     this.imageResized = false;
+    this.imagePolished = false;
     this.minified = false;
     this.rayId = "";
     this.colo = "";
+
+    // Performance
+    this.origSize = 0; // origSize is shared with minify and polish
+    this.imagePolishOrigFmt = "";
+    this.imagePolishStatus = "";
+    this.imagePolishQuality = "";
   }
 
   setDetails(networkRequest) {
     this.parseRequest(networkRequest.request);
     this.parseResponse(networkRequest.response);
+    this.setTimings(networkRequest);
     this.checkCFFeatures();
+    if (this.polished) this.parseCfPolishedHeader(this.responseHeaders[CF_POLISH_HEADER]);
   }
 
   parseRequest(networkRequestObject) {
@@ -78,11 +88,31 @@ class NetworkRequest {
     return headers;
   }
 
+  parseCfPolishedHeader(headerValue) {
+    // Cf-Polished: origSize=74088, status=webp_bigger, origFmt=jpeg
+    let items = headerValue.split(",");
+    for (let i=0; i < items.length; i++) {
+      let item = items[i].trim();
+      if (item.match('origSize=')) {
+        this.origSize = parseInt(item.split("=")[1]); 
+      } else if (item.match('origFmt=')) {
+        this.imagePolishOrigFmt = item.split("=")[1];
+      } else if (item.match('status=')) {
+        this.imagePolishStatus = item.split("=")[1];
+      }
+    }
+  }
+
+  setTimings(networkRequest) {
+    this.timingWait = parseFloat(networkRequest.timings.wait.toFixed(2));
+  }
+
   checkCFFeatures() {
     for (let header in this.responseHeaders) {
+      let headerValue = (this.responseHeaders[header].trim()).toLowerCase();
       switch(header) {
         case CF_CACHE_STATUS_HEADER:
-          if (CACHE_STATUSES.indexOf(this.responseHeaders[header].toLowerCase()) > -1) {
+          if (CACHE_STATUSES.indexOf(headerValue) > -1) {
             this.cfCached = true;
           }
           break;
@@ -91,6 +121,12 @@ class NetworkRequest {
           break;
         case CF_BGJ_HEADER:
           this.bgjed = true;
+          if (headerValue == "minify") {
+            this.minified = true;
+          } else if (headerValue.match('imgq:')) {
+            this.imagePolishQuality = headerValue;
+            this.imagePolished = true;
+          }
           break;
         case CF_RAILGUN_HEADER:
           this.railguned = true;
@@ -111,7 +147,7 @@ class NetworkRequest {
           break;
         case CONTENT_LENGTH_HEADER:
           // TODO
-          this.contentLength = this.responseHeaders[header];
+          this.contentLength = parseInt(this.responseHeaders[header]);
           break;
         default:
           // Do nothing

@@ -21,13 +21,31 @@ $(".menu .item").click(function() {
 });
 
 function sizeWording(bytes) {
-  if ((bytes / (1024 * 1024)) > 2) {
+  if (bytes <= 0) return "0<span class='bytes-char'>B</span>";
+  if ((bytes / (1024 * 1024)) > 1) {
     let newMB = (bytes / (1024 * 1024)).toFixed(2);
-    return newMB.toString() + "MB";
-  } else if ((bytes / (1024)) > 2) {
+    return newMB.toString() + "<span class='bytes-char'>MB</span>";
+  } else if ((bytes / (1024)) > 1) {
     let newKB = (bytes / (1024)).toFixed(2);
-    return newKB.toString() + "KB";
+    return newKB.toString() + "<span class='bytes-char'>KB</span>";
+  } else if (bytes / (1024) < 1) {
+    return bytes + "<span class='bytes-char'>B</span>";
   }
+}
+
+function getAvgArray(array) {
+  if (array.length < 1) return 0;
+  return (array.reduce((a,b) => a + b) / array.length).toFixed(2);
+}
+
+function getAutoMinifyRate() {
+  let sumOriginal = getArraySum(autoMinifyOriginal);
+  let sumOptimized = getArraySum(autoMinifyOptimized);
+  return (sumOriginal > 0) ? (100 - ((sumOptimized/sumOriginal) * 100)).toFixed(1) : 0;
+}
+
+function getArraySum(array) {
+  return array.reduce(function(acc, val) { return acc + val; }, 0)
 }
 
 

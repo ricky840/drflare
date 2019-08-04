@@ -7,7 +7,7 @@ var pageOnCompleteEvent = false;
 var contectScriptInjected = false;
 var timer = false;
 var interval = null;
-var requestId = 0;
+var requestId = 10000;
 const REFRESH_RATE = 300;
 
 var contentInterval = false;
