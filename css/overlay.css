@@ -1,30 +1,3 @@
-/*.cf-debugger-blur {
-  -webkit-filter: blur(3px);
-  filter: blur(3px);
-}
-
-.cf-debugger-opacity {
-  -webkit-filter: opacity(10%);
-  filter: opacity(10%);
-}
-
-.cf-debugger-saturate {
-  -webkit-filter: saturate(7);
-  filter: saturate(7);
-}
-
-.cf-debugger-grayscale {
-  -webkit-filter: grayscale(100%);
-  filter: grayscale(100%);
-  box-shadow: 0 3px 15px rgba(0,0,0,.2);
-  transform: translate3d(0,-5px,0);
-}
-
-.cf-debugger-invert {
-  -webkit-filter: invert(100%);
-  filter: invert(100%);
-}*/
-
 .cf-debugger-popup {
   margin: 0em 0em 0.71428571em;
   display: none;
@@ -42,25 +15,10 @@
   border-radius: 0.28571429rem;
   box-shadow: 0px 2px 4px 0px rgba(34, 36, 38, 0.12),
     0px 2px 10px 0px rgba(34, 36, 38, 0.15);
+
+
   z-index: 2000;
 }
-
-/*.cf-debugger-popup::before {
-  bottom: -0.30714286em;
-  left: 1em;
-  top: auto;
-  right: auto;
-  margin-left: 0em;
-  background-color:rgb(33, 33, 36);
-  position: absolute;
-  content: '';
-  width: 0.71428571em;
-  height: 0.71428571em;
-  transform: rotate(45deg);
-  z-index: 1999;
-  box-shadow: 1px 1px 0px 0px #bababc;
-  box-sizing: inherit;
-}*/
 
 .cf-debugger-popup::before {
   bottom: auto;
@@ -79,13 +37,11 @@
   box-sizing: inherit;
 }
 
-.cf-label {
+[cf-label] {
   margin: 0em 0.5em 0em 0em;
   padding: 0.4em 0.833em;
   min-width: 3em;
   text-align: center;
-
-  
 
   font-size: 0.85714286rem;
   display: inline-block;
@@ -104,19 +60,19 @@
   transition: background 0.1s ease;
 }
 
-.cf-label-red {
+[cf-label=red] {
   background-color: #DB2828 !important;
   border-color: #DB2828 !important;
   color: #FFFFFF !important;
 }
 
-.cf-label-yellow {
+[cf-label=yellow] {
   background-color: #FBBD08 !important;
   border-color: #FBBD08 !important;
   color: #FFFFFF !important;
 }
 
-.cf-label-green {
+[cf-label=green] {
   background-color: #21BA45 !important;
   border-color: #21BA45 !important;
   color: #FFFFFF !important;
@@ -142,8 +98,8 @@
 [cf-debugger-style=grayscale] {
   -webkit-filter: grayscale(100%);
   filter: grayscale(100%);
-  box-shadow: 0 3px 15px rgba(0,0,0,.2);
-  transform: translate3d(0,-5px,0);
+  box-shadow: 0 3px 150px rgba(0,0,0,1);
+  transform: translate3d(0,-10px,10px);
 }
 
 

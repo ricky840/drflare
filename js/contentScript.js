@@ -141,8 +141,6 @@ function moveChecker(mX, mY) {
     });
   }
 
-  // console.dir(hoveredImages);
-
   if (!found) { 
     resetPrevIMG(null); 
     hidePopup();
@@ -163,7 +161,7 @@ function handleHoveredImage(imageDOM) {
         sendImageToDevTools(imageRequest);
       } 
     } else {
-      getPopupPosition(imageDOM);
+      setPopupPosition(imageDOM);
 
       updatePopupDOM(imageRequest);
       showPopup();
@@ -171,7 +169,7 @@ function handleHoveredImage(imageDOM) {
   }
 }
 
-function getPopupPosition(imageDOM) {
+function setPopupPosition(imageDOM) {
   let tempObj = imageDOM[0].getBoundingClientRect();
   let windowWidth = $(window).width();
   let windowheight = $(window).height();
@@ -179,7 +177,7 @@ function getPopupPosition(imageDOM) {
   popupDOMDimension = popupDOM[0].getBoundingClientRect();
 
   if ((tempObj.right + popupDOMDimension.width) > windowWidth) {
-    mouseEnterX = tempObj.left;
+    mouseEnterX = tempObj.left - popupDOMDimension.width;
   } else {
     mouseEnterX = tempObj.right;   
   }
@@ -214,11 +212,6 @@ function mouseMovementCounter() {
 function resetPrevIMG(newImageMatch) {
   if (prevImageMatch) prevImageMatch.attr("cf-debugger-style", 'blur');
 
-  // if (imgRequest.cfCached) {
-  //   imgjQueryObj.attr('cf-debugger-style', 'invert');
-  // } else {
-  //   imgjQueryObj.attr('cf-debugger-style', 'blur');
-  // }
   prevImageMatch = newImageMatch;
 }
 
@@ -245,36 +238,34 @@ function appendPopupDOMToBody() {
   popupDivBodyCFFeatures.appendChild(textNode);
 
   let popupDivBodyStatusCode = document.createElement('p');
-  popupDivBodyStatusCode.className = 'cf-debugger-popup-detail-cf-status-code cf-label';
+  popupDivBodyStatusCode.className = 'cf-debugger-popup-detail-cf-status-code';
+  popupDivBodyStatusCode.setAttribute('cf-label', '');
   textNode = document.createTextNode('Status:');
   popupDivBodyStatusCode.appendChild(textNode);
 
   let popupDivBodyCache = document.createElement('p');
-  popupDivBodyCache.className = 'cf-debugger-popup-detail-cf-cache cf-label';
-  textNode = document.createTextNode('CF Cache:');
+  popupDivBodyCache.className = 'cf-debugger-popup-detail-cf-cache';
+  popupDivBodyCache.setAttribute('cf-label', '');
+  textNode = document.createTextNode('CF Cache');
   popupDivBodyCache.appendChild(textNode);
 
   let popupDivBodyPolish = document.createElement('p');
-  popupDivBodyPolish.className = 'cf-debugger-popup-detail-cf-polish cf-label';
-  textNode = document.createTextNode('Polish:');
+  popupDivBodyPolish.className = 'cf-debugger-popup-detail-cf-polish';
+  popupDivBodyPolish.setAttribute('cf-label', 'empty');
+  textNode = document.createTextNode('Polish');
   popupDivBodyPolish.appendChild(textNode);
 
   let popupDivBodyRailgun = document.createElement('p');
-  popupDivBodyRailgun.className = 'cf-debugger-popup-detail-cf-railgun cf-label';
-  textNode = document.createTextNode('Railgun:');
+  popupDivBodyRailgun.className = 'cf-debugger-popup-detail-cf-railgun';
+  popupDivBodyRailgun.setAttribute('cf-label', '');
+  textNode = document.createTextNode('Railgun');
   popupDivBodyRailgun.appendChild(textNode);
 
   let popupDivBodyImageResizing = document.createElement('p');
-  popupDivBodyImageResizing.className = 'cf-debugger-popup-detail-cf-image-resizing cf-label';
-  textNode = document.createTextNode('Image Resizing:');
+  popupDivBodyImageResizing.className = 'cf-debugger-popup-detail-cf-image-resizing';
+  popupDivBodyImageResizing.setAttribute('cf-label', '');
+  textNode = document.createTextNode('Image Resizing');
   popupDivBodyImageResizing.appendChild(textNode);
-
-  // let popupDivHeaderSummary = document.createElement('h1');
-  // popupDivHeader.className = 'cf-debugger-popup-title';
-  // let headerNode = document.createTextNode('Pop-up div Successfully Displayed');
-  // popupDivHeader.appendChild(headerNode);
-
-
 
   let popupDivBodyHeaders = document.createElement('h1');
   popupDivBodyHeaders.className = 'cf-debugger-popup-detail-headers';
@@ -285,12 +276,6 @@ function appendPopupDOMToBody() {
   popupDivBodyHeadersDetail.className = 'cf-debugger-popup-detail-headers-detail';
   textNode = document.createTextNode('Relevant Headers');
   popupDivBodyHeadersDetail.appendChild(textNode);
-
-
-  // let popupDivText = document.createElement('p');
-  // popupDivText.className = 'cf-debugger-popup-detail-headers';
-  // textNode = document.createTextNode('');
-  // popupDivText.appendChild(textNode);
 
   popupDivBody.appendChild(popupDivBodyCFFeatures);
   popupDivBody.appendChild(popupDivBodyStatusCode);
@@ -340,7 +325,8 @@ function checkIFrameImage() {
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('found-image-response') && tabId == message.tabId) {
     if (!checkIFrameImage()) {
-      updatePopupDOM(message.message)
+      updatePopupDOM(message.message);
+      // setPopupPosition();
       showPopup();
     }
 
@@ -363,45 +349,45 @@ function updatePopupDOM(imageRequest) {
     let headersInString = "";
     for (let header in imageRequest.responseHeaders) {
       if (popupResponseHeaders.includes(header)) {
-        headersInString += `<h2> ${header}: ${imageRequest.responseHeaders[header]} </h2>`;
+        headersInString += `<p> ${header}: ${imageRequest.responseHeaders[header]} </p>`;
       }
     }
 
     popupDetailHeaders.innerHTML = headersInString;
 
-    popupDetailStatusCode.classList.add('cf-label-green');
+    popupDetailStatusCode.setAttribute('cf-label', 'green');
     popupDetailStatusCode.innerHTML = `Status: ${imageRequest.statusCode}`;
 
     if (imageRequest.cfCached || false) {
-      popupDetailCache.classList.add('cf-label-green');
+      popupDetailCache.setAttribute('cf-label', 'green');
     } else {
-      popupDetailCache.classList.add('cf-label-red');
+      popupDetailCache.setAttribute('cf-label', 'red');
     }
 
     
 
     if (imageRequests.polished || false) {
-      popupDetailPolish.classList.add('cf-label-green');
+      popupDetailPolish.setAttribute('cf-label', 'green');
     } else {
-      popupDetailPolish.classList.add('cf-label-red');
+      popupDetailPolish.setAttribute('cf-label', 'red');
     }
     
     if (imageRequests.railguned || false) {
-      popupDetailRailgun.classList.add('cf-label-green');
+      popupDetailRailgun.setAttribute('cf-label', 'green');
     } else {
-      popupDetailRailgun.classList.add('cf-label-red');
+      popupDetailRailgun.setAttribute('cf-label', 'red');
     }
 
     if (imageRequests.imageResized || false) {
-      popupDetailImageResizing.classList.add('cf-label-green');
+      popupDetailImageResizing.setAttribute('cf-labe', 'green');
     } else {
-      popupDetailImageResizing.classList.add('cf-label-red');
+      popupDetailImageResizing.setAttribute('cf-label', 'red');
     }
     
-    popupDetailCache.innerHTML = `Cache: ${imageRequest.cfCached || false}`;
-    popupDetailPolish.innerHTML = `Polish: ${imageRequests.polished || false}`;
-    popupDetailRailgun.innerHTML = `Railgun: ${imageRequests.railguned || false}`;
-    popupDetailImageResizing.innerHTML = `Image Resizing: ${imageRequests.imageResized || false}`;
+    // popupDetailCache.innerHTML = `Cache: ${imageRequest.cfCached || false}`;
+    // popupDetailPolish.innerHTML = `Polish: ${imageRequests.polished || false}`;
+    // popupDetailRailgun.innerHTML = `Railgun: ${imageRequests.railguned || false}`;
+    // popupDetailImageResizing.innerHTML = `Image Resizing: ${imageRequests.imageResized || false}`;
   }
 }
 
@@ -431,10 +417,6 @@ function shortenURL(url) {
   }
 
   return newURL;
-}
-
-function highlightDetails(headers) {
-
 }
 
 // Check if ContentJS is injected
@@ -504,6 +486,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   htmlElementsImg.each(function(index, value) {
     paintTargetElements.push($(this));
   });
+
+  // console.dir(paintTargetElements);
 
   // Get all Figure objects
   htmlElementsFigure = $("*:not([cfdebugger-request-id]) > figure");

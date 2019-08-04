@@ -26,7 +26,6 @@ if (tabId) {
 
     console.dir(request);
     networkRequest.setDetails(request);
-
     if (!networkRequest.url.startsWith('data:')) {
       chrome.runtime.sendMessage({
         type: 'web-request-objects',
@@ -37,6 +36,7 @@ if (tabId) {
 
       requestObjects[networkRequest.requestId] = networkRequest;
       if (networkRequest.objectType.includes("image") && networkRequest.statusCode === 200) {
+        console.dir(networkRequest);
         requestObjectsImages.push(networkRequest);
       }
     }
