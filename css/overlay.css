@@ -98,8 +98,9 @@
 [cf-debugger-style=grayscale] {
   -webkit-filter: grayscale(100%);
   filter: grayscale(100%);
-  box-shadow: 0 3px 150px rgba(0,0,0,1);
-  transform: translate3d(0,-10px,10px);
+
+  /*transform: scale3d(0.9, 0.9, 1) !important;
+  box-shadow: 0 8px 20px -4px #000000;*/
 }
 
 

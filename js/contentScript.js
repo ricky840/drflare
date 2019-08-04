@@ -17,13 +17,18 @@ var mouseEnterY = 0;
 
 var mouseMovementCounterForIFrame = 0;
 var mouseMovementCounterForParent = 0;
+var mouseMovementCounterForHover = 0;
 
-var mouseMoveThreashold = 20;
+var mouseMoveThreashold = 30;
 var mouseMoveIFrameTheshold = 2;
+var mouseMoveHoverTheshold = 5;
 
 var tabId = null;
 
-var hoveredImages = {};
+var hoveredImages = [];
+var hoveredImageCount = 0;
+
+var previousHoveredImages = [];
 
 var isReadyToCheck = false;
 
@@ -32,7 +37,7 @@ var popupResponseHeaders = ['content-type', 'cf-cache-status', 'content-length',
 $("body").on('mousemove', '*', function(event){
   mouseX = event.clientX;
   mouseY = event.clientY;
-  if (mouseMovementCounter()) {
+  if (mouseMovementCounter() && isReadyToCheck) {
     moveChecker(mouseX, mouseY);
     if (iFrameImage && !checkIFrameImage()) {
       iFrameImage = true;
@@ -44,7 +49,9 @@ $("body").on('mousemove', '*', function(event){
 $("body").on('mouseenter', '*', function(event){
   mouseEnterX = event.clientX;
   mouseEnterY = event.clientY;
-  hoverChecker();
+  if (hoverMouseMovementCounter()) {
+    hoverChecker();
+  }
 
   if (!checkIFrameImage()) resetPreviousImageMatch();
 });
@@ -57,63 +64,26 @@ function hoverChecker() {
   let lastIndex = elementHoverOver.length - 1;
 
   // targetParentNode will be used as a stopping point
-  let targetParentNode;
+  let secondLevelParentNode = null;
+  let targetParentNode = null;
   let currentNode;
 
   if (lastIndex > 0) targetParentNode = $(elementHoverOver[lastIndex].parentNode);
 
-  hoveredImages = [];
-
-  // if (targetParentNode.attr("class") && targetParentNode.attr("class").match("cfdebugger-request-id")) {
-  //   // hoveredImages
-  //   // handleHoveredImage(currentNode);
-  //   hoveredImages.push(targetParentNode[0]);
-  //   hoveredImages.push(...targetParentNode.find(".cfdebugger-request-id"));
-  //   // console.log('edgeCase');
-  //   // console.log(hoveredImages);
-  //   return;
-  // } else {
-  //   hoveredImages = targetParentNode.find(".cfdebugger-request-id");
-  //   // childMatch = targetParentNode.find(".cfdebugger-request-id");
-  //   // console.log('normal case');
-  //   // console.log(hoveredImages);
-  // }
-  // 
-
-
-  // console.log(childMatch);
-
-  // isReadyToCheck = false;
-  // console.dir(elementHoverOver);
-  // for (let i = lastIndex; i >= 0; i--) {
-  //   currentNode = $(elementHoverOver[i]);
-  //   if (currentNode.is(targetParentNode)) { i = -1; }
-
-  //   if (currentNode.attr("class") && currentNode.attr("class").match("cfdebugger-request-id")) {
-  //     handleHoveredImage(currentNode);
-  //     return;
-  //   } else {
-  //     // Pass to Checker
-  //     childMatch = currentNode.find(".cfdebugger-request-id");
-  //   }
-  // }
-
-  // isReadyToCheck = true;
-
-
-  for (let i = lastIndex; i >= 0; i--) {
-    currentNode = $(elementHoverOver[i]);
-    if (currentNode.is(targetParentNode)) { i = -1; }
-
-    if (currentNode.attr("cfdebugger-request-id")) {
-      handleHoveredImage(currentNode);
-      return;
-    } else {
-      // Pass to Checker
-      childMatch = currentNode.find("[cfdebugger-request-id]");
-      // childMatch = currentNode.filter(".cfdebugger-request-id");
-    }
+  if (targetParentNode[0].parentNode && targetParentNode[0].parentNode != undefined && lastIndex > 0) {
+    secondLevelParentNode = $(targetParentNode[0].parentNode);
   }
+
+  isReadyToCheck = false;
+  if (secondLevelParentNode) {
+    childMatch = secondLevelParentNode.find("[cfdebugger-request-id]").addBack("[cfdebugger-request-id]");
+  } 
+
+  // not sure about this threshold
+  if (targetParentNode && childMatch.length > 80) {
+    childMatch = targetParentNode.find("[cfdebugger-request-id]").addBack("[cfdebugger-request-id]");
+  }
+  isReadyToCheck = true;
 
   hidePopup();
 }
@@ -121,50 +91,62 @@ function hoverChecker() {
 function moveChecker(mX, mY) {
   let elementMouseIsOver = $(document.elementFromPoint(mX, mY));
   let found = false;
+  hoveredImages = [];
+  hoveredImageCount = 0;
+  
+
   if (elementMouseIsOver.attr("cfdebugger-request-id")) {
     found = true;
-    handleHoveredImage(elementMouseIsOver);
-  } else if (childMatch.length > 0) {
-
-    
+    hoveredImages.push(elementMouseIsOver);
+  } if (childMatch.length > 0) {
     childMatch.each(function() {
       tempObj = $(this)[0].getBoundingClientRect();
-
+      
       if (mX >= tempObj.left 
         && mX <= tempObj.right
         && mY >= tempObj.top
         && mY <= tempObj.bottom
       ) {
         found = true;
-        handleHoveredImage($(this));
+        hoveredImageCount++;
+        // handleHoveredImage($(this));
+        hoveredImages.push($(this));
       }
     });
   }
+
+  handleHoveredImage(hoveredImages, hoveredImageCount);
+
+  
 
   if (!found) { 
     resetPrevIMG(null); 
     hidePopup();
   }
-} 
+}
 
-function handleHoveredImage(imageDOM) {
-  resetPrevIMG(imageDOM);
-  let style = imageDOM.attr("cf-debugger-style");
-  // console.log(`${style} : ${style.match('grayscale')}`);
-  if (!style.match('grayscale')) {
-
-    imageDOM.attr("cf-debugger-style", 'grayscale');
-    let imageRequest = getImageRequest(imageDOM);
-    // hoveredImages[imageRequest.requestId] = imageRequest;
-    if (checkIFrameImage()) {
-      if (iFrameMouseMovementCounter()) {
-        sendImageToDevTools(imageRequest);
-      } 
-    } else {
-      setPopupPosition(imageDOM);
-
-      updatePopupDOM(imageRequest);
-      showPopup();
+function handleHoveredImage(imageDOMs) {
+  resetPrevIMG();
+  let imageDOM;
+  for (let i = 0; i < imageDOMs.length; i++) {
+    imageDOM = imageDOMs[i];
+    let style = imageDOM.attr("cf-debugger-style");
+    if (!style.match('grayscale')) {
+      previousHoveredImages.push(imageDOM);
+      imageDOM.attr("cf-debugger-style", 'grayscale');
+      let imageRequest = getImageRequest(imageDOM);
+      // hoveredImages[imageRequest.requestId] = imageRequest;
+      if (checkIFrameImage()) {
+        if (iFrameMouseMovementCounter()) {
+          sendImageToDevTools(imageRequest);
+        } 
+      } else {
+        if (i == 0) {
+          setPopupPosition(imageDOM);
+          updatePopupDOM(imageRequest, hoveredImageCount);
+          showPopup();
+        }
+      }
     }
   }
 }
@@ -209,12 +191,21 @@ function mouseMovementCounter() {
   }
 }
 
-function resetPrevIMG(newImageMatch) {
-  if (prevImageMatch) prevImageMatch.attr("cf-debugger-style", 'blur');
-
-  prevImageMatch = newImageMatch;
+function hoverMouseMovementCounter() {
+  if (mouseMovementCounterForHover < mouseMoveHoverTheshold) {
+    mouseMovementCounterForHover += 1;
+    return false;
+  } else {
+    mouseMovementCounterForHover = 0;
+    return true;
+  }
 }
 
+function resetPrevIMG(newImageMatch) {
+  for (let i = 0; i < previousHoveredImages.length; i++) {
+    if (previousHoveredImages[i]) previousHoveredImages[i].attr("cf-debugger-style", 'blur');
+  }
+}
 
 // Append Popup HTML format
 function appendPopupDOMToBody() {
@@ -325,8 +316,7 @@ function checkIFrameImage() {
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('found-image-response') && tabId == message.tabId) {
     if (!checkIFrameImage()) {
-      updatePopupDOM(message.message);
-      // setPopupPosition();
+      updatePopupDOM(message.message, 1);
       showPopup();
     }
 
@@ -335,7 +325,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   }
 });
 
-function updatePopupDOM(imageRequest) {
+function updatePopupDOM(imageRequest, count = 0) {
   if (imageRequest) {
 
     let popupTitle = document.getElementsByClassName('cf-debugger-popup-title')[0];
@@ -356,15 +346,13 @@ function updatePopupDOM(imageRequest) {
     popupDetailHeaders.innerHTML = headersInString;
 
     popupDetailStatusCode.setAttribute('cf-label', 'green');
-    popupDetailStatusCode.innerHTML = `Status: ${imageRequest.statusCode}`;
+    popupDetailStatusCode.innerHTML = `Status: ${imageRequest.statusCode} : count ${count}`;
 
     if (imageRequest.cfCached || false) {
       popupDetailCache.setAttribute('cf-label', 'green');
     } else {
       popupDetailCache.setAttribute('cf-label', 'red');
     }
-
-    
 
     if (imageRequests.polished || false) {
       popupDetailPolish.setAttribute('cf-label', 'green');
@@ -394,7 +382,7 @@ function updatePopupDOM(imageRequest) {
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('remove-grey-scale') && tabId == message.tabId) {
     if (checkIFrameImage()) {
-      resetPrevIMG(null);
+      resetPrevIMG();
     } 
   }
 })
@@ -482,41 +470,39 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   paintTargetElements = [];
 
   // Get all Image objects
-  htmlElementsImg = $("*:not([cfdebugger-request-id]) > img");
+  htmlElementsImg = $("img:not([cfdebugger-request-id])");
   htmlElementsImg.each(function(index, value) {
     paintTargetElements.push($(this));
   });
 
-  // console.dir(paintTargetElements);
-
   // Get all Figure objects
-  htmlElementsFigure = $("*:not([cfdebugger-request-id]) > figure");
+  htmlElementsFigure = $("figure:not([cfdebugger-request-id])");
   htmlElementsFigure.each(function(index, value) {
     paintTargetElements.push($(this));
   });
 
-  $("*:not([cfdebugger-request-id]) > div").filter(function() {
+  $("div:not([cfdebugger-request-id])").filter(function() {
     var temp = $(this).css("background-image");
     if (temp.includes("url") && !temp.includes("data:image")) {
       paintTargetElements.push($(this));
     }
   });
 
-  $("*:not([cfdebugger-request-id]) > span").filter(function() {
+  $("span:not([cfdebugger-request-id])").filter(function() {
     var temp = $(this).css("background-image");
     if (temp.includes("url") && !temp.includes("data:image")) {
       paintTargetElements.push($(this));
     }
   });
 
-  $("*:not([cfdebugger-request-id]) > a").filter(function() {
+  $("a:not([cfdebugger-request-id])").filter(function() {
     var temp = $(this).css("background-image");
     if (temp.includes("url") && !temp.includes("data:image")) {
       paintTargetElements.push($(this));
     }
   });
 
-  $("*:not([cfdebugger-request-id]) > i").filter(function() {
+  $("i:not([cfdebugger-request-id])").filter(function() {
     var temp = $(this).css("background-image");
     if (temp.includes("url") && !temp.includes("data:image")) {
       paintTargetElements.push($(this));
@@ -543,13 +529,10 @@ function markAllImg() {
 
         if (imgRequest.cfCached) {
           imgjQueryObj.attr('cf-debugger-style', 'invert');
-
         } else {
           imgjQueryObj.attr('cf-debugger-style', 'blur');
           
         }
-      } else {
-        
       }
     }
   }

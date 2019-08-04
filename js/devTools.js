@@ -23,8 +23,6 @@ if (tabId) {
   chrome.devtools.network.onRequestFinished.addListener(function(request) {
     requestId += 1;
     let networkRequest = new NetworkRequest(requestId);
-
-    console.dir(request);
     networkRequest.setDetails(request);
     if (!networkRequest.url.startsWith('data:')) {
       chrome.runtime.sendMessage({
@@ -35,8 +33,13 @@ if (tabId) {
       });
 
       requestObjects[networkRequest.requestId] = networkRequest;
-      if (networkRequest.objectType.includes("image") && networkRequest.statusCode === 200) {
+      if (networkRequest.url.match('https://www.trumphotels.com/uploads/18376/0/cloudinary/trump-hotels-cloudinary/image/upload/c_fill,w_1280,ar_1:1/v1537381764/nbdedhbetiu6dchgl3v8.jpg')){
         console.dir(networkRequest);
+      }
+
+
+      if (networkRequest.objectType.includes("image") || networkRequest.statusCode === 301) {
+        // console.dir(networkRequest);
         requestObjectsImages.push(networkRequest);
       }
     }
