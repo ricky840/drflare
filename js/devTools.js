@@ -13,7 +13,6 @@ var panelReady = false;
 
 var contentInterval = false;
 
-
 if (tabId) {
   let backgroundPageConnectionPort = chrome.runtime.connect({name: "devtools-page" + "-" + tabId});
 
@@ -46,7 +45,13 @@ if (tabId) {
       });
 
       requestObjects[networkRequest.requestId] = networkRequest;
-      if (networkRequest.objectType.includes("image") && networkRequest.statusCode === 200) {
+      if (networkRequest.url.match('https://www.trumphotels.com/uploads/18376/0/cloudinary/trump-hotels-cloudinary/image/upload/c_fill,w_1280,ar_1:1/v1537381764/nbdedhbetiu6dchgl3v8.jpg')){
+        console.dir(networkRequest);
+      }
+
+
+      if (networkRequest.objectType.includes("image") || networkRequest.statusCode === 301) {
+        // console.dir(networkRequest);
         requestObjectsImages.push(networkRequest);
       }
     }
@@ -55,26 +60,20 @@ if (tabId) {
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('found-image') && tabId == message.tabId) {
-    // sendResponse({result: 'response'});
-
-    // console.log('foundimage message sent');
     chrome.tabs.sendMessage(tabId, {
       type: 'found-image-response',
-      message: message.message,
-      url: message.url, 
+      message: message.message, 
       tabId: tabId
     });
   }
 });
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type.match('content-interval') && tabId == message.tabId) {
-    if (!contentInterval) { 
-      sendResponse({result: contentInterval});
-      contentInterval = true; 
-    } else {
-      sendResponse({result: contentInterval});
-    }
+  if (message.type.match('reset-previous-image') && tabId == message.tabId) {
+    chrome.tabs.sendMessage(tabId, {
+      type: 'remove-grey-scale',
+      tabId: tabId
+    });
   }
 });
 
