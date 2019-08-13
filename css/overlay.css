@@ -79,8 +79,9 @@
 }
 
 [cf-debugger-style=blur] {
-  -webkit-filter: blur(3px);
-  filter: blur(3px);
+  /*-webkit-filter: blur(3px);
+  filter: blur(3px);*/
+
 }
 
 [cf-debugger-style=opacity] {
@@ -99,6 +100,8 @@
   -webkit-filter: grayscale(100%);
   filter: grayscale(100%);
 
+  /*filter: invert(51%) sepia(100%) saturate(971%) hue-rotate(347deg) brightness(99%) contrast(93%);*/
+
   /*transform: scale3d(0.9, 0.9, 1) !important;
   box-shadow: 0 8px 20px -4px #000000;*/
 }
@@ -107,4 +110,6 @@
 [cf-debugger-style=invert] {
   -webkit-filter: invert(100%);
   filter: invert(100%);
+
+  /*filter: invert(99%) sepia(0%) saturate(4182%) hue-rotate(265deg) brightness(113%) contrast(74%);*/
 }

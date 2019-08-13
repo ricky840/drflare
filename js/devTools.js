@@ -24,6 +24,7 @@ if (tabId) {
     requestId += 1;
     let networkRequest = new NetworkRequest(requestId);
     networkRequest.setDetails(request);
+
     if (!networkRequest.url.startsWith('data:')) {
       chrome.runtime.sendMessage({
         type: 'web-request-objects',
@@ -33,10 +34,6 @@ if (tabId) {
       });
 
       requestObjects[networkRequest.requestId] = networkRequest;
-      if (networkRequest.url.match('https://www.trumphotels.com/uploads/18376/0/cloudinary/trump-hotels-cloudinary/image/upload/c_fill,w_1280,ar_1:1/v1537381764/nbdedhbetiu6dchgl3v8.jpg')){
-        console.dir(networkRequest);
-      }
-
 
       if (networkRequest.objectType.includes("image") || networkRequest.statusCode === 301) {
         // console.dir(networkRequest);
@@ -95,6 +92,15 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     }
   }
 });
+
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendRespons) {
+    if (request.contentScriptQuery == 'fetchUrl') {
+      fetch('https://randomfdafldakj.com/cdn-cgi/trace')
+        .then(response = response.text());
+    }
+  }
+);
 
 function startInterval() {
   interval = setInterval(function() { 

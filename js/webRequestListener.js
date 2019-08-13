@@ -96,7 +96,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(
       console.log("We're about to refresh the page please reset-------------------------------------------------------------------'");
       chrome.runtime.sendMessage({
         type: 'webnavigation-before-refresh', 
-        tabId: details.tabId, 
+        tabId: details.tabId,
         from: 'webRequestListener.js'
       });
 		}
@@ -148,7 +148,7 @@ chrome.tabs.onUpdated.addListener (
 			chrome.runtime.sendMessage({
          type: 'tab-updated', 
          message: {}, 
-         tabId: tabId, 
+         tabId: tabId,
          from: 'webRequestListener.js'
       });
 		}

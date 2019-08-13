@@ -19,9 +19,9 @@ var mouseMovementCounterForIFrame = 0;
 var mouseMovementCounterForParent = 0;
 var mouseMovementCounterForHover = 0;
 
-var mouseMoveThreashold = 100;
+var mouseMoveThreashold = 15;
 var mouseMoveIFrameTheshold = 2;
-var mouseMoveHoverTheshold = 5;
+var mouseMoveHoverTheshold = 1;
 
 var tabId = null;
 
@@ -42,12 +42,10 @@ $("body").on('mousemove', '*', function(event) {
   mouseX = event.clientX;
   mouseY = event.clientY;
 
-  let speed = calculateVelocity(mouseX, mouseY);
-
-  if (mouseMovementCounter() && isReadyToCheck && (speed < 0.3)) {
+  if (mouseMovementCounter() && isReadyToCheck) {
     moveChecker(mouseX, mouseY);
     if (iFrameImage && !checkIFrameImage()) {
-      iFrameImage = true;
+      iFrameImage = false;
       resetPreviousImageMatch();
     }
   }
@@ -60,32 +58,11 @@ $("body").on('mouseenter', '*', function(event){
     hoverChecker();
   }
 
-  if (!checkIFrameImage()) resetPreviousImageMatch();
-});
-
-function calculateVelocity(currentX, currentY) {
-  if (timestamp === null) {
-    timestamp = Date.now();
-    lastMouseX = currentX;
-    lastMouseY = currentY;
-    return 0;
+  if (iFrameImage && !checkIFrameImage()) {
+    iFrameImage = false;
+    resetPreviousImageMatch();
   }
-
-  let now = Date.now();
-  let dt =  now - timestamp;
-  let dx = currentX - lastMouseX;
-  let dy = currentY - lastMouseY;
-
-  let speed = Math.sqrt((dx * dx + dy * dy) / dt);
-
-  timestamp = now;
-  lastMouseX = currentX;
-  lastMouseY = currentY;
-
-  if (isNaN(speed)) speed = 0;
-
-  return speed;
-}
+});
 
 function hoverChecker() {
   let elementHoverOver = $(document.querySelectorAll(":hover"));
@@ -140,7 +117,6 @@ function moveChecker(mX, mY) {
       ) {
         found = true;
         hoveredImageCount++;
-        // handleHoveredImage($(this));
         hoveredImages.push($(this));
       }
     });
@@ -158,13 +134,15 @@ function moveChecker(mX, mY) {
 function handleHoveredImage(imageDOMs) {
   resetPrevIMG();
   let imageDOM;
+  let style;
+  let imageRequest;
   for (let i = 0; i < imageDOMs.length; i++) {
     imageDOM = imageDOMs[i];
-    let style = imageDOM.attr("cf-debugger-style");
+    style = imageDOM.attr("cf-debugger-style");
     if (!style.match('grayscale')) {
       previousHoveredImages.push(imageDOM);
       imageDOM.attr("cf-debugger-style", 'grayscale');
-      let imageRequest = getImageRequest(imageDOM);
+      imageRequest = getImageRequest(imageDOM);
       // hoveredImages[imageRequest.requestId] = imageRequest;
       if (checkIFrameImage()) {
         if (iFrameMouseMovementCounter()) {
@@ -456,9 +434,14 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     let documentDOM = $(document);
 
     for (let i = 0; i < documentDOM.length; i++) {
-      if (message.currentURL.match(documentDOM[i].URL)) {
+      // console.log(message.currentURL.match(documentDOM[i].URL));
+
+      // console.log(`${message.currentURL} :  ${documentDOM[i].URL}`);
+      if (message.currentURL == documentDOM[i].URL) {
         if (!hasPopUpDOM()) {
           appendPopupDOMToBody();
+          let iframeDOMS = $(documentDOM[i].querySelectorAll('iframe'));
+          mouseMoveThreashold = mouseMoveThreashold * (1 + iframeDOMS.length);
         }
       } else {
         iframeBodyDOM = $(documentDOM[i].querySelectorAll('body'));
