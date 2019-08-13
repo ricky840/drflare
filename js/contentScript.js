@@ -415,7 +415,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
       resetPrevIMG();
     } 
   }
-})
+});
 
 function resetPreviousImageMatch() {
   chrome.runtime.sendMessage({

@@ -1,6 +1,6 @@
 // When Page Refreshed
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type.match('tab-updated') && tabId == message.tabId) {
+  if (message.type.match('webnavigation-before-refresh') && tabId == message.tabId) {
 
     // update CDN-CGI
     cdnCgi.update();

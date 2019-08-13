@@ -92,13 +92,15 @@ chrome.webRequest.onCompleted.addListener(
 // onBeforePageReload - Reset 
 chrome.webNavigation.onBeforeNavigate.addListener(
 	function(details) {
-		if (inspectedTabIds.indexOf(details.tabId) > -1) {
-      console.log("We're about to refresh the page please reset-------------------------------------------------------------------'");
-      chrome.runtime.sendMessage({
-        type: 'webnavigation-before-refresh', 
-        tabId: details.tabId, 
-        from: 'webRequestListener.js'
-      });
+    if (details.frameId == 0) {
+      if (inspectedTabIds.indexOf(details.tabId) > -1) {
+        console.log("We're about to refresh the page please reset-------------------------------------------------------------------'");
+        chrome.runtime.sendMessage({
+          type: 'webnavigation-before-refresh', 
+          tabId: details.tabId, 
+          from: 'webRequestListener.js'
+        });
+      }
 		}
 	}
 );
@@ -146,7 +148,6 @@ chrome.webNavigation.onDOMContentLoaded.addListener(
 chrome.tabs.onUpdated.addListener (
 	function(tabId, changeInfo, tab) {
 		if ((inspectedTabIds.indexOf(tabId) > -1) && changeInfo.status == "loading") {
-		// if (listen && (inspectedTabIds.indexOf(tabId) > -1) && changeInfo.status == "loading") {
 			chrome.runtime.sendMessage({
          type: 'tab-updated', 
          message: {}, 
