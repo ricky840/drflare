@@ -27044,7 +27044,9 @@ Floated Menu / Item
 
 .ui.selectable.inverted.table tbody tr:hover,
 .ui.inverted.table tbody tr td.selectable:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
+  /* Ricky */
+  background: rgba(255, 255, 255, 0.01) !important;
+  /* background: rgba(255, 255, 255, 0.08) !important; */
   color: #ffffff !important;
 }
 

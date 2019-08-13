@@ -7,8 +7,9 @@ var pageOnCompleteEvent = false;
 var contectScriptInjected = false;
 var timer = false;
 var interval = null;
-var requestId = 0;
+var requestId = 10000;
 const REFRESH_RATE = 300;
+var panelReady = false;
 
 var contentInterval = false;
 
@@ -17,6 +18,16 @@ if (tabId) {
 
   chrome.devtools.panels.create(PANEL_NAME, PANEL_LOGO, PANEL_HTML, function(panel) {
     // Panel Created
+    panelReady = true;
+    panel.onSearch.addListener(function(action, queryString) {
+      chrome.runtime.sendMessage({
+        type: 'search-panel-string',
+        action: action, 
+        query: queryString,
+        tabId: tabId,
+        from: 'devtools.js'
+      });
+    });
   });
 
   //Network Tab onRequestFinished
@@ -25,7 +36,7 @@ if (tabId) {
     let networkRequest = new NetworkRequest(requestId);
     networkRequest.setDetails(request);
 
-    if (!networkRequest.url.startsWith('data:')) {
+    if (panelReady && !networkRequest.url.startsWith('data:')) {
       chrome.runtime.sendMessage({
         type: 'web-request-objects',
         message: networkRequest, 

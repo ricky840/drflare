@@ -1,7 +1,7 @@
 // types of headers
 const CF_CACHE_STATUS_HEADER = "cf-cache-status";
 const CF_POLISH_HEADER = "cf-polished";
-const CF_BGJ_HEADER = "cf-bgj"; // used for polish
+const CF_BGJ_HEADER = "cf-bgj"; // used for minification / image polish / mirage? no..
 const CF_RAILGUN_HEADER = "cf-railgun";
 const CF_IMAGE_RESIZING_HEADER = "cf-resized";
 const CF_RAY_HEADER = "cf-ray";
@@ -26,9 +26,19 @@ class NetworkRequest {
     this.statusCode = "";
     this.contentLength = 0;
     this.serverIPAddress = "";
+    this.cfCacheStatus = "";
+    this.httpVersion = "";
+    this.connectionId = "";
 
-    // connect, dns, receive, send ssl, wait, etc.
-    this.timings = "";
+    // Timings
+    this.timingBlocked = 0;
+    this.timingConnect = 0;
+    this.timingDns = 0;
+    this.timingReceive = 0;
+    this.timingSend = 0;
+    this.timingSsl = 0;
+    this.timingWait = 0;
+    this.timingTotal = 0;
 
     // CF features
     this.cfCached = false;
@@ -37,15 +47,43 @@ class NetworkRequest {
     this.railguned = false;
     this.polished = false;
     this.imageResized = false;
+    this.imagePolished = false;
     this.minified = false;
     this.rayId = "";
     this.colo = "";
+
+    // Image Polish
+    this.origSize = 0; // origSize is shared with minify and polish
+    this.imagePolishOrigFmt = "";
+    this.imagePolishStatus = "";
+    this.imagePolishQuality = "";
+
+    // Railgun
+    this.railgunOptimized = false;
+    this.railgunDirectConnected = false;
+    this.railgunOptimizedRequestId = "";
+    this.railgunOptimizedComRatio = 0;
+    this.railgunOptimizedFetchLatency = 0;
+    this.railgunOptimizedStatus = 0;
+    this.railgunOptimizedListenerVersion = 0;
+
+    // Image Resizer
+    this.imageResizerInternalStatus = "";
+    this.imageResizerTotalTime = 0;
+    this.imageResizerProcessTime = 0;
+    this.imageResizerVersion = "";
   }
 
   setDetails(networkRequest) {
+    this.serverIPAddress = networkRequest.serverIPAddress;
+    this.connectionId = networkRequest.connection;
     this.parseRequest(networkRequest.request);
     this.parseResponse(networkRequest.response);
+    this.setTimings(networkRequest);
     this.checkCFFeatures();
+    if (this.polished) this.parseCfPolishedHeader(this.responseHeaders[CF_POLISH_HEADER]);
+    if (this.railguned) this.parseCfRailgunHeader(this.responseHeaders[CF_RAILGUN_HEADER]);
+    if (this.imageResized) this.parseCfImageResizerHeader(this.responseHeaders[CF_IMAGE_RESIZING_HEADER]);
   }
 
   parseRequest(networkRequestObject) {
@@ -58,10 +96,11 @@ class NetworkRequest {
 
   parseResponse(networkResponseObject) {
     if (networkResponseObject) {
-      this.statusCode = networkResponseObject.status;
+      // this.statusCode = networkResponseObject.status;
+      this.statusCode = (networkResponseObject.status != 0) ? networkResponseObject.status : networkResponseObject._error;
       this.objectType = networkResponseObject.content.mimeType;
       this.contentLength = networkResponseObject.content.size;
-      this.serverIPAddress = networkResponseObject.serverIPAddress;
+      this.httpVersion = networkResponseObject.httpVersion.toLowerCase();
       this.responseHeaders = this.parseHeaders(networkResponseObject.headers);
     }
   }
@@ -78,11 +117,69 @@ class NetworkRequest {
     return headers;
   }
 
+  parseCfPolishedHeader(headerValue) {
+    // Cf-Polished: origSize=74088, status=webp_bigger, origFmt=jpeg
+    let items = headerValue.split(",");
+    for (let i=0; i < items.length; i++) {
+      let item = items[i].trim();
+      if (item.match('origSize=')) {
+        this.origSize = parseInt(item.split("=")[1]); 
+      } else if (item.match('origFmt=')) {
+        this.imagePolishOrigFmt = item.split("=")[1];
+      } else if (item.match('status=')) {
+        this.imagePolishStatus = item.split("=")[1];
+      }
+    }
+  }
+
+  parseCfRailgunHeader(headerValue) {
+    // Cf-Railgun: direct (starting new WAN connection)
+    // Cf-Railgun: 70b3263f64 99.99 0.002952 0030 57da
+    if (headerValue.match('direct')) {
+      this.railgunDirectConnected = true;
+    } else {
+      this.railgunOptimized = true;
+      let items = headerValue.trim().split(" ");
+      if (items.length == 5) {
+        this.railgunOptimizedRequestId = items[0].trim();
+        this.railgunOptimizedComRatio = items[1].trim();
+        this.railgunOptimizedFetchLatency = parseFloat(items[2].trim());
+        this.railgunOptimizedStatus = items[3].trim();
+        this.railgunOptimizedListenerVersion = items[4].trim();
+      }
+    }
+  }
+
+  parseCfImageResizerHeader(headerValue) {
+    // cf-resized: internal=ok/MISS n=592 t=0.732 v=2019.7.4
+    // cf-resized: err=9408
+    let items = headerValue.trim().split(" ");
+    if (items.length == 4) {
+      this.imageResizerInternalStatus = items[0].split("=")[1];
+      this.imageResizerTotalTime = parseFloat(items[1].split("=")[1]);
+      this.imageResizerProcessTime = parseFloat(items[2].split("=")[1]);
+      this.imageResizerVersion = items[3].split("=")[1];
+    }
+  }
+
+  setTimings(networkRequest) {
+    this.timingBlocked = networkRequest.timings.blocked;
+    this.timingConnect = networkRequest.timings.connect;
+    this.timingDns = networkRequest.timings.dns;
+    this.timingReceive = networkRequest.timings.receive;
+    this.timingSend = networkRequest.timings.send;
+    this.timingSsl = networkRequest.timings.ssl;
+    this.timingWait = networkRequest.timings.wait;
+    this.timingTotal = networkRequest.time;
+  }
+
   checkCFFeatures() {
     for (let header in this.responseHeaders) {
+      let headerValue = (this.responseHeaders[header].trim()).toLowerCase();
       switch(header) {
         case CF_CACHE_STATUS_HEADER:
-          if (CACHE_STATUSES.indexOf(this.responseHeaders[header].toLowerCase()) > -1) {
+          this.cfCacheStatus = headerValue;
+          if (CACHE_STATUSES.indexOf(headerValue) > -1) {
             this.cfCached = true;
           }
           break;
@@ -91,6 +188,12 @@ class NetworkRequest {
           break;
         case CF_BGJ_HEADER:
           this.bgjed = true;
+          if (headerValue == "minify") {
+            this.minified = true;
+          } else if (headerValue.match('imgq:')) {
+            this.imagePolishQuality = headerValue;
+            this.imagePolished = true;
+          }
           break;
         case CF_RAILGUN_HEADER:
           this.railguned = true;
@@ -111,7 +214,7 @@ class NetworkRequest {
           break;
         case CONTENT_LENGTH_HEADER:
           // TODO
-          this.contentLength = this.responseHeaders[header];
+          this.contentLength = parseInt(this.responseHeaders[header]);
           break;
         default:
           // Do nothing

@@ -130,13 +130,15 @@ function sendRequestObject(requestObj) {
 chrome.webNavigation.onDOMContentLoaded.addListener(
 	function(details) {
 		if (inspectedTabIds.indexOf(details.tabId) > -1) {
-			chrome.runtime.sendMessage({
-         type: 'page-onDOMContentLoad-event', 
-         message: details,
-         frameId: details.frameId,
-         tabId: details.tabId, 
-         from: 'webRequestListener.js'
-      });
+      if (details.frameId == 0) {
+        chrome.runtime.sendMessage({
+           type: 'page-onDOMContentLoad-event', 
+           message: details,
+           frameId: details.frameId,
+           tabId: details.tabId, 
+           from: 'webRequestListener.js'
+        });
+      }
 		}
 	}
 );
