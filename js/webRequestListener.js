@@ -146,7 +146,6 @@ chrome.webNavigation.onDOMContentLoaded.addListener(
 chrome.tabs.onUpdated.addListener (
 	function(tabId, changeInfo, tab) {
 		if ((inspectedTabIds.indexOf(tabId) > -1) && changeInfo.status == "loading") {
-		// if (listen && (inspectedTabIds.indexOf(tabId) > -1) && changeInfo.status == "loading") {
 			chrome.runtime.sendMessage({
          type: 'tab-updated', 
          message: {}, 

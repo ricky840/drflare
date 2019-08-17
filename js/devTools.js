@@ -76,7 +76,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
 // onRefresh or onUrlChange
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type.match('tab-updated') && tabId == message.tabId) {
+  if (message.type.match('webnavigation-before-refresh') && tabId == message.tabId) {
     console.log("Tab Updated (Refreshed) Reset All");
     resetDevTools();
   }
