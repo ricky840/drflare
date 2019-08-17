@@ -36,6 +36,7 @@ if (tabId) {
     let networkRequest = new NetworkRequest(requestId);
     networkRequest.setDetails(request);
 
+    // if (!networkRequest.url.startsWith('data:')) {
     if (panelReady && !networkRequest.url.startsWith('data:')) {
       chrome.runtime.sendMessage({
         type: 'web-request-objects',
@@ -115,11 +116,13 @@ chrome.runtime.onMessage.addListener(
 
 function startInterval() {
   interval = setInterval(function() { 
+    // console.log('timer');
     if (requestObjectsImages.length > 0) {
       if(contectScriptInjected) {
         chrome.tabs.sendMessage(tabId, {type: 'content-script-dom-status', currentURL: currentURL, tabId: tabId, message: 'alive?', from: 'devTools.js'}, function(response) {
           if (response !== undefined && response.result === true) {
             paintedObjectsImages = requestObjectsImages;
+            console.log('send image from devTools');
             chrome.tabs.sendMessage(tabId, {type: 'content-script-paint', requests: paintedObjectsImages, tabId: tabId, from: 'devTools.js'});
             requestObjectsImages = [];
           } else {

@@ -28,15 +28,24 @@ var tabId = null;
 var hoveredImages = [];
 var hoveredImageCount = 0;
 
-var previousHoveredImages = [];
+var previousHoveredImages = {};
 
 var isReadyToCheck = true;
 
-var popupResponseHeaders = ['content-type', 'cf-cache-status', 'content-length', 'expires'];
+var popupResponseHeaders = [
+  'cf-ray', 'cf-cache-status', 'content-type',
+  'content-length', 'expires', 
+  'age', 'cf-railgun', 'cf-polished', 
+  'cf-bgj', 'cf-resized'
+];
+var cloudflareFeatureNames = ['Proxied', 'Railgun', 'Cache HIT', 'IMG Polish', 'Cache Miss', 'Auto Minify', '3rd Party', 'IMG Resized'];
 
 var timestamp = null;
 var lastMouseX = null;
 var lastMouseY = null;
+
+var popupWidth = 302;
+var popupHeight = 550;
 
 $("body").on('mousemove', '*', function(event) {
   mouseX = event.clientX;
@@ -82,16 +91,14 @@ function hoverChecker() {
     secondLevelParentNode = $(firstLevelParentNode[0].parentNode);
   }
 
-  // isReadyToCheck = false;
+
   if (secondLevelParentNode) {
     childMatch = secondLevelParentNode.find("[cfdebugger-request-id]").addBack("[cfdebugger-request-id]");
   } 
 
-  // not sure about this threshold
   if (firstLevelParentNode && childMatch.length > 80) {
     childMatch = firstLevelParentNode.find("[cfdebugger-request-id]").addBack("[cfdebugger-request-id]");
   }
-  // isReadyToCheck = true;
 
   hidePopup();
 }
@@ -139,11 +146,14 @@ function handleHoveredImage(imageDOMs) {
   for (let i = 0; i < imageDOMs.length; i++) {
     imageDOM = imageDOMs[i];
     style = imageDOM.attr("cf-debugger-style");
-    if (!style.match('grayscale')) {
-      previousHoveredImages.push(imageDOM);
-      imageDOM.attr("cf-debugger-style", 'grayscale');
+    if (!style.match('hover')) {
+      imageDOM.attr("cf-debugger-style", 'hover');
       imageRequest = getImageRequest(imageDOM);
-      // hoveredImages[imageRequest.requestId] = imageRequest;
+
+      if (imageRequest) {
+        previousHoveredImages[imageRequest.requestId] = imageDOM;
+      }
+
       if (checkIFrameImage()) {
         if (iFrameMouseMovementCounter()) {
           sendImageToDevTools(imageRequest);
@@ -159,23 +169,53 @@ function handleHoveredImage(imageDOMs) {
   }
 }
 
-function setPopupPosition(imageDOM) {
-  let tempObj = imageDOM[0].getBoundingClientRect();
-  let windowWidth = $(window).width();
-  let windowheight = $(window).height();
+function setPopupPosition(imageDOM = null) {
   let popupDOM = $('.cf-debugger-popup');
-  popupDOMDimension = popupDOM[0].getBoundingClientRect();
+  let popupDOMDimension = popupDOM[0].getBoundingClientRect();
 
-  if ((tempObj.right + popupDOMDimension.width) > windowWidth) {
-    mouseEnterX = tempObj.left - popupDOMDimension.width;
-  } else {
-    mouseEnterX = tempObj.right;   
-  }
 
-  if ((tempObj.top + popupDOMDimension.height) > windowheight) {
-    mouseEnterY = tempObj.bottom - popupDOMDimension.height;
+  // let width = (popupDOMDimension.width == 0) ? popupWidth : popupDOMDimension.width;
+  // let height = (popupDOMDimension.height == 0) ? popupHeight : popupDOMDimension.height;
+
+  // let windowWidth = $(window).width();
+  // let windowheight = $(window).height();
+
+
+
+  // if (imageDOM) {
+  //   if (imageDOM.requestId in previousHoveredImages) {
+
+  //   } else {
+  //     let tempObj = imageDOM[0].getBoundingClientRect();
+
+  //     // console.log('width');
+  //     // console.log(`${tempObj.right} : ${width} : ${windowWidth}`);
+  //     // console.log('height');
+  //     // console.log(`${tempObj.top} : ${height} : ${windowheight}`);
+
+  //     if ((tempObj.right + width + 50) > windowWidth) {
+  //       mouseEnterX = tempObj.left - width;
+  //     } else {
+  //       mouseEnterX = tempObj.right;   
+  //     }
+
+  //     if ((tempObj.top + height + 50) > windowheight) {
+  //       mouseEnterY = tempObj.bottom - height;
+  //     } else {
+  //       mouseEnterY = tempObj.top;
+  //     }
+  //   }
+  // }
+
+
+  let width = (popupDOMDimension.width == 0) ? popupWidth : popupDOMDimension.width;
+
+  if ((width + 100) > mouseX) {
+    popupDOM[0].style.removeProperty('left');
+    popupDOM[0].style.right = 0;
   } else {
-    mouseEnterY = tempObj.top;
+    popupDOM[0].style.removeProperty('right');
+    popupDOM[0].style.left = 0;
   }
 }
 
@@ -210,93 +250,86 @@ function hoverMouseMovementCounter() {
 }
 
 function resetPrevIMG(newImageMatch) {
-  for (let i = 0; i < previousHoveredImages.length; i++) {
-    if (previousHoveredImages[i]) previousHoveredImages[i].attr("cf-debugger-style", 'blur');
+  let requestId;
+  for (requestId in previousHoveredImages) {
+    if (previousHoveredImages[requestId] && imageRequests[requestId].cfCached) {
+      previousHoveredImages[requestId].attr("cf-debugger-style", 'cache');
+    } else {
+      previousHoveredImages[requestId].attr("cf-debugger-style", 'grayscale');
+    }
   }
+
+  previousHoveredImages = {};
 }
 
 // Append Popup HTML format
 function appendPopupDOMToBody() {
   let textNode;
+  
 
   let popupDiv = document.createElement('div');
   popupDiv.className = 'cf-debugger-popup';
 
   // Empty for now
-  let popupDivHeader = document.createElement('h1');
-  popupDivHeader.className = 'cf-debugger-popup-title';
-  let headerNode = document.createTextNode('');
-  popupDivHeader.appendChild(headerNode);
-
-  let popupDivBody = document.createElement('div');
-  popupDivBody.className = 'cf-debugger-popup-detail';
-
-  let popupDivBodyCFFeatures = document.createElement('h1');
-  popupDivBodyCFFeatures.className = 'cf-debugger-popup-detail-cf';
+  let popupFeatureHeader = document.createElement('h4');
+  popupFeatureHeader.className = 'cf-debugger-popup-title';
   textNode = document.createTextNode('Cloudflare Features');
-  popupDivBodyCFFeatures.appendChild(textNode);
+  popupFeatureHeader.appendChild(textNode);
+  popupDiv.appendChild(popupFeatureHeader);
 
-  let popupDivBodyStatusCode = document.createElement('p');
-  popupDivBodyStatusCode.className = 'cf-debugger-popup-detail-cf-status-code';
-  popupDivBodyStatusCode.setAttribute('cf-label', '');
-  textNode = document.createTextNode('Status:');
-  popupDivBodyStatusCode.appendChild(textNode);
+  let popupDividerFirst = document.createElement('div');
+  popupDividerFirst.className = 'cf-debugger-popup-divider';
+  popupDiv.appendChild(popupDividerFirst);
 
-  let popupDivBodyCache = document.createElement('p');
-  popupDivBodyCache.className = 'cf-debugger-popup-detail-cf-cache';
-  popupDivBodyCache.setAttribute('cf-label', '');
-  textNode = document.createTextNode('CF Cache');
-  popupDivBodyCache.appendChild(textNode);
+  let popupGrid = document.createElement('div');
+  popupGrid.className = 'cf-debugger-popup-grid';
 
-  let popupDivBodyPolish = document.createElement('p');
-  popupDivBodyPolish.className = 'cf-debugger-popup-detail-cf-polish';
-  popupDivBodyPolish.setAttribute('cf-label', 'empty');
-  textNode = document.createTextNode('Polish');
-  popupDivBodyPolish.appendChild(textNode);
+  let i, popupRow, popupColumn, popupItem, popupContent, popupLabel;
+  for (i = 0; i < cloudflareFeatureNames.length; i = i + 2) {
+    popupRow = document.createElement('div');
+    popupRow.className = 'cf-debugger-popup-row';
 
-  let popupDivBodyRailgun = document.createElement('p');
-  popupDivBodyRailgun.className = 'cf-debugger-popup-detail-cf-railgun';
-  popupDivBodyRailgun.setAttribute('cf-label', '');
-  textNode = document.createTextNode('Railgun');
-  popupDivBodyRailgun.appendChild(textNode);
+    for (j = i; j < i + 2; j++) {
+      popupColumn = document.createElement('div');
+      popupColumn.className = 'cf-debugger-popup-column';
 
-  let popupDivBodyImageResizing = document.createElement('p');
-  popupDivBodyImageResizing.className = 'cf-debugger-popup-detail-cf-image-resizing';
-  popupDivBodyImageResizing.setAttribute('cf-label', '');
-  textNode = document.createTextNode('Image Resizing');
-  popupDivBodyImageResizing.appendChild(textNode);
+      popupLabel = document.createElement('div');
+      popupLabel.className = 'cf-debugger-popup-label';
+      textNode = document.createTextNode(cloudflareFeatureNames[j]);
+      popupLabel.appendChild(textNode);
 
-  let popupDivBodyHeaders = document.createElement('h1');
-  popupDivBodyHeaders.className = 'cf-debugger-popup-detail-headers';
-  textNode = document.createTextNode('Relevant Headers');
-  popupDivBodyHeaders.appendChild(textNode);
+      popupColumn.appendChild(popupLabel);
+      popupRow.appendChild(popupColumn);  
+    }
 
-  let popupDivBodyHeadersDetail = document.createElement('div');
-  popupDivBodyHeadersDetail.className = 'cf-debugger-popup-detail-headers-detail';
-  textNode = document.createTextNode('Relevant Headers');
-  popupDivBodyHeadersDetail.appendChild(textNode);
+    popupGrid.appendChild(popupRow);
+  }
+  popupDiv.appendChild(popupGrid);
 
-  popupDivBody.appendChild(popupDivBodyCFFeatures);
-  popupDivBody.appendChild(popupDivBodyStatusCode);
-  popupDivBody.appendChild(popupDivBodyCache);
-  popupDivBody.appendChild(popupDivBodyPolish);
-  popupDivBody.appendChild(popupDivBodyRailgun);
-  popupDivBody.appendChild(popupDivBodyImageResizing);
+  let popupReasponseHeader = document.createElement('h4');
+  popupReasponseHeader.className = 'cf-debugger-popup-title';
+  textNode = document.createTextNode('Response Headers');
+  popupReasponseHeader.appendChild(textNode);
+  popupDiv.appendChild(popupReasponseHeader);
 
-  popupDivBody.appendChild(popupDivBodyHeaders);
-  popupDivBody.appendChild(popupDivBodyHeadersDetail);
+  let popupDividerSecond = document.createElement('div');
+  popupDividerSecond.className = 'cf-debugger-popup-divider';
+  popupDiv.appendChild(popupDividerSecond);
 
-  popupDiv.appendChild(popupDivHeader);
-  popupDiv.appendChild(popupDivBody);
+  let popupResponseHolder = document.createElement('div');
+  popupResponseHolder.className = 'cf-debugger-popup-headers';
+  popupDiv.appendChild(popupResponseHolder);
 
   document.body.appendChild(popupDiv);
 }
 
 function showPopup() {
   let scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-  $('.cf-debugger-popup').show()
-    .css('top', mouseEnterY + 10 + scrollTop)
-    .css('left', mouseEnterX + 10);
+  // $('.cf-debugger-popup').show()
+  //   .css('top', mouseEnterY + scrollTop)
+  //   .css('left', mouseEnterX);
+
+  $('.cf-debugger-popup').show();
 }
 
 function hidePopup() {
@@ -324,6 +357,7 @@ function checkIFrameImage() {
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('found-image-response') && tabId == message.tabId) {
     if (!checkIFrameImage()) {
+      setPopupPosition();
       updatePopupDOM(message.message, 1);
       showPopup();
     }
@@ -335,55 +369,102 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
 function updatePopupDOM(imageRequest, count = 0) {
   if (imageRequest) {
+    let popupLabels = document.getElementsByClassName('cf-debugger-popup-label');
 
-    let popupTitle = document.getElementsByClassName('cf-debugger-popup-title')[0];
-    let popupDetailStatusCode = document.getElementsByClassName('cf-debugger-popup-detail-cf-status-code')[0];
-    let popupDetailCache = document.getElementsByClassName('cf-debugger-popup-detail-cf-cache')[0];
-    let popupDetailPolish = document.getElementsByClassName('cf-debugger-popup-detail-cf-polish')[0];
-    let popupDetailRailgun = document.getElementsByClassName('cf-debugger-popup-detail-cf-railgun')[0];
-    let popupDetailImageResizing = document.getElementsByClassName('cf-debugger-popup-detail-cf-image-resizing')[0];
-    let popupDetailHeaders = document.getElementsByClassName('cf-debugger-popup-detail-headers-detail')[0];
-    
-    let headersInString = "";
-    for (let header in imageRequest.responseHeaders) {
-      if (popupResponseHeaders.includes(header)) {
-        headersInString += `<p> ${header}: ${imageRequest.responseHeaders[header]} </p>`;
+    let i;
+    for (i = 0; i < popupLabels.length; i++) {
+      switch (popupLabels[i].innerHTML) {
+
+        case ('Proxied'):
+          popupLabels[i].setAttribute('cf-label', (imageRequest.rayId != "") ? "green" : "grey");
+          break;
+        case ('Cache HIT'):
+          popupLabels[i].setAttribute('cf-label', (imageRequest.cfCached != "") ? "green" : "grey");
+          break;
+        case ('Cache Miss'):
+          popupLabels[i].setAttribute('cf-label', (!imageRequest.cfCached && imageRequest.rayId != "") ? "green" : "grey");
+          break;
+        case ('3rd Party'):
+          popupLabels[i].setAttribute('cf-label', (imageRequest.rayId == "") ? "green" : "grey");
+          break;
+        case ('Railgun'):
+          popupLabels[i].setAttribute('cf-label', (imageRequest.railguned) ? "green" : "grey");
+          break;
+        case ('IMG Polish'):
+          popupLabels[i].setAttribute('cf-label', (imageRequest.imagePolished != "") ? "green" : "grey");
+          break;
+        case ('Auto Minify'):
+          popupLabels[i].setAttribute('cf-label', (imageRequest.minified != "") ? "green" : "grey");
+          break;
+        case ('IMG Resized'):
+          popupLabels[i].setAttribute('cf-label', (imageRequest.imageResized != "") ? "green" : "grey");
+          break;
       }
     }
-
-    popupDetailHeaders.innerHTML = headersInString;
-
-    popupDetailStatusCode.setAttribute('cf-label', 'green');
-    popupDetailStatusCode.innerHTML = `Status: ${imageRequest.statusCode} : count ${count}`;
-
-    if (imageRequest.cfCached || false) {
-      popupDetailCache.setAttribute('cf-label', 'green');
-    } else {
-      popupDetailCache.setAttribute('cf-label', 'red');
-    }
-
-    if (imageRequests.polished || false) {
-      popupDetailPolish.setAttribute('cf-label', 'green');
-    } else {
-      popupDetailPolish.setAttribute('cf-label', 'red');
-    }
     
-    if (imageRequests.railguned || false) {
-      popupDetailRailgun.setAttribute('cf-label', 'green');
-    } else {
-      popupDetailRailgun.setAttribute('cf-label', 'red');
+    let popupTitle = document.getElementsByClassName('cf-debugger-popup-headers')[0];
+
+    while (popupTitle.hasChildNodes()) {   
+      popupTitle.removeChild(popupTitle.firstChild);
     }
 
-    if (imageRequests.imageResized || false) {
-      popupDetailImageResizing.setAttribute('cf-labe', 'green');
-    } else {
-      popupDetailImageResizing.setAttribute('cf-label', 'red');
+    // let header, popItem, popupContent, textNode, responseHeader, responseSubHeader;
+    // for (header in imageRequest.responseHeaders) {
+    //   if (popupResponseHeaders.includes(header)) {
+    //     popupItem = document.createElement('div');
+    //     popupItem.className = 'cf-debugger-popup-item';
+
+    //     popupContent = document.createElement('div');
+    //     popupContent.className = 'cf-debugger-popup-content';
+
+    //     responseHeader = document.createElement('h4');
+    //     responseHeader.className = 'cf-debugger-popup-response-header';
+    //     textNode = document.createTextNode(header);
+    //     responseHeader.appendChild(textNode);
+
+    //     responseSubHeader = document.createElement('div');
+    //     responseSubHeader.className = 'cf-debugger-popup-response-sub-header';
+    //     textNode = document.createTextNode(imageRequest.responseHeaders[header]);
+    //     responseSubHeader.appendChild(textNode);
+    //     responseHeader.appendChild(responseSubHeader);
+
+    //     popupContent.appendChild(responseHeader);
+    //     popupItem.appendChild(popupContent);
+
+    //     popupTitle.appendChild(popupItem);
+    //   }
+    // }
+
+    let header, value, popItem, popupContent, textNode, responseHeader, responseSubHeader;
+    for (i = 0; i < popupResponseHeaders.length; i ++) {
+      header = popupResponseHeaders[i];
+      headerValue = imageRequest.responseHeaders[header] == undefined ? 'N/A' : imageRequest.responseHeaders[header];
+
+      popupItem = document.createElement('div');
+      popupItem.className = 'cf-debugger-popup-item';
+
+      popupContent = document.createElement('div');
+      popupContent.className = 'cf-debugger-popup-content';
+
+      responseHeader = document.createElement('h4');
+      responseHeader.className = 'cf-debugger-popup-response-header';
+      textNode = document.createTextNode(header);
+      responseHeader.appendChild(textNode);
+
+      responseSubHeader = document.createElement('div');
+      responseSubHeader.className = 'cf-debugger-popup-response-sub-header';
+      textNode = document.createTextNode(headerValue);
+      responseSubHeader.appendChild(textNode);
+      responseHeader.appendChild(responseSubHeader);
+
+      popupContent.appendChild(responseHeader);
+      popupItem.appendChild(popupContent);
+
+      popupTitle.appendChild(popupItem);
     }
-    
-    // popupDetailCache.innerHTML = `Cache: ${imageRequest.cfCached || false}`;
-    // popupDetailPolish.innerHTML = `Polish: ${imageRequests.polished || false}`;
-    // popupDetailRailgun.innerHTML = `Railgun: ${imageRequests.railguned || false}`;
-    // popupDetailImageResizing.innerHTML = `Image Resizing: ${imageRequests.imageResized || false}`;
+
+    popupDiv = document.getElementsByClassName('cf-debugger-popup')[0];
+    popupDiv.appendChild(popupTitle);
   }
 }
 
@@ -393,7 +474,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
       resetPrevIMG();
     } 
   }
-})
+});
 
 function resetPreviousImageMatch() {
   chrome.runtime.sendMessage({
@@ -434,9 +515,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     let documentDOM = $(document);
 
     for (let i = 0; i < documentDOM.length; i++) {
-      // console.log(message.currentURL.match(documentDOM[i].URL));
 
-      // console.log(`${message.currentURL} :  ${documentDOM[i].URL}`);
       if (message.currentURL == documentDOM[i].URL) {
         if (!hasPopUpDOM()) {
           appendPopupDOMToBody();
@@ -541,9 +620,9 @@ function markAllImg() {
         imgjQueryObj.attr('cfdebugger-request-id', imgRequest.requestId);
 
         if (imgRequest.cfCached) {
-          imgjQueryObj.attr('cf-debugger-style', 'invert');
+          imgjQueryObj.attr('cf-debugger-style', 'cache');
         } else {
-          imgjQueryObj.attr('cf-debugger-style', 'blur');
+          imgjQueryObj.attr('cf-debugger-style', 'grayscale');
           
         }
       }
