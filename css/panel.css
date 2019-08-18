@@ -1,12 +1,11 @@
 table {
-  table-layout: fixed 
 }
+
 table td {
-  word-wrap: break-word;
+ word-break: break-all;
 }
 
-
-.ui.accordion .active.content, .ui.accordion .accordion .active.content {
+.ui.accordion .active.content .ui.accordion .accordion .active.content {
   display: table-row;
 }
 
@@ -62,19 +61,15 @@ table td {
   font-size: 15px;
 }
 
-.td-collapsed {
-  border-width: 0px !important;
-  padding: 0px !important;
+/* Hidden Table Row */
+.hiddenTable {
+  padding: 1em;
+  border-style: none !important;
 }
-
-.hiddenTableRow {
-  display: none;
-  padding: 30px;
-}
-
-.hiddenTableRow .item .label {
+.hiddenTable .item .label {
   width: 100px;
 }
+
 
 tr[reqid] {
   cursor: pointer;
@@ -86,9 +81,10 @@ tr[reqid] {
 
 table {
   background: transparent !important;
-  margin-bottom: 100px !important;
   border: 0.1em solid !important;
   border-color: black !important;
+  margin-top: 0.5em !important;
+  margin-bottom: 0.5em !important;
 }
 
 .table-no-row {
@@ -117,3 +113,79 @@ table {
 }
 
 
+/* Hidden table row image */
+.image-view-container {
+  width: 400px;
+  height: 500px;
+  border-style: solid;
+  border-width: 0.1px;
+  border-color: rgb(66, 66, 69);
+}
+
+.image-view {
+  width: auto;
+  max-width: 100%;
+  max-height: 100%;
+  height: auto;
+}
+
+/* For DataTable */
+.dataTables_wrapper {
+  padding: 20px;
+  color: white;
+  width: 100%;
+}
+
+/* DataTable Search */
+.dataTables_filter input {
+  color: white !important;
+  background: transparent !important;
+  border-color: black !important;
+}
+
+/* DataTable Paginate */
+.dataTables_paginate .pagination.menu .paginate_button { 
+  color: white !important;
+}
+.dataTables_paginate .pagination.menu .paginate_button:hover { 
+  color: white !important;
+  cursor: pointer !important;
+}
+.dataTables_paginate .pagination.menu .active { 
+  /* background-color: rgba(103, 103, 112) !important; */
+  background-color: gray !important;
+  border-radius: 5px !important;
+}
+.dataTables_paginate .pagination.menu { 
+  background: transparent! important;
+}
+
+/* DataTable Dropdown Menu */
+.dataTables_length .selection.dropdown {
+  background: transparent !important;
+  color: white !important;
+  border-width: 0px;
+}
+.dataTables_length .selection.dropdown:focus {
+  border-width: 1px !important;
+  border-color: black !important;
+}
+.dataTables_length .selection .transition {
+  background-color: rgba(28, 28, 31) !important;
+  color: white !important;
+  border-color: black !important;
+}
+.dataTables_length .selection .transition .item {
+  color: white !important;
+  border-top: 0px !important;
+}
+.dataTables_length .selection .transition .item:hover {
+  background-color: rgba(33, 33, 36) !important;
+}
+
+/* Feedback Message */
+.feedback-message {
+  padding: 150px !important;
+  background: transparent !important;
+  text-align: center;
+}

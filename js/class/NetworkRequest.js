@@ -18,6 +18,7 @@ const CACHE_STATUSES = [CACHE_STATUS_HIT, CACHE_REVALIDATE, CACHE_STALE];
 class NetworkRequest {
   constructor(requestId) {
     this.requestId = requestId;
+    this.startedDateTimeInMs = 0;
     this.method = "";
     this.url = "";
     this.objectType = "";
@@ -77,6 +78,7 @@ class NetworkRequest {
   setDetails(networkRequest) {
     this.serverIPAddress = networkRequest.serverIPAddress;
     this.connectionId = networkRequest.connection;
+    this.startedDateTimeInMs = new Date(networkRequest.startedDateTime).getTime();
     this.parseRequest(networkRequest.request);
     this.parseResponse(networkRequest.response);
     this.setTimings(networkRequest);

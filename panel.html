@@ -2,6 +2,7 @@
   <head>
     <link rel="stylesheet" type="text/css" href="css/semantic.css">
     <link rel="stylesheet" type="text/css" href="css/icon.min.css">
+    <link rel="stylesheet" type="text/css" href="css/datatables.min.css">
     <link rel="stylesheet" type="text/css" href="css/panel.css">
   </head>
   <body class="dark-background">
@@ -39,10 +40,10 @@
             <div class="two wide column overview-column">
               <div class="row"></div>
               <div class="row">
-                <div id="proxied-request-ratio-chart" style="height: 140px"></div>
+                <div id="proxied-request-ratio-chart" style="height: 140px" data-tooltip="Cloudflare proxied request volume" data-inverted="" data-position="bottom center"></div>
               </div>
               <div class="row">
-                <div id="byte-saved-ratio-chart" style="height: 140px"></div>
+                <div id="byte-saved-ratio-chart" style="height: 140px" data-tooltip="Cloudflare cache hit bytes / Total bytes * 100" data-inverted="" data-position="bottom center"></div>
               </div>
               <div class="row"></div>
             </div>
@@ -52,13 +53,13 @@
               <div class="row">
 								<div class="ui statistic inverted orange small">
 									<div class="value"><span cfstat="overview-total-bytes">0</span></div>
-									<div class="label">Total Bytes</div>
+									<div class="label" data-tooltip="Total bytes transferred" data-inverted="" data-position="bottom left">Total Bytes</div>
 								</div>
               </div>
               <div class="row">
 								<div class="ui statistic inverted orange small">
 									<div class="value"><span cfstat="overview-cf-proxied-bytes">0</span></div>
-									<div class="label">Proxied Bytes</div>
+									<div class="label" data-tooltip="Total bytes for Cloudflare traffic" data-inverted="" data-position="bottom left">Proxied Bytes</div>
 								</div>
               </div>
             </div>
@@ -68,20 +69,20 @@
               <div class="row">
 								<div class="ui statistic inverted orange small">
 									<div class="value"><span cfstat="overview-external-bytes">0</span></div>
-									<div class="label">None Cloudflare</div>
+									<div class="label" data-tooltip="Total bytes for none Cloudflare traffic" data-inverted="" data-position="bottom left">None Cloudflare</div>
 								</div>
               </div>
               <div class="row">
 								<div class="ui statistic inverted orange small">
 									<div class="value"><span cfstat="overview-cf-cached-bytes">0</span></div>
-									<div class="label">Cache HIT Bytes</div>
+									<div class="label" data-tooltip="Total bytes for Cloudflare cache hit" data-inverted="" data-position="bottom left">Cache HIT Bytes</div>
 								</div>
               </div>
             </div>
 
             <div class="two wide column overview-column">
               <div class="row">
-                <div id="routing-colo-chart" style="height: 350px"></div>
+                <div id="routing-colo-chart" style="height: 350px" data-tooltip="Connected Cloudflare datacenters" data-inverted="" data-position="bottom center"></div>
               </div>
             </div>
 
@@ -91,7 +92,7 @@
               <div class="row">
 								<div class="ui statistic inverted orange small">
 									<div class="value"><span cfstat="overview-number-of-connections">0</span></div>
-                  <div class="label">Connections Used</div>
+                  <div class="label" data-tooltip="Number of unique connections" data-inverted="" data-position="bottom center">Connections Used</div>
 								</div>
               </div>
               <div class="row"></div>
@@ -114,7 +115,6 @@
               <div class="chart-title">HTTP VERSIONS</div>
             </div>
           </div> <!-- Row 2 End -->
-
 
           <!-- Row 3 -->
           <div class="stretched row">
@@ -140,19 +140,19 @@
               <div class="row">
                   <div class="ui statistic inverted green small">
                     <div class="value"><span cfstat="overview-avg-waiting-cf-cached">0</span><span class="msecond">ms</span></div>
-                    <div class="label">TTFB Cache HIT (avg)</div>
+                    <div class="label" data-tooltip="Time to first byte (average) for Cloudflare cache HIT requests" data-inverted="" data-position="bottom left">TTFB Cache HIT (avg)</div>
                   </div>
               </div>
               <div class="row">
                   <div class="ui statistic inverted green small">
                     <div class="value"><span cfstat="overview-avg-waiting-cf-uncached">0</span><span class="msecond">ms</span></div>
-                    <div class="label">TTFB Cache MISS (Avg)</div>
+                    <div class="label" data-tooltip="Time to first byte (average) for Cloudflare cache MISS requests" data-inverted="" data-position="bottom left">TTFB Cache MISS (Avg)</div>
                   </div>
               </div>
               <div class="row">
                   <div class="ui statistic inverted green small">
                     <div class="value"><span cfstat="overview-avg-waiting-not-proxied">0</span><span class="msecond">ms</span></div>
-                    <div class="label">TTFB Not Proxied (Avg)</div>
+                    <div class="label" data-tooltip="Time to first byte (average) for None Cloudflare requests" data-inverted="" data-position="bottom left">TTFB Not Proxied (Avg)</div>
                   </div>
               </div>
             </div>
@@ -162,19 +162,19 @@
               <div class="row">
                 <div class="ui statistic inverted blue small">
                   <div class="value"><span cfstat="overview-num-of-minified">0</span></div>
-                  <div class="label">Auto-Minify</div>
+                  <div class="label" data-tooltip="Number of Auto-Minified requests" data-inverted="" data-position="bottom left">Auto-Minify</div>
                 </div>
               </div>
               <div class="row">
                 <div class="ui statistic inverted blue small">
                   <div class="value"><span cfstat="overview-saved-bytes-minify">0</span></div>
-                  <div class="label">Bytes Saved</div>
+                  <div class="label" data-tooltip="Total bytes saved by Auto-Minify" data-inverted="" data-position="bottom left">Bytes Saved</div>
                 </div>
               </div>
               <div class="row">
                 <div class="ui statistic inverted blue small">
                   <div class="value"><span cfstat="overview-minify-saved-rate">0</span><span class="percent-char">%</span></div>
-                  <div class="label">Offloaded</div>
+                  <div class="label" data-tooltip="Minified bytes / Original bytes * 100" data-inverted="" data-position="bottom left">Offloaded</div>
                 </div>
               </div>
             </div>
@@ -184,19 +184,19 @@
               <div class="row">
                 <div class="ui statistic inverted violet small">
                   <div class="value"><span cfstat="overview-railgun-applied">0</span></div>
-                  <div class="label">Railgun Applied</div>
+                  <div class="label" data-tooltip="Number of Railgun applied" data-inverted="" data-position="bottom left">Railgun Applied</div>
                 </div>
               </div>
               <div class="row">
                 <div class="ui statistic inverted violet small">
                   <div class="value"><span cfstat="overview-railgun-direct">0</span></div>
-                  <div class="label">Direct Connect</div>
+                  <div class="label" data-tooltip="Number of direct-connect requests (origin direct)" data-inverted="" data-position="bottom left">Direct Connect</div>
                 </div>
               </div>
               <div class="row">
                 <div class="ui statistic inverted violet small">
                   <div class="value"><span cfstat="overview-railgun-listener">0</span></div>
-                  <div class="label">Listener Connect</div>
+                  <div class="label" data-tooltip="Number of Railgun optimized requests (via rg-listener)" data-inverted="" data-position="bottom left">Listener Connect</div>
                 </div>
               </div>
 						</div>
@@ -206,19 +206,19 @@
               <div class="row">
                   <div class="ui statistic inverted olive small">
                     <div class="value"><span cfstat="overview-image-polished">0</span></div>
-                    <div class="label">Image Polished</div>
+                    <div class="label" data-tooltip="Number of Polish applied images" data-inverted="" data-position="bottom left">Image Polished</div>
                   </div>
               </div>
               <div class="row">
                   <div class="ui statistic inverted olive small">
                     <div class="value"><span cfstat="overview-image-format-converted">0</span></div>
-                    <div class="label">Format Converted</div>
+                    <div class="label" data-tooltip="Number of format changed images by Polish" data-inverted="" data-position="bottom left">Format Converted</div>
                   </div>
               </div>
               <div class="row">
                   <div class="ui statistic inverted olive small">
                     <div class="value"><span cfstat="overview-image-polished-saved-bytes">0</span></div>
-                    <div class="label">Bytes Saved</div>
+                    <div class="label" data-tooltip="Bytes saved by Image Polish" data-inverted="" data-position="bottom left">Bytes Saved</div>
                   </div>
               </div>
             </div>
@@ -231,13 +231,13 @@
               <div class="row">
                 <div class="ui statistic padding-top inverted red small">
                   <div class="value"><span cfstat="overview-image-resizer-applied">0</span></div>
-                  <div class="label">Image Resizer</div>
+                  <div class="label" data-tooltip="Number of request Image Resizer applied" data-inverted="" data-position="left center">Image Resizer</div>
                 </div>
               </div>
               <div class="row">
                 <div class="ui statistic padding-top inverted red small">
                   <div class="value"><span cfstat="overview-image-resizer-avg-process-time">0</span><span class="msecond">ms</span></div>
-                  <div class="label">Processing Avg Time</div>
+                  <div class="label" data-tooltip="Avg time for image resizing process" data-inverted="" data-position="left center">Processing Avg Time</div>
                 </div>
               </div>
               <div class="row"></div>
@@ -287,28 +287,27 @@
             </div>
           </div> <!-- Row 1 End -->
           <div class="stretched row">
+            <div class="ui disabled dimmer table-loader">
+              <div class="ui big text loader">Loading..</div>
+            </div>
             <table id="cf-cached-table" class="ui selectable celled table inverted compact">
               <thead>
-                <tr class="eleven column row">
-                  <th class="one wide">HTTP Version</th>
-                  <th class="one wide">Method</th>
-                  <th class="three wide">URL</th>
-                  <th class="one wide">Status</th>
-                  <th class="two wide">RayId</th>
-                  <th class="one wide">TTFB</th>
-                  <th class="two wide">CacheControl</th>
-                  <th class="one wide">ServerIP</th>
-                  <th class="one wide">Length</th>
-                  <th class="one wide">ObjectType</th>
-                  <th class="one wide">CacheStatus</th>
-                  <th class="one wide">Colo</th>
+                <tr class="row">
+                  <th>reqId</th>
+                  <th>HTTP</th>
+                  <th>Method</th>
+                  <th>URL</th>
+                  <th>Status</th>
+                  <th>RayId</th>
+                  <th>TTFB</th>
+                  <th>CacheControl</th>
+                  <th>ServerIP</th>
+                  <th>Length</th>
+                  <th>ObjectType</th>
+                  <th>CacheStatus</th>
+                  <th>Colo</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr class="table-no-row">
-                  <td colspan="12">No data available</td>
-                </tr>
-              </tbody>
             </table>
           </div>
         </div> <!-- Grid End -->
@@ -353,29 +352,28 @@
           </div> <!-- Row 1 End -->
           <!-- Row 2 -->
           <div class="stretched row">
+            <div class="ui disabled dimmer table-loader">
+              <div class="ui big text loader">Loading..</div>
+            </div>
             <table id="cf-cache-miss-table" class="ui selectable celled table inverted compact">
               <thead>
                 <tr>
-                  <th class="one wide">HTTP Version</th>
-                  <th class="one wide">Method</th>
-                  <th class="two wide">URL</th>
-                  <th class="one wide">Status</th>
-                  <th class="two wide">RayId</th>
-                  <th class="one wide">TTFB</th>
-                  <th class="two wide">CacheControl</th>
-                  <th class="one wide">Encoding</th>
-                  <th class="one wide">ServerIP</th>
-                  <th class="one wide">Length</th>
-                  <th class="one wide">ObjectType</th>
-                  <th class="one wide">CacheStatus</th>
-                  <th class="one wide">Colo</th>
+                  <th>reqId</th>
+                  <th>HTTP</th>
+                  <th>Method</th>
+                  <th>URL</th>
+                  <th>Status</th>
+                  <th>RayId</th>
+                  <th>TTFB</th>
+                  <th>CacheControl</th>
+                  <th>Encoding</th>
+                  <th>ServerIP</th>
+                  <th>Length</th>
+                  <th>ObjectType</th>
+                  <th>CacheStatus</th>
+                  <th>Colo</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr class="table-no-row">
-                  <td colspan="13">No data available</td>
-                </tr>
-              </tbody>
             </table>
           </div> <!-- Row 2 end -->
         </div> <!-- grid end -->
@@ -420,26 +418,25 @@
           </div> <!-- Row 1 End -->
           <!-- Row 2 -->
           <div class="stretched row">
+            <div class="ui disabled dimmer table-loader">
+              <div class="ui big text loader">Loading..</div>
+            </div>
             <table id="external-req-table" class="ui selectable celled table inverted compact">
               <thead>
                 <tr>
-                  <th class="one wide">HTTP Version</th>
-                  <th class="one wide">Method</th>
-                  <th class="six wide">URL</th>
-                  <th class="one wide">Status</th>
-                  <th class="one wide">TTFB</th>
-                  <th class="two wide">CacheControl</th>
-                  <th class="one wide">Encoding</th>
-                  <th class="one wide">ServerIP</th>
-                  <th class="one wide">Length</th>
-                  <th class="one wide">ObjectType</th>
+                  <th>reqId</th>
+                  <th>HTTP</th>
+                  <th>Method</th>
+                  <th>URL</th>
+                  <th>Status</th>
+                  <th>TTFB</th>
+                  <th>CacheControl</th>
+                  <th>Encoding</th>
+                  <th>ServerIP</th>
+                  <th>Length</th>
+                  <th>ObjectType</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr class="table-no-row">
-                  <td colspan="10">No data available</td>
-                </tr>
-              </tbody>
             </table>
           </div> <!-- Row 2 end -->
         </div> <!-- grid end -->
@@ -484,30 +481,29 @@
           </div> <!-- Row 1 End -->
           <!-- Row 2 -->
           <div class="stretched row">
+            <div class="ui disabled dimmer table-loader">
+              <div class="ui big text loader">Loading..</div>
+            </div>
             <table id="image-polished-table" class="ui selectable celled table inverted compact">
               <thead>
                 <tr>
-                  <th class="one wide">HTTP Version</th>
-                  <th class="one wide">Method</th>
-                  <th class="five wide">URL</th>
-                  <th class="one wide">Status</th>
-                  <th class="two wide">RayId</th>
-                  <th class="one wide">OrigFormat</th>
-                  <th class="one wide">ObjectType</th>
-                  <th class="one wide">PolishStatus</th>
-                  <th class="one wide">Quality</th>
-                  <th class="one wide">OrigSize</th>
-                  <th class="one wide">Length</th>
-                  <th class="one wide">Reduced</th>
-                  <th class="one wide">Colo</th>
-                  <th class="one wide">CacheStatus</th>
+                  <th>reqId</th>
+                  <th>HTTP</th>
+                  <th>Method</th>
+                  <th>URL</th>
+                  <th>Status</th>
+                  <th>RayId</th>
+                  <th>OrigFormat</th>
+                  <th>ObjectType</th>
+                  <th>PolishStatus</th>
+                  <th>Quality</th>
+                  <th>OrigSize</th>
+                  <th>Length</th>
+                  <th>Reduced</th>
+                  <th>Colo</th>
+                  <th>CacheStatus</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr class="table-no-row">
-                  <td colspan="13">No data available</td>
-                </tr>
-              </tbody>
             </table>
           </div> <!-- Row 2 end -->
         </div> <!-- grid end -->
@@ -558,29 +554,28 @@
           </div> <!-- Row 1 End -->
           <!-- Row 2 -->
           <div class="stretched row">
+            <div class="ui disabled dimmer table-loader">
+              <div class="ui big text loader">Loading..</div>
+            </div>
             <table id="railgun-table" class="ui selectable celled table inverted compact">
               <thead>
                 <tr>
-                  <th class="one wide">HTTP Version</th>
-                  <th class="one wide">Method</th>
-                  <th class="three wide">URL</th>
-                  <th class="one wide">Status</th>
-                  <th class="two wide">RayId</th>
-                  <th class="one wide">TTFB</th>
-                  <th class="one wide">Connection</th>
-                  <th class="one wide">CompRatio</th>
-                  <th class="one wide">OriginTime</th>
-                  <th class="one wide">Length</th>
-                  <th class="one wide">ObjectType</th>
-                  <th class="one wide">CacheStatus</th>
-                  <th class="one wide">Colo</th>
+                  <th>reqId</th>
+                  <th>HTTP</th>
+                  <th>Method</th>
+                  <th>URL</th>
+                  <th>Status</th>
+                  <th>RayId</th>
+                  <th>TTFB</th>
+                  <th>Connection</th>
+                  <th>CompRatio</th>
+                  <th>OriginTime</th>
+                  <th>Length</th>
+                  <th>ObjectType</th>
+                  <th>CacheStatus</th>
+                  <th>Colo</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr class="table-no-row">
-                  <td colspan="13">No data available</td>
-                </tr>
-              </tbody>
             </table>
           </div> <!-- Row 2 end -->
         </div> <!-- grid end -->
@@ -619,27 +614,26 @@
           </div> <!-- Row 1 End -->
           <!-- Row 2 -->
           <div class="stretched row">
+            <div class="ui disabled dimmer table-loader">
+              <div class="ui big text loader">Loading..</div>
+            </div>
             <table id="auto-minify-table" class="ui selectable celled table inverted compact">
               <thead>
                 <tr>
-                  <th class="one wide">HTTP Version</th>
-                  <th class="one wide">Method</th>
-                  <th class="five wide">URL</th>
-                  <th class="one wide">Status</th>
-                  <th class="two wide">RayId</th>
-                  <th class="one wide">OrigSize</th>
-                  <th class="one wide">Length</th>
-                  <th class="one wide">Reduced</th>
-                  <th class="one wide">ObjectType</th>
-                  <th class="one wide">CacheStatus</th>
-                  <th class="one wide">Colo</th>
+                  <th>reqId</th>
+                  <th>HTTP</th>
+                  <th>Method</th>
+                  <th>URL</th>
+                  <th>Status</th>
+                  <th>RayId</th>
+                  <th>OrigSize</th>
+                  <th>Length</th>
+                  <th>Reduced</th>
+                  <th>ObjectType</th>
+                  <th>CacheStatus</th>
+                  <th>Colo</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr class="table-no-row">
-                  <td colspan="11">No data available</td>
-                </tr>
-              </tbody>
             </table>
           </div> <!-- Row 2 end -->
         </div> <!-- grid end -->
@@ -666,28 +660,27 @@
           </div> <!-- Row 1 End -->
           <!-- Row 2 -->
           <div class="stretched row">
+            <div class="ui disabled dimmer table-loader">
+              <div class="ui big text loader">Loading..</div>
+            </div>
             <table id="image-resized-table" class="ui selectable celled table inverted compact">
               <thead>
                 <tr>
-                  <th class="one wide">HTTP Version</th>
-                  <th class="one wide">Method</th>
-                  <th class="four wide">URL</th>
-                  <th class="one wide">Status</th>
-                  <th class="two wide">RayId</th>
-                  <th class="two wide">InternalStatus</th>
-                  <th class="one wide">ProcessTime</th>
-                  <th class="one wide">Length</th>
-                  <th class="one wide">ObjectType</th>
-                  <th class="one wide">CacheStatus</th>
-                  <th class="one wide">Colo</th>
-                  <th class="one wide">Version</th>
+                  <th>reqId</th>
+                  <th>HTTP</th>
+                  <th>Method</th>
+                  <th>URL</th>
+                  <th>Status</th>
+                  <th>RayId</th>
+                  <th>InternalStatus</th>
+                  <th>ProcessTime</th>
+                  <th>Length</th>
+                  <th>ObjectType</th>
+                  <th>CacheStatus</th>
+                  <th>Colo</th>
+                  <th>Version</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr class="table-no-row">
-                  <td colspan="12">No data available</td>
-                </tr>
-              </tbody>
             </table>
           </div> <!-- Row 2 end -->
         </div> <!-- grid end -->
@@ -744,29 +737,28 @@
             </div>
           </div>
           <div class="row">
+            <div class="ui disabled dimmer table-loader">
+              <div class="ui big text loader">Loading..</div>
+            </div>
             <table id="summary-table" class="ui selectable celled table inverted compact">
               <thead>
                 <tr>
-                  <th class="one wide">HTTP Version</th>
-                  <th class="one wide">Method</th>
-                  <th class="three wide">URL</th>
-                  <th class="one wide">Status</th>
-                  <th class="two wide">RayId</th>
-                  <th class="one wide">ObjectType</th>
-                  <th class="one wide">Colo</th>
-                  <th class="one wide">Proxied</th>
-                  <th class="one wide">Cached</th>
-                  <th class="one wide">Polish</th>
-                  <th class="one wide">AutoMinify</th>
-                  <th class="one wide">Railgun</th>
-                  <th class="one wide">Resizer</th>
+                  <th>reqId</th>
+                  <th>HTTP</th>
+                  <th>Method</th>
+                  <th>URL</th>
+                  <th>Status</th>
+                  <th>RayId</th>
+                  <th>ObjectType</th>
+                  <th>Colo</th>
+                  <th>Proxied</th>
+                  <th>Cached</th>
+                  <th>Polish</th>
+                  <th>Minify</th>
+                  <th>Railgun</th>
+                  <th>Resizer</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr class="table-no-row">
-                  <td colspan="13">No data available</td>
-                </tr>
-              </tbody>
             </table>
           </div>
         </div> <!-- Grid end -->
@@ -795,8 +787,11 @@
         <div class="ui grid padded">
           <div class="row">
             <div class="column">
-              <div class="ui segment inverted very padded cdncgi-segment">
-                We appreciate your FEEDBACK! Please email us at todd@gmail.com and ricky840@gmail.com
+              <div class="ui large message black feedback-message">
+                <a class="ui orange label">v0.0.1</a>
+                <p>Please email us at todd@gmail.com and ricky840@gmail.com :)</p>
+                <br>
+                <p>Need to purge? Check out <a href="https://chrome.google.com/webstore/detail/cloudflare-purge-client/nnliialngkpcpbokfdefifbhbhiaognn" target="_blank">Cloudflare Purge Client</a></p>
               </div>
             </div>
           </div>
@@ -805,10 +800,10 @@
 
     </div> <!-- Container End -->
 
-
     <!-- javascripts -->
     <script type="text/javascript" src="lib/jquery-3.1.1.min.js"></script>
     <script type="text/javascript" src="lib/semantic.min.js"></script>
+    <script type="text/javascript" src="lib/datatables.min.js"></script>
     <script type="text/javascript" src="lib/http.js"></script>
 
     <script type="text/javascript" src="lib/amchart/core.js"></script>

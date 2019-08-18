@@ -26,12 +26,15 @@ var requestCountBarChart = (function(global) {
   categoryAxis.dataFields.category = "category";
   categoryAxis.renderer.inversed = true;
   categoryAxis.renderer.grid.template.location = 0;
+  // categoryAxis.renderer.grid.template.disabled = true;
   // categoryAxis.renderer.cellStartLocation = 0.1;
   // categoryAxis.renderer.cellEndLocation = 0.9;
 
   // create value axis
   let valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
   valueAxis.renderer.opposite = true;
+  valueAxis.renderer.labels.template.disabled = true;
+  // valueAxis.renderer.grid.template.disabled = true;
   valueAxis.cursorTooltipEnabled = false;
   valueAxis.min = 0;
 
@@ -46,6 +49,12 @@ var requestCountBarChart = (function(global) {
   series.columns.template.adapter.add("fill", function(fill, target) {
     return chart.colors.getIndex(target.dataItem.index);
   });
+
+  // Add label
+  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+  labelBullet.label.text = "{valueX.value}";
+  labelBullet.locationX = 0.2;
+  labelBullet.label.dx = -10; // To hide when it is 0, this makes the label to go to left 10px
 
   chart.colors.list = [
     am4core.color("#845EC2"),
@@ -66,6 +75,7 @@ var requestCountBarChart = (function(global) {
 
   global.createdCharts['requestCountBarChart'] = chart;
   global.loadingIndicators.add(chart);
+
 
   return {
     chart: chart

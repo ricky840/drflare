@@ -45,7 +45,8 @@ var imgPolishByteSaveChart = (function(global) {
   // Add series label
   var labelBullet = series.bullets.push(new am4charts.LabelBullet());
   labelBullet.label.text = "{valueY}";
-  labelBullet.locationY = 0.5;
+  labelBullet.locationY = 0.4;
+  labelBullet.label.dy = 10; // To hide when it is 0, this makes the label to bottom 10px
 
   // Add series for showing variance arrows
   var series2 = chart.series.push(new am4charts.ColumnSeries());

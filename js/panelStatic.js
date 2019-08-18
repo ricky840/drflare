@@ -3,6 +3,9 @@ const LOAD_INDICATOR = "img/indicator.gif";
 const ROCKET_LOADER_FILE = "rocket-loader.min.js";
 const MIRAGE_FILE = "mirage2.min.js";
 
+// All request objects
+var allRequestObjects = {};
+
 // Chart objects (only reset when panel is created)
 var createdCharts = {};
 

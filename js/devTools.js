@@ -7,17 +7,23 @@ var pageOnCompleteEvent = false;
 var contectScriptInjected = false;
 var timer = false;
 var interval = null;
-var requestId = 10000;
+
+const REQUEST_ID_START = 10000;
+var requestId = REQUEST_ID_START;
 const REFRESH_RATE = 300;
 var panelReady = false;
-
 var contentInterval = false;
+
+
+// Reset Trigger
+var bufferNetworkRequests = false;
+var networkRequestBuffer = [];
+var newUrlOnTab = "";
 
 if (tabId) {
   let backgroundPageConnectionPort = chrome.runtime.connect({name: "devtools-page" + "-" + tabId});
 
   chrome.devtools.panels.create(PANEL_NAME, PANEL_LOGO, PANEL_HTML, function(panel) {
-    // Panel Created
     panelReady = true;
     panel.onSearch.addListener(function(action, queryString) {
       chrome.runtime.sendMessage({
@@ -32,58 +38,63 @@ if (tabId) {
 
   //Network Tab onRequestFinished
   chrome.devtools.network.onRequestFinished.addListener(function(request) {
-    requestId += 1;
-    let networkRequest = new NetworkRequest(requestId);
-    networkRequest.setDetails(request);
 
-    if (panelReady && !networkRequest.url.startsWith('data:')) {
-      chrome.runtime.sendMessage({
-        type: 'web-request-objects',
-        message: networkRequest, 
-        tabId: tabId, 
-        from: 'webRequestListener.js'
-      });
+    if (bufferNetworkRequests) {
+      if (!request.request.url.startsWith('data:')) {
+        networkRequestBuffer.push(request);
+        console.log(`Buffering request ${request.request.url}`);
+      }
+    } else if (!bufferNetworkRequests) {
 
-      requestObjects[networkRequest.requestId] = networkRequest;
-      if (networkRequest.url.match('https://www.trumphotels.com/uploads/18376/0/cloudinary/trump-hotels-cloudinary/image/upload/c_fill,w_1280,ar_1:1/v1537381764/nbdedhbetiu6dchgl3v8.jpg')){
-        console.dir(networkRequest);
+      // send buffered requests first
+      if (networkRequestBuffer.length > 0) {
+        var requestsFiltered = [];
+        var saveFlag = false;
+
+        for (let i=0; i < networkRequestBuffer.length; i++) {
+          if (networkRequestBuffer[i].request.url == newUrlOnTab) {
+            saveFlag = true;
+          }
+          if (saveFlag) {
+            console.log(`Filtered requests (saving) - ${networkRequestBuffer[i].request.url}`);
+            requestsFiltered.push(networkRequestBuffer[i]);
+          }
+        }
+
+        // Send requests to panel
+        if (requestsFiltered.length > 0) {
+          for (let i=0; i < requestsFiltered.length; i++) {
+            sendRequestToPanel(requestsFiltered[i]);
+          }
+        }
+
+        // Empty buffer
+        networkRequestBuffer = [];
       }
 
+      sendRequestToPanel(request);
 
-      if (networkRequest.objectType.includes("image") || networkRequest.statusCode === 301) {
-        // console.dir(networkRequest);
-        requestObjectsImages.push(networkRequest);
-      }
     }
+
   });
 }
-
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type.match('found-image') && tabId == message.tabId) {
-    chrome.tabs.sendMessage(tabId, {
-      type: 'found-image-response',
-      message: message.message, 
-      tabId: tabId
-    });
-  }
-});
-
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type.match('reset-previous-image') && tabId == message.tabId) {
-    chrome.tabs.sendMessage(tabId, {
-      type: 'remove-grey-scale',
-      tabId: tabId
-    });
-  }
-});
 
 // onRefresh or onUrlChange
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('webnavigation-before-refresh') && tabId == message.tabId) {
-    console.log("Tab Updated (Refreshed) Reset All");
+    console.log("Buffering turned on");
+    bufferNetworkRequests = true;
+    newUrlOnTab = message.newUrl;
+    console.log(`Entered URL is - ${message.newUrl}`);
     resetDevTools();
   }
+  if (message.type.match('page-onDOMContentLoad-event') && tabId == message.tabId) {
+    console.log("Buffering turned off");
+    console.log(`Bufferered requests: ${networkRequestBuffer.length}`);
+    bufferNetworkRequests = false;
+  }
 });
+
 
 // onDOMContentLoaded Event 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
@@ -107,6 +118,26 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     }
   }
 });
+
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  if (message.type.match('found-image') && tabId == message.tabId) {
+    chrome.tabs.sendMessage(tabId, {
+      type: 'found-image-response',
+      message: message.message, 
+      tabId: tabId
+    });
+  }
+});
+
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  if (message.type.match('reset-previous-image') && tabId == message.tabId) {
+    chrome.tabs.sendMessage(tabId, {
+      type: 'remove-grey-scale',
+      tabId: tabId
+    });
+  }
+});
+
 
 function startInterval() {
   interval = setInterval(function() { 
@@ -155,6 +186,27 @@ function resetDevTools() {
   contectScriptInjected = false;
   clearInterval(interval);
   timer = false;
-  requestId = 0;
+  requestId = REQUEST_ID_START;
   contentInterval = false;
+}
+
+function sendRequestToPanel(requestObject) {
+  requestId += 1;
+  let networkRequest = new NetworkRequest(requestId);
+  networkRequest.setDetails(requestObject);
+
+  if (panelReady && !networkRequest.url.startsWith('data:')) {
+    chrome.runtime.sendMessage({
+      type: 'web-request-objects',
+      message: networkRequest, 
+      tabId: tabId, 
+      from: 'webRequestListener.js'
+    });
+
+    if (networkRequest.objectType.includes("image") || 
+      networkRequest.statusCode === 301 ||
+      networkRequest.statusCode === 302) {
+      requestObjectsImages.push(networkRequest);
+    }
+  }
 }
