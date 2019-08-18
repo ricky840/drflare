@@ -19,7 +19,8 @@ var requestTable = (function(global) {
     dataTables = {
       "cf-cached-table": $('#cf-cached-table').DataTable({
         "columnDefs": [
-          {targets: 0, visible: false}, // Reuqest Id
+          // {targets: 0, visible: false}, // Reuqest Id
+          {targets: 0, width: "2%"}, // Request Id
           {targets: 1, width: "4%"}, // Http Version
           {targets: 4, width: "5%"}, // Status
           {targets: 5, width: "10%"}, // RayId
@@ -35,7 +36,8 @@ var requestTable = (function(global) {
       }),
       "cf-cache-miss-table": $('#cf-cache-miss-table').DataTable({
         "columnDefs": [
-          {targets: 0, visible: false}, // Request Id
+          // {targets: 0, visible: false}, // Request Id
+          {targets: 0, width: "2%"}, // Request Id
           {targets: 1, width: "4%"}, // Http Version
           {targets: 4, width: "5%"}, // Status
           {targets: 5, width: "10%"}, // RayId
@@ -51,7 +53,8 @@ var requestTable = (function(global) {
       }),
       "external-req-table": $('#external-req-table').DataTable({
         "columnDefs": [
-          {targets: 0, visible: false}, // Request Id
+          // {targets: 0, visible: false}, // Request Id
+          {targets: 0, width: "2%"}, // Request Id
           {targets: 1, width: "4%"}, // Http Version
           {targets: 4, width: "5%"}, // Status
           {targets: 6, width: "10%"}, // Cache Control
@@ -66,7 +69,8 @@ var requestTable = (function(global) {
       }),
       "image-polished-table": $('#image-polished-table').DataTable({
         "columnDefs": [
-          {targets: 0, visible: false}, // Request Id
+          // {targets: 0, visible: false}, // Request Id
+          {targets: 0, width: "2%"}, // Request Id
           {targets: 1, width: "4%"}, // Http Version
           {targets: 4, width: "5%"}, // Status
           {targets: 5, width: "10%"}, // RayId
@@ -80,7 +84,8 @@ var requestTable = (function(global) {
       }),
       "image-resized-table": $('#image-resized-table').DataTable({
         "columnDefs": [
-          {targets: 0, visible: false}, // Request Id
+          // {targets: 0, visible: false}, // Request Id
+          {targets: 0, width: "2%"}, // Request Id
           {targets: 1, width: "4%"}, // Http Version
           {targets: 4, width: "5%"}, // Status
           {targets: 5, width: "10%"}, // RayId
@@ -94,7 +99,8 @@ var requestTable = (function(global) {
       }),
       "railgun-table": $('#railgun-table').DataTable({
         "columnDefs": [
-          {targets: 0, visible: false}, // Request Id
+          // {targets: 0, visible: false}, // Request Id
+          {targets: 0, width: "2%"}, // Request Id
           {targets: 1, width: "4%"}, // Http Version
           {targets: 4, width: "5%"}, // Status
           {targets: 5, width: "10%"}, // RayId
@@ -108,7 +114,8 @@ var requestTable = (function(global) {
       }),
       "auto-minify-table": $('#auto-minify-table').DataTable({
         "columnDefs": [
-          {targets: 0, visible: false}, // Request Id
+          // {targets: 0, visible: false}, // Request Id
+          {targets: 0, width: "2%"}, // Request Id
           {targets: 1, width: "4%"}, // Http Version
           {targets: 4, width: "5%"}, // Status
           {targets: 5, width: "10%"}, // RayId 
@@ -123,6 +130,7 @@ var requestTable = (function(global) {
       "summary-table": $('#summary-table').DataTable({
         "columnDefs": [
           // {targets: 0, visible: false}, // Request Id
+          {targets: 0, width: "2%"}, // Request Id
           {targets: 1, width: "4%"}, // Http Version
           {targets: 4, width: "5%"}, // Status
           {targets: 5, width: "10%"}, // RayId
