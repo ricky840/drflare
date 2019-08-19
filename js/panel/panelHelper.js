@@ -33,9 +33,9 @@ $(".menu .item").click(function() {
 });
 
 // Table row slide toggle
-$("table").on("click", "[reqid]", function() {
-  $(this).next('tr').find(".hiddenTableRow").slideToggle();
-});
+// $("table").on("click", "[reqid]", function() {
+//   $(this).next('tr').find(".hiddenTableRow").slideToggle();
+// });
 
 function sizeWording(bytes) {
   if (bytes <= 0) return "0<span class='bytes-char'>B</span>";
