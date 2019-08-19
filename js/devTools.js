@@ -8,7 +8,7 @@ var contectScriptInjected = false;
 var timer = false;
 var interval = null;
 
-const REQUEST_ID_START = 10000;
+const REQUEST_ID_START = 1000;
 var requestId = REQUEST_ID_START;
 const REFRESH_RATE = 300;
 var panelReady = false;

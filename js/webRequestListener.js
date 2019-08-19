@@ -1,93 +1,6 @@
-/** 
-  * @desc Listener for all webRequest API
-  * 			WebRequest's Life Cycle: https://developer.chrome.com/extensions/webRequest
-*/
 
-// Global variables for webRequestListener
-var inspectedTabIds = [];
-// var listen = false;
 
-// onBeforePageReload
-chrome.webNavigation.onBeforeNavigate.addListener(
-	function(details) {
-    if (details.frameId == 0) {
-      if (inspectedTabIds.indexOf(details.tabId) > -1) {
-        console.log(`webNavigation.onBeforeNavigate Triggered - ${details.url}`);
-        chrome.runtime.sendMessage({
-          type: 'webnavigation-before-refresh', 
-          tabId: details.tabId, 
-          newUrl: details.url,
-          from: 'webRequestListener.js'
-        });
-      }
-		}
-	}
-);
 
-// onCommitted
-chrome.webNavigation.onCommitted.addListener(
-	function(details) {
-    if (details.frameId == 0) {
-      if (inspectedTabIds.indexOf(details.tabId) > -1) {
-        console.log("webNavigation.onCommitted Triggered");
-        chrome.runtime.sendMessage({
-          type: 'webnavigation-onCommitted', 
-          tabId: details.tabId, 
-          from: 'webRequestListener.js'
-        });
-      }
-		}
-	}
-);
-
-// onDOMContentLoaded Event
-chrome.webNavigation.onDOMContentLoaded.addListener(
-	function(details) {
-    if (details.frameId == 0) {
-      if (inspectedTabIds.indexOf(details.tabId) > -1) {
-        console.log("webNavigation.onDOMContentLoaded Triggered");
-        chrome.runtime.sendMessage({
-           type: 'page-onDOMContentLoad-event', 
-           message: details,
-           frameId: details.frameId,
-           tabId: details.tabId, 
-           from: 'webRequestListener.js'
-        });
-      }
-		}
-	}
-);
-
-// onCompleted Page (onLoadEvent)
-chrome.webNavigation.onCompleted.addListener(
-	function(details) {
-    if (details.frameId == 0) {
-      if (inspectedTabIds.indexOf(details.tabId) > -1) {
-        console.log("webNavigation.onCompleted Triggered");
-        chrome.runtime.sendMessage({
-           type: 'page-onload-event', 
-           message: details, 
-           tabId: details.tabId,
-           frameId: details.frameId,
-           from: 'webRequestListener.js'
-        });
-      }
-		}
-});
-
-chrome.tabs.onUpdated.addListener (
-	function(tabId, changeInfo, tab) {
-		if ((inspectedTabIds.indexOf(tabId) > -1) && changeInfo.status == "loading") {
-      console.log("tabs.onUpdated Triggered");
-			chrome.runtime.sendMessage({
-         type: 'tab-onUpdated', 
-         message: {}, 
-         tabId: tabId,
-         newUrl: tab.url,
-         from: 'webRequestListener.js'
-      });
-		}
-});
 
 // Collections of requests per tabId 
 // ex) tabId => {requestId1: webRequest1, requestId2: webRequest2, ...}
@@ -173,23 +86,11 @@ chrome.tabs.onUpdated.addListener (
 
 
 
-function addToListener(newTabId, callback) {
-  if (inspectedTabIds.indexOf(newTabId) < 0) {
-    inspectedTabIds.push(newTabId);
-    callback(newTabId);
-    // console.log("inspectedTabIds: " + inspectedTabIds);
-  } else {
-    console.log("already listening");
-  }
-}
+// function addToListener(newTabId, callback) {
+// }
 //
-function removeFromListner(closedTabId) {
-  if (inspectedTabIds.indexOf(closedTabId) >= 0) {
-    inspectedTabIds.splice(inspectedTabIds.indexOf(closedTabId), 1);
-    console.log("removed, inspectedTabIds: "+ inspectedTabIds);
-    // delete requests[closedTabId];
-  }
-}
+// function removeFromListner(closedTabId) {
+// }
 //
 // // Panel is ready to receive WebRequests
 // chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
