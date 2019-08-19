@@ -32,11 +32,6 @@ $(".menu .item").click(function() {
   });
 });
 
-// Table row slide toggle
-// $("table").on("click", "[reqid]", function() {
-//   $(this).next('tr').find(".hiddenTableRow").slideToggle();
-// });
-
 function sizeWording(bytes) {
   if (bytes <= 0) return "0<span class='bytes-char'>B</span>";
   if ((bytes / (1024 * 1024)) > 1) {
@@ -63,4 +58,13 @@ function getAutoMinifySavedByteRate() {
 
 function getArraySum(array) {
   return array.reduce(function(acc, val) { return acc + val; }, 0)
+}
+
+function includeCharts(files) {
+  for(let i=0; i < files.length; i++) {
+    let script = document.createElement("script");
+    script.type = 'text/javascript';
+    script.src = files[i];
+    document.body.appendChild(script);
+  }
 }

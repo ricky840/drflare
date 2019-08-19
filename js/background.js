@@ -2,9 +2,9 @@
 chrome.webNavigation.onBeforeNavigate.addListener(
 	function(details) {
     if (details.frameId == 0) {
-      console.log(`webNavigation.onBeforeNavigate Triggered - ${details.url}`);
+      // console.log(`webNavigation.onBeforeNavigate Triggered - ${details.url}`);
       chrome.runtime.sendMessage({
-        type: 'webnavigation-before-refresh', 
+        type: 'webNavigation-onBeforeNavigate', 
         tabId: details.tabId, 
         newUrl: details.url
       });
@@ -16,9 +16,9 @@ chrome.webNavigation.onBeforeNavigate.addListener(
 chrome.webNavigation.onDOMContentLoaded.addListener(
 	function(details) {
     if (details.frameId == 0) {
-      console.log("webNavigation.onDOMContentLoaded Triggered");
+      // console.log("webNavigation.onDOMContentLoaded Triggered");
       chrome.runtime.sendMessage({
-         type: 'page-onDOMContentLoad-event', 
+         type: 'webNavigation-onDOMContentLoaded', 
          message: details,
          frameId: details.frameId,
          tabId: details.tabId
@@ -31,7 +31,7 @@ chrome.webNavigation.onDOMContentLoaded.addListener(
 chrome.webNavigation.onCompleted.addListener(
 	function(details) {
     if (details.frameId == 0) {
-      console.log("webNavigation.onCompleted Triggered");
+      // console.log("webNavigation.onCompleted Triggered");
       chrome.runtime.sendMessage({
          type: 'page-onload-event', 
          message: details, 
@@ -45,7 +45,7 @@ chrome.webNavigation.onCompleted.addListener(
 chrome.tabs.onUpdated.addListener (
 	function(tabId, changeInfo, tab) {
 		if (changeInfo.status == "loading") {
-      console.log("tabs.onUpdated Triggered");
+      // console.log("tabs.onUpdated Triggered");
 			chrome.runtime.sendMessage({
          type: 'tab-onUpdated', 
          message: {}, 

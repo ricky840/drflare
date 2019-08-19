@@ -1,7 +1,22 @@
-const WAIT_FOR_ONLOAD_EVENT = 4000; // ms
 const LOAD_INDICATOR = "img/indicator.gif";
 const ROCKET_LOADER_FILE = "rocket-loader.min.js";
 const MIRAGE_FILE = "mirage2.min.js";
+const WAIT_FOR_ONLOAD_EVENT = 4000;
+const CHARTS_UPDATE_INTERVAL = 3000;
+const DATATABLE_DEFAULT_NUM_ROWS = 25;
+const CHARTS = [
+  'js/charts/requestCountBarChart.js',
+  'js/charts/byteSavedByCachedRatioChart.js',
+  'js/charts/proxiedRequestRatioChart.js',
+  'js/charts/routingColoChart.js',
+  'js/charts/totalContentTypeChart.js',
+  'js/charts/unCachedContentTypeChart.js',
+  'js/charts/httpVersionChart.js',
+  'js/charts/imgPolishByteSaveChart.js'
+];
+
+// Current TabId
+const tabId = chrome.devtools.inspectedWindow.tabId;
 
 // All request objects
 var allRequestObjects = {};
@@ -9,127 +24,59 @@ var allRequestObjects = {};
 // Chart objects (only reset when panel is created)
 var createdCharts = {};
 
-// Indicator for Onload Event (Navigation page, not panel or devltool)
+// Indicator for Onload(OnCompleted) Event
 var pageOnCompleteEventForPanel = false;
 
-// Current TabId
-var tabId = chrome.devtools.inspectedWindow.tabId;
+// Chart update timer
+var chartTimer = null;
 
-// Total Number of Requests
-var totalNumberOfRequests = 0;
+var totalNumberOfRequests = 0;                      // Total number of requests
+var totalNumberOfCfRequests = 0;                    // Total number of Cloudflare proxied requests
+var externalNumberOfRequests = 0;                   // Total number of Non-Cloudflare requests (External/3rd party requests)
+var cachedNumberOfCfRequests = 0;                   // Total number of Cloudflare cached requests
+var unCachedNumberOfCfRequests = 0;                 // Total number of Cloudflare cache MISS requests
 
-// Total Number of CF Proxied Requests
-var totalNumberOfCfRequests = 0;
+var cfProxiedRequestRatio = 0;											// Ratio Cloudflare proxied requests
+var cfCachedRequestRatio = 0;                       // Ratio Cloudflare cache HIT requests
+var cfUnCachedRequestRatio = 0;                     // Ratio Cloudflare cache MISS requests
+var externalRequestRatio = 0;                       // Ratio External requests
 
-// Total Number of None CF Proxied Requests (3rd party requests)
-var externalNumberOfRequests = 0;
+var totalBytes = 0;                                 // Total Bytes
+var cfProxiedBytes= 0;                              // Cloudflare proxied total bytes
+var cfProxiedByteCached = 0;                        // Cloudflare cached total bytes
+var cfProxiedByteUnCached = 0;                      // Cloudflare cache MISS bytes
+var externalBytes = 0;                              // External requests total bytes
+var cfProxiedByteCachedRatio = 0;                   // Ratio Cloudflare cached bytes
 
-// Total Number of CF Cached Requests
-var cachedNumberOfCfRequests = 0;
+var contentTypes = {};                              // Content Types all
+var unCachedContentTypes = {};                      // Content Types Cache MISS
+var httpVersions = {};                              // HTTP Versions
+var routingColo = {};                               // Routing Colos
 
-// Total Number of UnCached CF CF Requests
-var unCachedNumberOfCfRequests = 0; 
-// % of CF Proxied Requests
-var cfProxiedRequestRatio = 0;
+var waitingCfCached = [];                           // Cloudflare cached TTFB
+var waitingCfUncached = [];                         // Cloudflare cache MISS TTFB
+var waitingNotProxied = [];                         // External TTFB 
 
-// % of CF Cache HIT Requests
-var cfCachedRequestRatio = 0;
+var connectionIds = [];                             // Uniq Connections
 
-// % of CF Uncache HIT(MISS) Requests
-var cfUnCachedRequestRatio = 0;
+var autoMinifyOriginal = [];                        // Auto-Minify original sizes
+var autoMinifyOptimized = [];                       // Auto-Minify minified sizes
+var autoMinifyNumberOfRequest = 0;                  // Auto-Minify number of requests
 
-// % of None Cloudflare Proxied Request
-var externalRequestRatio = 0; 
+var numberOfPolishedImages = 0;                     // Image Polish number of requests
+var numberOfPolishedImagesFormatConverted = 0;      // Image Polish number of requests (format converted)
+var imagePolishOriginal = [];                       // Image Polish original sizes
+var imagePolishOptimized = [];                      // Image Polish optimized sizes
 
-// Total Bytes
-var totalBytes = 0;
+var numberOfRailgunApplied = 0;                     // Railgun number of applied requests
+var numberOfRailgunDirectConnect = 0;               // Railgun number of direct connections
+var numberOfRailgunListenerConnect = 0;             // Railgun number of listener connections
+var railgunOriginTimes = [];                        // Railgun origin times (origin connect delays)
+var railgunTimeToFirstByteTimesListener = [];       // Railgun TTFB for listener connection requests
+var railgunTimeToFirstByteTimesDirect = [];         // Railgun TTFB for direct connection requests
 
-// CF Proxied Bytes
-var cfProxiedBytes= 0;
+var numberOfImageResizerApplied = 0;                // Image Resizer number of applied requests
+var imageResizerProcessingTimes = [];               // Image Resizer processing times
 
-// CF Cached Bytes Cached
-var cfProxiedByteCached = 0;
-
-// CF Un-Cached Bytes Cached
-var cfProxiedByteUnCached = 0;
-
-// Non Cloudflare Bytes
-var externalBytes = 0;
-
-// CF Cached Bytes Ratio
-var cfProxiedByteCachedRatio = 0;
-
-// Total Content Type (ObjecType)
-var contentTypes = {};
-
-// Total Content Type Uncached
-var unCachedContentTypes = {};
-
-// HTTP Version
-var httpVersions = {};
-
-// Routing Count
-var routingColo = {};
-
-// TTFB CF Cached
-var waitingCfCached = [];
-
-// TTFB CF Uncached
-var waitingCfUncached = [];
-
-// TTFB Not Proxied
-var waitingNotProxied = [];
-
-// For Number of Connections
-var connectionIds = [];
-
-// Auto Minify Original Size
-var autoMinifyOriginal = [];
-
-// Auto Minify Minified Size
-var autoMinifyOptimized = [];
-
-// Auto Minify Number of Requests
-var autoMinifyNumberOfRequest = 0;
-
-// Image Polish Number of Requests
-var numberOfPolishedImages = 0;
-
-// Image Polish Number of Requests (format converted)
-var numberOfPolishedImagesFormatConverted = 0;
-
-// Image Polish Original Size
-var imagePolishOriginal = [];
-
-// Image Polish Optimized Size
-var imagePolishOptimized = [];
-
-// Railgun Number of Applied
-var numberOfRailgunApplied = 0;
-
-// Railgun Number of Direct Conncted
-var numberOfRailgunDirectConnect = 0;
-
-// Railgun Number of Listener Connected
-var numberOfRailgunListenerConnect = 0;
-
-// Railgun Origin Times
-var railgunOriginTimes = [];
-
-// Railgun TTFB Times for Listener
-var railgunTimeToFirstByteTimesListener = [];
-
-// Railgun TTFB Times for Direct
-var railgunTimeToFirstByteTimesDirect = [];
-
-// Rocket Loader
-var rocketLoaderApplied = false;
-
-// Image Resizer number of applied
-var numberOfImageResizerApplied = 0;
-
-// Image Resizer Processing Time
-var imageResizerProcessingTimes = [];
-
-// Mirage
-var mirageApplied = false;
+var mirageApplied = false;                          // Mirage applied
+var rocketLoaderApplied = false;                    // RocketLoader applied

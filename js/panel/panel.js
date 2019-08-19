@@ -1,61 +1,59 @@
-// When Page Refreshed
+// webNavigation-onBeforeNavigate Event. Prepare for refresh/reload page
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type.match('webnavigation-before-refresh') && tabId == message.tabId) {
-
-    requestTable.resetTables();
-
-    cdnCgi.update();
-
-    resetData.statData();
-    updateStatHtml.updateStats();
-    resetData.chartData();
-    resetData.circularLabels();
-
-    loadingIndicators.show();
-    startFakeOnloadEventCounter();
-    pageOnCompleteEventForPanel = false;
-
-    // all requests
-    allRequestObjects = {};
-
-    // Loading indicator for tables
-    requestTable.loaderShow();
-
-    clearInterval(intervalChart);
+  if (message.type.match('webNavigation-onBeforeNavigate') && tabId == message.tabId) {
+    pageOnCompleteEventForPanel = false;  // webNavigation.onCompleted event flag
+    requestTable.resetTables();           // Empty tables
+    cdnCgi.update();                      // Cdn-cgi
+    resetData.statData();                 // Reset statistics variables
+    updateStatHtml.updateStats();         // Reset statistics values in panel html
+    resetData.chartData();                // Reset charts data values
+    resetData.circularLabels();           // Reset labels in the menu
+    startFakeOnloadEventCounter();        // Start timer for fake onLoad event
+    allRequestObjects = {};               // Reset all request objects DB
+    loadingIndicators.show();             // Show loading indicator for charts
+    requestTable.loaderShow();            // Show loading indicator for tables
+    clearInterval(chartTimer);            // Clear chart update interval
   }
 });
 
-// Network Request Event Listner
+// Network Request Event Listener
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('web-request-objects') && tabId == message.tabId) { 
     let request = message.message;
 
     // Loading indicator for tables
     requestTable.loaderHide();
-    
+
+    // Save request
     allRequestObjects[request.requestId] = request;
 
+    // Update statistic (variables only)
     updateStatVariable.update(request);
 
     // Table update 
     requestTable.addTableRow(request);
-    
+   
+    // When fake onCompleted event triggers, update statistic htmls
     if(pageOnCompleteEventForPanel) {
       updateStatHtml.updateStats();
-      // updateStatHtml.updateCharts();
     }
   } 
 });
 
-
-var intervalChart = null;
-
-// WebNavigation OnLoad Event Listner
+// WebNavigation OnLoad Event Listner (onCompleted)
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('page-onload-event') && tabId == message.tabId) {
+
+    // Hide loading indicators for charts
     if (!pageOnCompleteEventForPanel) loadingIndicators.hide();
+
+    // Update statistics html
     updateStatHtml.updateStats();
+
+    // Update charts
     updateStatHtml.updateCharts();
+
+    // Mark OnComplete event
     pageOnCompleteEventForPanel = true;
 
     // Start Chart Interval
@@ -63,16 +61,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   }
 });
 
-
-function startChartInterval() {
-  intervalChart = setInterval(function() { 
-    updateStatHtml.updateCharts();
-  }, 3000);
-}
-
-
-
-// Search Query Listner
+// Search Query Listner (control + F)
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('search-panel-string') && tabId == message.tabId) {
     if(message.query != undefined) {
@@ -84,42 +73,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   }
 });
 
-const CHARTS = [
-  'requestCountBarChart.js',
-  'byteSavedByCachedRatioChart.js',
-  'proxiedRequestRatioChart.js',
-  'routingColoChart.js',
-  'totalContentTypeChart.js',
-  'unCachedContentTypeChart.js',
-  'httpVersionChart.js',
-  'imgPolishByteSaveChart.js'
-];
-
-// Create Charts
-includeCharts(CHARTS);
-
-// Enable Menu only when the document is ready
-$(document).ready(function() {
-  $(".menu .item.disabled").removeClass("disabled");
-
-  // cdncgi update button
-  $("#cdncgi-update-button").click(function() {
-    cdnCgi.update();
-  });
-  
-  requestTable.initTables(25);
-  $(".dataTables_paginate .pagination.menu").addClass("inverted");
-
-  $("tbody").on('click', 'td', function() {
-    let tableTag = $(this).closest('table');
-    let tr = $(this).closest('tr');
-    requestTable.showHiddenRow($(tableTag).attr('id'), tr);
-  });
-});
-
 function startFakeOnloadEventCounter() {
   setTimeout(function() { 
-    // Fire if the onload event was not arrived in 4 seconds
+    // Fire if the onload event was not arrived in X seconds
     if (!pageOnCompleteEventForPanel) {
       loadingIndicators.hide();
       updateStatHtml.updateStats();
@@ -129,12 +85,35 @@ function startFakeOnloadEventCounter() {
   }, WAIT_FOR_ONLOAD_EVENT);
 }
 
-function includeCharts(files) {
-  let chartBaseUrl = 'js/charts/';
-  for(let i=0; i < files.length; i++) {
-    let script = document.createElement("script");
-    script.type = 'text/javascript';
-    script.src = chartBaseUrl + files[i];
-    document.body.appendChild(script);
-  }
+function startChartInterval() {
+  chartTimer = setInterval(function() { 
+    updateStatHtml.updateCharts();
+  }, CHARTS_UPDATE_INTERVAL);
 }
+
+// Create Charts, we should include charts as fast as we can
+includeCharts(CHARTS);
+
+$(document).ready(function() {
+
+  // Enable Menu only when the document is ready
+  $(".menu .item.disabled").removeClass("disabled");
+
+  // Cdn-cgi update button
+  $("#cdncgi-update-button").click(function() {
+    cdnCgi.update();
+  });
+ 
+  // Init Tables
+  requestTable.initTables(DATATABLE_DEFAULT_NUM_ROWS);
+
+  // Hidden rows
+  $("tbody").on('click', 'td', function() {
+    let tableTag = $(this).closest('table');
+    let tr = $(this).closest('tr');
+    requestTable.showHiddenRow($(tableTag).attr('id'), tr);
+  });
+
+  // For table pagination color 
+  $(".dataTables_paginate .pagination.menu").addClass("inverted");
+});

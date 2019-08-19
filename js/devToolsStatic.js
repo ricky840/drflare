@@ -4,33 +4,33 @@ const PANEL_LOGO = "img/cloudflare-logo.png";
 const PANEL_HTML = "panel.html";
 
 // Current Tab ID
-var tabId = chrome.devtools.inspectedWindow.tabId;
+const tabId = chrome.devtools.inspectedWindow.tabId;
 
 // Panel Open Status
 var panelReady = false;
+
+// webNavigation.onDOMContentLoaded Event Flag
+var onDOMContentLoadedEvent = false;
 
 // For Reset
 var bufferNetworkRequests = false;
 var networkRequestBuffer = [];
 var newUrlOnTab = "";
 
+// For Content Script
+var contectScriptInjected = false;
 
-
-
-var currentURL = "";
-
-var requestObjects = {};
-
+// Image Objects (Paint Targets)
 var requestObjectsImages = [];
 var paintedObjectsImages = [];
-var pageOnCompleteEvent = false;
-var contectScriptInjected = false;
+
+// For Painting Interval
 var timer = false;
 var interval = null;
 
+// Painting Interval in ms
+const REFRESH_RATE = 300;
+
+// Request ID Start Point
 const REQUEST_ID_START = 1000;
 var requestId = REQUEST_ID_START;
-const REFRESH_RATE = 300;
-var contentInterval = false;
-
-
