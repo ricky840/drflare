@@ -38,7 +38,6 @@ if (tabId) {
 
   //Network Tab onRequestFinished
   chrome.devtools.network.onRequestFinished.addListener(function(request) {
-
     if (bufferNetworkRequests) {
       if (!request.request.url.startsWith('data:')) {
         networkRequestBuffer.push(request);
@@ -138,14 +137,15 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   }
 });
 
-
 function startInterval() {
   interval = setInterval(function() { 
+    // console.log('timer');
     if (requestObjectsImages.length > 0) {
       if(contectScriptInjected) {
         chrome.tabs.sendMessage(tabId, {type: 'content-script-dom-status', currentURL: currentURL, tabId: tabId, message: 'alive?', from: 'devTools.js'}, function(response) {
           if (response !== undefined && response.result === true) {
             paintedObjectsImages = requestObjectsImages;
+            console.log('send image from devTools');
             chrome.tabs.sendMessage(tabId, {type: 'content-script-paint', requests: paintedObjectsImages, tabId: tabId, from: 'devTools.js'});
             requestObjectsImages = [];
           } else {
