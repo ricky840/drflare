@@ -516,8 +516,6 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     }
   }
 
-  // console.dir(imageRequests);
-
   let paintTargetElements = [];
 
   // Get all Image objects
@@ -574,7 +572,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 });
 
 
-function markAllImg(paintTargetElements) {
+function markAllImg(targetImages) {
+  let paintTargetElements = targetImages;
   let imgjQueryObj = null;
   let imgRequest = null;
   let paintTargetElementsLength = paintTargetElements.length;
