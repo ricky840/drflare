@@ -206,13 +206,11 @@ chrome.commands.onCommand.addListener(function(command) {
   if (command.match('toggle-feature-foo')) {
   	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
   		let currentTab = tabs[0];
-  		// console.log(currentTab);
-  		// reloadPage(currentTab.id);
-  		if (currentTab) {
-  			if (inspectedTabIds.indexOf(currentTab.id) > -1) {
-	      	reloadPage(currentTab.id);
-	      }
-  		}
+  		console.log('copy');
+
+      chrome.runtime.sendMessage({  
+        type: "copy-url"
+      });
     });
   }
 });

@@ -17,7 +17,7 @@
   "commands": { "toggle-feature-foo": {
       "suggested_key": {
         "default": "Ctrl+Shift+5",
-        "mac": "Command+Shift+0",
+        "mac": "Ctrl+Shift+0",
         "windows": "Ctrl+Shift+0"
       },
       "description": "Toggle feature foo"
@@ -25,7 +25,7 @@
     "_execute_browser_action": {
       "suggested_key": {
         "windows": "Ctrl+Shift+Y",
-        "mac": "Command+Shift+Y",
+        "mac": "Command+Ctrl+C",
         "chromeos": "Ctrl+Shift+U",
         "linux": "Ctrl+Shift+J"
       }
