@@ -2,10 +2,10 @@
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('webnavigation-before-refresh') && tabId == message.tabId) {
 
-    // update CDN-CGI
+    requestTable.resetTables();
+
     cdnCgi.update();
 
-    requestTable.resetTables();
     resetData.statData();
     updateStatHtml.updateStats();
     resetData.chartData();
@@ -14,6 +14,14 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     loadingIndicators.show();
     startFakeOnloadEventCounter();
     pageOnCompleteEventForPanel = false;
+
+    // all requests
+    allRequestObjects = {};
+
+    // Loading indicator for tables
+    requestTable.loaderShow();
+
+    clearInterval(intervalChart);
   }
 });
 
@@ -22,15 +30,25 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('web-request-objects') && tabId == message.tabId) { 
     let request = message.message;
 
+    // Loading indicator for tables
+    requestTable.loaderHide();
+    
+    allRequestObjects[request.requestId] = request;
+
     updateStatVariable.update(request);
-    requestTable.addTableRow({request});
+
+    // Table update 
+    requestTable.addTableRow(request);
     
     if(pageOnCompleteEventForPanel) {
       updateStatHtml.updateStats();
-      updateStatHtml.updateCharts();
+      // updateStatHtml.updateCharts();
     }
   } 
 });
+
+
+var intervalChart = null;
 
 // WebNavigation OnLoad Event Listner
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
@@ -39,8 +57,20 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     updateStatHtml.updateStats();
     updateStatHtml.updateCharts();
     pageOnCompleteEventForPanel = true;
+
+    // Start Chart Interval
+    startChartInterval(); 
   }
 });
+
+
+function startChartInterval() {
+  intervalChart = setInterval(function() { 
+    updateStatHtml.updateCharts();
+  }, 3000);
+}
+
+
 
 // Search Query Listner
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
@@ -75,6 +105,15 @@ $(document).ready(function() {
   // cdncgi update button
   $("#cdncgi-update-button").click(function() {
     cdnCgi.update();
+  });
+  
+  requestTable.initTables(25);
+  $(".dataTables_paginate .pagination.menu").addClass("inverted");
+
+  $("tbody").on('click', 'td', function() {
+    let tableTag = $(this).closest('table');
+    let tr = $(this).closest('tr');
+    requestTable.showHiddenRow($(tableTag).attr('id'), tr);
   });
 });
 

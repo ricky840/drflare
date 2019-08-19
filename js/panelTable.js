@@ -1,4 +1,8 @@
 var requestTable = (function(global) {
+  'use_strict';
+
+  var dataTables = {};
+  var tableLoaderIndicator = false;
 
   const TABLE_CODES = {
     CFCACHED: "cf-cached-table",
@@ -11,20 +15,163 @@ var requestTable = (function(global) {
     ALL: "summary-table"
   }
 
-  let TABLE_COLSPAN = {};
-
-  for (let code in TABLE_CODES) {
-    TABLE_COLSPAN[code] = $(`#${TABLE_CODES[code]}`).find('th').length;
+  function initTables(pageLength) {
+    dataTables = {
+      "cf-cached-table": $('#cf-cached-table').DataTable({
+        "columnDefs": [
+          // {targets: 0, visible: false}, // Reuqest Id
+          {targets: 0, width: "2%"}, // Request Id
+          {targets: 1, width: "4%"}, // Http Version
+          {targets: 4, width: "5%"}, // Status
+          {targets: 5, width: "10%"}, // RayId
+          {targets: 7, width: "10%"}, // Cache Control
+          {targets: 8, width: "7%"}, // Server IP
+          {targets: 10, width: "10%"} // Object Type
+        ],
+        "bAutoWidth": false,
+        "pageLength": pageLength,
+        "createdRow": function(row, data, dataIndex) {
+          $(row).attr("reqid", data[0]);
+        }
+      }),
+      "cf-cache-miss-table": $('#cf-cache-miss-table').DataTable({
+        "columnDefs": [
+          // {targets: 0, visible: false}, // Request Id
+          {targets: 0, width: "2%"}, // Request Id
+          {targets: 1, width: "4%"}, // Http Version
+          {targets: 4, width: "5%"}, // Status
+          {targets: 5, width: "10%"}, // RayId
+          {targets: 7, width: "10%"}, // Cache Control
+          {targets: 9, width: "7%"}, // Server IP
+          {targets: 11, width: "10%"} // Object Type
+        ],
+        "bAutoWidth": false,
+        "pageLength": pageLength,
+        "createdRow": function(row, data, dataIndex) {
+          $(row).attr("reqid", data[0]);
+        }
+      }),
+      "external-req-table": $('#external-req-table').DataTable({
+        "columnDefs": [
+          // {targets: 0, visible: false}, // Request Id
+          {targets: 0, width: "2%"}, // Request Id
+          {targets: 1, width: "4%"}, // Http Version
+          {targets: 4, width: "5%"}, // Status
+          {targets: 6, width: "10%"}, // Cache Control
+          {targets: 8, width: "7%"}, // Server IP
+          {targets: 10, width: "10%"} // object Type
+        ],
+        "bAutoWidth": false,
+        "pageLength": pageLength,
+        "createdRow": function(row, data, dataIndex) {
+          $(row).attr("reqid", data[0]);
+        }
+      }),
+      "image-polished-table": $('#image-polished-table').DataTable({
+        "columnDefs": [
+          // {targets: 0, visible: false}, // Request Id
+          {targets: 0, width: "2%"}, // Request Id
+          {targets: 1, width: "4%"}, // Http Version
+          {targets: 4, width: "5%"}, // Status
+          {targets: 5, width: "10%"}, // RayId
+          {targets: 7, width: "10%"} // Object Type
+        ],
+        "bAutoWidth": false,
+        "pageLength": pageLength,
+        "createdRow": function(row, data, dataIndex) {
+          $(row).attr("reqid", data[0]);
+        }
+      }),
+      "image-resized-table": $('#image-resized-table').DataTable({
+        "columnDefs": [
+          // {targets: 0, visible: false}, // Request Id
+          {targets: 0, width: "2%"}, // Request Id
+          {targets: 1, width: "4%"}, // Http Version
+          {targets: 4, width: "5%"}, // Status
+          {targets: 5, width: "10%"}, // RayId
+          {targets: 9, width: "10%"} // Object Type
+        ],
+        "bAutoWidth": false,
+        "pageLength": pageLength,
+        "createdRow": function(row, data, dataIndex) {
+          $(row).attr("reqid", data[0]);
+        }
+      }),
+      "railgun-table": $('#railgun-table').DataTable({
+        "columnDefs": [
+          // {targets: 0, visible: false}, // Request Id
+          {targets: 0, width: "2%"}, // Request Id
+          {targets: 1, width: "4%"}, // Http Version
+          {targets: 4, width: "5%"}, // Status
+          {targets: 5, width: "10%"}, // RayId
+          {targets: 11, width: "10%"} // Object Type
+        ],
+        "bAutoWidth": false,
+        "pageLength": pageLength,
+        "createdRow": function(row, data, dataIndex) {
+          $(row).attr("reqid", data[0]);
+        }
+      }),
+      "auto-minify-table": $('#auto-minify-table').DataTable({
+        "columnDefs": [
+          // {targets: 0, visible: false}, // Request Id
+          {targets: 0, width: "2%"}, // Request Id
+          {targets: 1, width: "4%"}, // Http Version
+          {targets: 4, width: "5%"}, // Status
+          {targets: 5, width: "10%"}, // RayId 
+          {targets: 9, width: "10%"} // Object Type
+        ],
+        "bAutoWidth": false,
+        "pageLength": pageLength,
+        "createdRow": function(row, data, dataIndex) {
+          $(row).attr("reqid", data[0]);
+        }
+      }),
+      "summary-table": $('#summary-table').DataTable({
+        "columnDefs": [
+          // {targets: 0, visible: false}, // Request Id
+          {targets: 0, width: "2%"}, // Request Id
+          {targets: 1, width: "4%"}, // Http Version
+          {targets: 4, width: "5%"}, // Status
+          {targets: 5, width: "10%"}, // RayId
+          {targets: 6, width: "10%"}, // Object Type
+          {targets: [8, 9, 10, 11, 12, 13], orderable: false},
+          {targets: [8, 9, 10, 11, 12, 13], searchable: false}
+        ],
+        "bAutoWidth": false,
+        "pageLength": pageLength,
+        "createdRow": function(row, data, dataIndex) {
+          $(row).attr("reqid", data[0]);
+        }
+      })
+    }
   }
 
-  function addTableRow(requests) {
-    for (var requestId in requests) { 
-      let request = requests[requestId];
-      var addTableCodes = checkWhichTable(request);
-      for(let i=0; i < addTableCodes.length; i++) {
-        $(`#${TABLE_CODES[addTableCodes[i]]} .table-no-row`).remove();
-        $(`#${TABLE_CODES[addTableCodes[i]]} tbody`).append(createRowHtml(request, addTableCodes[i]));
-      }
+  function showHiddenRow(tableId, tr) {
+    let row = dataTables[tableId].row(tr);
+    let reqId = $(tr).attr('reqId');
+    if (row.child.isShown()) {
+      row.child.hide();
+      tr.removeClass('shown');
+    } else {
+      row.child(hiddenRowHtml(reqId)).show();
+      tr.addClass('shown');
+    }
+  }
+
+  function hiddenRowHtml(requestId) {
+    let request = allRequestObjects[requestId];
+    if (request != undefined) {
+      return createHiddenRowHtml(request);
+    } else {
+      return `Error: Could not find the request information. Id - ${requestId}`;
+    }
+  }
+
+  function addTableRow(request) {
+    var addTableCodes = checkWhichTable(request);
+    for(let i=0; i < addTableCodes.length; i++) {
+      createAndDrawRow(request, addTableCodes[i]);
     }
   }
 
@@ -41,10 +188,9 @@ var requestTable = (function(global) {
     return targetTableIds;
   }
 
-  function createRowHtml(request, tableCode) {
-    let html = "";
-    let htmlCreated = false;
-
+  function createAndDrawRow(request, tableCode) {
+    let positive = '<p class="ui olive empty circular label tiny"></p>';
+    let negative = '<p class="ui grey empty circular label tiny"></p>';
     let cacheControlHeader = (request.responseHeaders['cache-control'] != undefined) ? request.responseHeaders['cache-control'] : "";
     let contentEncodingHeader = (request.responseHeaders['content-encoding'] != undefined) ? request.responseHeaders['content-encoding']: "";
     let cacheStatus = (request.rayId != "" && request.cfCacheStatus == "") ? "miss" : request.cfCacheStatus;
@@ -52,167 +198,154 @@ var requestTable = (function(global) {
     let minifiedSavedRatio = (request.minified && request.origSize != 0 && request.contentLength != 0) ? ((request.origSize-request.contentLength)/request.origSize*100).toFixed(3) : 0;
 
     if (tableCode == "CFCACHED") {
-      htmlCreated = true;
-      html += `<tr reqid="${request.requestId}">`;
-      html += `<td>${request.httpVersion}</td>`;
-      html += `<td>${request.method}</td>`;
-      html += `<td>${request.url}</td>`;
-      html += `<td>${request.statusCode}</td>`;
-      html += `<td>${request.rayId}</td>`;
-      html += `<td>${request.timingWait.toFixed()}ms</td>`;
-      html += `<td>${cacheControlHeader}</td>`;
-      html += `<td>${request.serverIPAddress}</td>`;
-      html += `<td>${request.contentLength}</td>`;
-      html += `<td>${request.objectType}</td>`;
-      html += `<td>${cacheStatus}</td>`;
-      html += `<td>${request.colo}</td>`;
-      html += "</tr>";
-      html += createHiddenRowHtml(request, TABLE_COLSPAN[tableCode]);
+      dataTables[TABLE_CODES["CFCACHED"]].row.add([
+        request.requestId,
+        request.httpVersion,
+        request.method,
+        request.url,
+        request.statusCode,
+        request.rayId,
+        request.timingWait.toFixed() + "ms",
+        cacheControlHeader,
+        request.serverIPAddress,
+        request.contentLength,
+        request.objectType,
+        cacheStatus,
+        request.colo
+      ]).draw(false);
     } else if (tableCode == "CFCACHEMISS") {
-      htmlCreated = true;
-      html += `<tr reqid="${request.requestId}">`;
-      html += `<td>${request.httpVersion}</td>`;
-      html += `<td>${request.method}</td>`;
-      html += `<td>${request.url}</td>`;
-      html += `<td>${request.statusCode}</td>`;
-      html += `<td>${request.rayId}</td>`;
-      html += `<td>${request.timingWait.toFixed()}ms</td>`;
-      html += `<td>${cacheControlHeader}</td>`;
-      html += `<td>${contentEncodingHeader}</td>`;
-      html += `<td>${request.serverIPAddress}</td>`;
-      html += `<td>${request.contentLength}</td>`;
-      html += `<td>${request.objectType}</td>`;
-      html += `<td>${cacheStatus}</td>`;
-      html += `<td>${request.colo}</td>`;
-      html += "</tr>";
-      html += createHiddenRowHtml(request, TABLE_COLSPAN[tableCode]);
+      dataTables[TABLE_CODES["CFCACHEMISS"]].row.add([
+        request.requestId,
+				request.httpVersion,
+				request.method,
+				request.url,
+				request.statusCode,
+				request.rayId,
+				request.timingWait.toFixed() + "ms",
+				cacheControlHeader,
+				contentEncodingHeader,
+				request.serverIPAddress,
+				request.contentLength,
+				request.objectType,
+				cacheStatus,
+				request.colo
+			]).draw(false);
     } else if (tableCode == "EXTERNAL") {
-      htmlCreated = true;
-      html += `<tr reqid="${request.requestId}">`;
-      html += `<td>${request.httpVersion}</td>`;
-      html += `<td>${request.method}</td>`;
-      html += `<td>${request.url}</td>`;
-      html += `<td>${request.statusCode}</td>`;
-      html += `<td>${request.timingWait.toFixed()}ms</td>`;
-      html += `<td>${cacheControlHeader}</td>`;
-      html += `<td>${contentEncodingHeader}</td>`;
-      html += `<td>${request.serverIPAddress}</td>`;
-      html += `<td>${request.contentLength}</td>`;
-      html += `<td>${request.objectType}</td>`;
-      html += "</tr>";
-      html += createHiddenRowHtml(request, TABLE_COLSPAN[tableCode]);
+      dataTables[TABLE_CODES["EXTERNAL"]].row.add([
+        request.requestId,
+				request.httpVersion,
+				request.method,
+				request.url,
+				request.statusCode,
+				request.timingWait.toFixed() + "ms",
+				cacheControlHeader,
+				contentEncodingHeader,
+				request.serverIPAddress,
+				request.contentLength,
+				request.objectType,
+			]).draw(false);
     } else if (tableCode == "IMGPOLISH") {
-      htmlCreated = true;
-      html += `<tr reqid="${request.requestId}">`;
-      html += `<td>${request.httpVersion}</td>`;
-      html += `<td>${request.method}</td>`;
-      html += `<td>${request.url}</td>`;
-      html += `<td>${request.statusCode}</td>`;
-      html += `<td>${request.rayId}</td>`;
-      html += `<td>${request.imagePolishOrigFmt}</td>`;
-      html += `<td>${request.objectType}</td>`;
-      html += `<td>${request.imagePolishStatus}</td>`;
-      html += `<td>${request.imagePolishQuality}</td>`;
-      html += `<td>${request.origSize}</td>`;
-      html += `<td>${request.contentLength}</td>`;
-      html += `<td>${(polishSavedRatio > 0) ? "<p class='ui header inverted tiny green'>" : "<p>"}${polishSavedRatio}%</p></td>`;
-      html += `<td>${cacheStatus}</td>`;
-      html += `<td>${request.colo}</td>`;
-      html += "</tr>";
-      html += createHiddenRowHtml(request, TABLE_COLSPAN[tableCode]);
+      dataTables[TABLE_CODES["IMGPOLISH"]].row.add([
+        request.requestId,
+        request.httpVersion,
+        request.method,
+        request.url,
+        request.statusCode,
+        request.rayId,
+        request.imagePolishOrigFmt,
+        request.objectType,
+        request.imagePolishStatus,
+        request.imagePolishQuality,
+        request.origSize,
+        request.contentLength,
+        (polishSavedRatio > 0) ? "<p class='ui header inverted tiny green'>" + polishSavedRatio +"%</p>" : "0%",
+        cacheStatus,
+        request.colo
+      ]).draw(false);
     } else if (tableCode == "IMGRESIZE") {
-      htmlCreated = true;
-      html += `<tr reqid="${request.requestId}">`;
-      html += `<td>${request.httpVersion}</td>`;
-      html += `<td>${request.method}</td>`;
-      html += `<td>${request.url}</td>`;
-      html += `<td>${request.statusCode}</td>`;
-      html += `<td>${request.rayId}</td>`;
-      html += `<td>${request.imageResizerInternalStatus}</td>`;
-      html += `<td>${request.imageResizerProcessTime}ms</td>`;
-      html += `<td>${request.contentLength}</td>`;
-      html += `<td>${request.objectType}</td>`;
-      html += `<td>${cacheStatus}</td>`;
-      html += `<td>${request.colo}</td>`;
-      html += `<td>${request.imageResizerVersion}</td>`;
-      html += "</tr>";
-      html += createHiddenRowHtml(request, TABLE_COLSPAN[tableCode]);
+      dataTables[TABLE_CODES["IMGRESIZE"]].row.add([
+        request.requestId,
+        request.httpVersion,
+        request.method,
+        request.url,
+        request.statusCode,
+        request.rayId,
+        request.imageResizerInternalStatus,
+        request.imageResizerProcessTime,
+        request.contentLength,
+        request.objectType,
+        cacheStatus,
+        request.colo,
+        request.imageResizerVersion
+      ]).draw(false);
     } else if (tableCode == "RAILGUN") {
-      htmlCreated = true;
-      html += `<tr reqid="${request.requestId}">`;
-      html += `<td>${request.httpVersion}</td>`;
-      html += `<td>${request.method}</td>`;
-      html += `<td>${request.url}</td>`;
-      html += `<td>${request.statusCode}</td>`;
-      html += `<td>${request.rayId}</td>`;
-      html += `<td>${request.timingWait.toFixed()}ms</td>`;
-      html += `<td>${(request.railgunDirectConnected) ? "<p class='ui header inverted tiny'>Direct</p>" : "<p class='ui header inverted green tiny'>Listener</p>"}</td>`;
-      html += `<td>${request.railgunOptimizedComRatio}</td>`;
-      html += `<td>${(request.railgunOptimizedFetchLatency * 1000).toFixed(2)}ms</td>`;
-      html += `<td>${request.contentLength}</td>`;
-      html += `<td>${request.objectType}</td>`;
-      html += `<td>${cacheStatus}</td>`;
-      html += `<td>${request.colo}</td>`;
-      html += "</tr>";
-      html += createHiddenRowHtml(request, TABLE_COLSPAN[tableCode]);
+      dataTables[TABLE_CODES["RAILGUN"]].row.add([
+        request.requestId,
+				request.httpVersion,
+				request.method,
+				request.url,
+				request.statusCode,
+				request.rayId,
+				request.timingWait.toFixed() + "ms",
+				request.railgunDirectConnected ? "<p class='ui header inverted tiny'>Direct</p>" : "<p class='ui header inverted green tiny'>Listener</p>",
+				request.railgunOptimizedComRatio,
+				(request.railgunOptimizedFetchLatency * 1000).toFixed(2),
+				request.contentLength,
+				request.objectType,
+				cacheStatus,
+				request.colo
+	   ]).draw(false);
     } else if (tableCode == "AUTOMINIFY") {
-      htmlCreated = true;
-      html += `<tr reqid="${request.requestId}">`;
-      html += `<td>${request.httpVersion}</td>`;
-      html += `<td>${request.method}</td>`;
-      html += `<td>${request.url}</td>`;
-      html += `<td>${request.statusCode}</td>`;
-      html += `<td>${request.rayId}</td>`;
-      html += `<td>${request.origSize}</td>`;
-      html += `<td>${request.contentLength}</td>`;
-      html += `<td>${(minifiedSavedRatio > 0) ? "<p class='ui header inverted tiny green'>" : "<p>"}${minifiedSavedRatio}%</p></td>`;
-      html += `<td>${request.objectType}</td>`;
-      html += `<td>${cacheStatus}</td>`;
-      html += `<td>${request.colo}</td>`;
-      html += "</tr>";
-      html += createHiddenRowHtml(request, TABLE_COLSPAN[tableCode]);
+      dataTables[TABLE_CODES["AUTOMINIFY"]].row.add([
+        request.requestId,
+				request.httpVersion,
+				request.method,
+				request.url,
+				request.statusCode,
+				request.rayId,
+				request.origSize,
+				request.contentLength,
+				(minifiedSavedRatio > 0) ? "<p class='ui header inverted tiny green'>" + minifiedSavedRatio + "%</p>" : "0%",
+				request.objectType,
+				cacheStatus,
+				request.colo
+			]).draw(false);
     } else if (tableCode == "ALL") {
-      let positive = '<p class="ui olive empty circular label"></p>';
-      let negative = '<p class="ui grey empty circular label"></p>';
-      htmlCreated = true;
-      html += `<tr reqid="${request.requestId}">`;
-      html += `<td>${request.httpVersion}</td>`;
-      html += `<td>${request.method}</td>`;
-      html += `<td>${request.url}</td>`;
-      html += `<td>${request.statusCode}</td>`;
-      html += `<td>${request.rayId}</td>`;
-      html += `<td>${request.objectType}</td>`;
-      html += `<td>${request.colo}</td>`;
-      html += `<td>${(request.rayId != "") ? positive : negative }</td>`;
-      html += `<td>${(request.cfCached && request.rayId != "") ? positive : negative }</td>`;
-      html += `<td>${(request.imagePolished) ? positive : negative }</td>`;
-      html += `<td>${(request.minified) ? positive : negative }</td>`;
-      html += `<td>${(request.railguned) ? positive : negative }</td>`;
-      html += `<td>${(request.imageResized) ? positive : negative }</td>`;
-      html += "</tr>";
-      html += createHiddenRowHtml(request, TABLE_COLSPAN[tableCode]);
+      dataTables[TABLE_CODES["ALL"]].row.add([
+        request.requestId,
+				request.httpVersion,
+				request.method,
+				request.url,
+				request.statusCode,
+				request.rayId,
+				request.objectType,
+				request.colo,
+				(request.rayId != "") ? positive : negative,
+				(request.cfCached && request.rayId != "") ? positive : negative,
+				(request.imagePolished) ? positive : negative,
+				(request.minified) ? positive : negative,
+				(request.railguned) ? positive : negative,
+				(request.imageResized) ? positive : negative
+			]).draw(false);
     }
-
-    if (!htmlCreated) {
-      html += "<tr>";
-      html += `<td colspan="${TABLE_COLSPAN[tableCode]}">`;
-      html += "No data available";
-      html += "</td>";
-      html += "</tr>";
-    }
-
-    return html;
   }
 
-  function createHiddenRowHtml(request, colspan) {
-    let html = "<tr>";
+  function createHiddenRowHtml(request) {
+    let isObjectImage = false;
+    let columnWidths = ["three", "five", "five"];
 
-    html += `<td colspan=${colspan} class='td-collapsed'>`;
-    html += "<div class='hiddenTableRow'>"; 
+    if (request.objectType.match('image')) {
+      columnWidths = ["two", "four", "four"];
+      isObjectImage = true;
+    }
+
+    let html = "<table class='ui table inverted hiddenTable'>";
+    html += "<tr>";
+    html += `<td>`;
     html += "<div class='ui grid padded'>";
     html += "<div class='row'>";
 
-    html += "<div class='four wide column'>";
+    html += `<div class="${columnWidths[0]} wide column">`;
     html += "<h4 class='ui header inverted orange'>Cloudflare Features</h4>";
     html += "<div class='ui inverted divider'></div>";
     html += `<div>${createCfFeatureRowHtml(request)}</div>`;
@@ -221,83 +354,91 @@ var requestTable = (function(global) {
     html += `<div>${createTimingHtml(request)}</div>`;
     html += "</div>";
 
-    html += "<div class='six wide column'>";
+    html += `<div class="${columnWidths[1]} wide column">`;
     html += "<h4 class='ui header inverted orange'>Request Headers</h4>";
     html += "<div class='ui inverted divider'></div>";
     html += `<div>${createHeaderHtml(request.requestHeaders)}</div>`;
     html += "</div>";
     
-    html += "<div class='six wide column'>";
+    html += `<div class="${columnWidths[2]} wide column">`;
     html += "<h4 class='ui header inverted orange'>Response Headers</h4>";
     html += "<div class='ui inverted divider'></div>";
     html += `<div>${createHeaderHtml(request.responseHeaders)}</div>`;
     html += "</div>";
+
+    html += (isObjectImage) ? createImageHtml(request.url) : "";
     
-    html += "</div>";
     html += "</div>";
     html += "</div>";
     html += "</td>";
     html += "</tr>";
+    html += "</table>";
 
+    return html;
+  }
+  
+  function createImageHtml(url) {
+    let html = "";
+    html += "<div class='four wide column'>";
+    html += "<h4 class='ui header inverted orange'>Image</h4>";
+    html += "<div class='ui inverted divider'></div>";
+    html += "<div class='image-view-container'>";
+    html += `<a href="${url}" target="_blank">`;
+    html += `<img class="image-view" src='${url}'>`;
+    html += "</a>";
+    html += "</div>";
+    html += "</div>";
     return html;
   }
 
   function createCfFeatureRowHtml(request) {
-    let html = '<div class="ui middle aligned relaxed inverted list">';
+    let html = '<div class="ui middle aligned relaxed list">';
 
     html += '<div class="item">';
     html += '<div class="content">';
     html += `<div class="ui horizontal label ${(request.rayId != "") ? "green" : "grey"} inverted">Proxied</div>`;
-    html += 'The request went through Cloudflare servers.';
     html += '</div>';
     html += '</div>';
 
     html += '<div class="item">';
     html += '<div class="content">';
     html += `<div class="ui horizontal label ${(request.cfCached) ? "green" : "grey"} inverted">Cache HIT</div>`;
-    html += 'Cloudflare served the object from the cache.';
     html += '</div>';
     html += '</div>';
     
     html += '<div class="item">';
     html += '<div class="content">';
     html += `<div class="ui horizontal label ${(!request.cfCached && request.rayId != "") ? "green" : "grey"} inverted">Cache MISS</div>`;
-    html += 'The request was not in Cloudflare cache.';
     html += '</div>';
     html += '</div>';
 
     html += '<div class="item">';
     html += '<div class="content">';
     html += `<div class="ui horizontal label ${(request.rayId == "") ? "green" : "grey"} inverted">3rd Party</div>`;
-    html += 'The request did not contact Cloudflare.';
     html += '</div>';
     html += '</div>';
 
     html += '<div class="item">';
     html += '<div class="content">';
     html += `<div class="ui horizontal label ${(request.railguned) ? "green" : "grey"} inverted">Railgun</div>`;
-    html += 'The object was served through Railgun.';
     html += '</div>';
     html += '</div>';
 
     html += '<div class="item">';
     html += '<div class="content">';
     html += `<div class="ui horizontal label ${(request.imagePolished) ? "green" : "grey"} inverted">IMG Polish</div>`;
-    html += 'Image Polish was applied for the object.';
     html += '</div>';
     html += '</div>';
 
     html += '<div class="item">';
     html += '<div class="content">';
     html += `<div class="ui horizontal label ${(request.minified) ? "green" : "grey"} inverted">Auto Minify</div>`;
-    html += 'The object was minified by Cloudflare.';
     html += '</div>';
     html += '</div>';
 
     html += '<div class="item">';
     html += '<div class="content">';
     html += `<div class="ui horizontal label ${(request.imageResized) ? "green" : "grey"} inverted">IMG Resized</div>`;
-    html += 'The image was resized by Image Resizer.';
     html += '</div>';
     html += '</div>';
 
@@ -368,24 +509,38 @@ var requestTable = (function(global) {
   }
 
   function resetTables() {
-    for (let code in TABLE_CODES) {
-      let html = "<tr class='table-no-row'>";
-      html += `<td colspan="${TABLE_COLSPAN[code]}">No data available</td>`;
-      html += "</tr>";
-      let tbody = $(`#${TABLE_CODES[code]}`).children('tbody');
-      tbody.empty().html(html);
+    for (let table in dataTables) {
+      dataTables[table].clear().draw();
+    }
+  }
+
+  function loaderShow() {
+    if (!tableLoaderIndicator) {
+      $(".table-loader").removeClass("disabled").addClass("active");
+      tableLoaderIndicator = true;
+    }
+  }
+
+  function loaderHide() {
+    if (tableLoaderIndicator) {
+      $(".table-loader").removeClass("active").addClass("disabled");
+      tableLoaderIndicator = false;
     }
   }
 
   return {
     addTableRow: addTableRow,
     checkWhichTable: checkWhichTable,
-    createRowHtml: createRowHtml,
+    createAndDrawRow: createAndDrawRow,
     createHiddenRowHtml: createHiddenRowHtml,
     createCfFeatureRowHtml: createCfFeatureRowHtml,
     createTimingHtml: createTimingHtml,
     createHeaderHtml: createHeaderHtml,
-    resetTables: resetTables
+    resetTables: resetTables,
+    initTables: initTables,
+    showHiddenRow: showHiddenRow,
+    loaderShow: loaderShow,
+    loaderHide: loaderHide
   }
 
 })(this);

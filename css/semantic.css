@@ -31896,7 +31896,11 @@ a.ui.card:hover,
   text-align: center;
   vertical-align: middle;
   padding: 1em;
-  background-color: rgba(0, 0, 0, 0.85);
+
+  /* Ricky */
+  /* background-color: rgba(0, 0, 0, 0.85); */
+  background-color: rgba(33, 33, 36, 0.85);
+
   opacity: 0;
   line-height: 1;
   -webkit-animation-fill-mode: both;

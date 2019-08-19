@@ -35,7 +35,7 @@ var routingColoChart = (function(global) {
     series.columns.template.width = am4core.percent(60);
     series.columns.template.fillOpacity = 0.5;
     series.columns.template.tooltipText = "[bold]{name}[/]\n[font-size:14px]Number of Request: {valueY}";
-    
+
     // Add label
     var labelBullet = series.bullets.push(new am4charts.LabelBullet());
     labelBullet.label.text = "{valueY}";
