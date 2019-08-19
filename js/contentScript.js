@@ -1,4 +1,4 @@
-// "use strict";
+"use strict";
 
 var imageRequests = {};
 
@@ -468,13 +468,13 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   tabId = message.tabId;
 
   if(document.readyState === "interactive" || document.readyState === "complete") {
-    
     // add special class for iframe tags
     let documentDOM = $(document);
     let documentDOMLength = documentDOM.length;
     let i, iframeBodyDOM, iframeDOMS;
-    for (let i = 0; i < documentDOMLength; i++) {
-      if (message.currentURL == documentDOM[i].URL) {
+
+    for (i = 0; i < documentDOMLength; i++) {
+      if ((message.currentURL == documentDOM[i].URL) || hasPopUpDOM()) {
         if (!hasPopUpDOM()) {
           appendPopupDOMToBody();
           iframeDOMS = $(documentDOM[i].querySelectorAll('iframe'));
@@ -494,7 +494,6 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   }
 
   sendResponse({result: false});
-  return true;
 });
 
 function hasPopUpDOM() {
@@ -513,8 +512,11 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   for (let i = 0; i < imageRequestLength; i++) {
     if (!(message.requests[i].requestId in imageRequests)) {
       imageRequests[message.requests[i].requestId] = message.requests[i];
+      // console.dir(message.requests[i]);
+      // console.log(message.requests[i].url);
     }
   }
+
 
   let paintTargetElements = [];
 
@@ -567,8 +569,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type !== 'copy-url') return;
   let popupURLTextArea = document.getElementsByClassName('cf-debugger-popup-url-text-area')[0];
-  popupURLTextArea.select();
-  document.execCommand("copy");
+  // popupURLTextArea.select();
+  // document.execCommand("copy");
 });
 
 

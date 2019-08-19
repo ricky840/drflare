@@ -70,11 +70,12 @@ if (tabId) {
         // Empty buffer
         networkRequestBuffer = [];
       }
-
       sendRequestToPanel(request);
 
     }
 
+    // console.dir(request);
+    // console.log(request.request.url);
   });
 }
 
@@ -99,9 +100,16 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('page-onDOMContentLoad-event') && tabId == message.tabId) {  
 		console.log("onDOMContentLoad-event");
+    if (message.frameId === 0) { currentURL = message.message.url; }
+  }
+});
+
+// onDOMContentLoaded Event 
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  if (message.type.match('page-onload-event') && tabId == message.tabId) {  
+    console.log("pageOnLoadEvent");
     // console.log(message.frameId);
     // console.dir(message.message);
-    if (message.frameId === 0) { currentURL = message.message.url; }
 
     if (!contectScriptInjected) {
       console.log("Injecting ContentScript");
@@ -109,7 +117,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
         contectScriptInjected = true;
       });
     }
-		pageOnCompleteEvent = true;
+
+    pageOnCompleteEvent = true;
     if (!timer) {
       console.log('Timer On');
       timer = true;
@@ -145,9 +154,9 @@ function startInterval() {
         chrome.tabs.sendMessage(tabId, {type: 'content-script-dom-status', currentURL: currentURL, tabId: tabId, message: 'alive?', from: 'devTools.js'}, function(response) {
           if (response !== undefined && response.result === true) {
             paintedObjectsImages = requestObjectsImages;
+            requestObjectsImages = [];
             console.log('send image from devTools');
             chrome.tabs.sendMessage(tabId, {type: 'content-script-paint', requests: paintedObjectsImages, tabId: tabId, from: 'devTools.js'});
-            requestObjectsImages = [];
           } else {
             console.log("dom is not ready yet");
           }
