@@ -6,7 +6,7 @@ function startInterval() {
       if(contectScriptInjected) {
         let heartBeatMsg = {
           type: 'content-script-dom-status', 
-          currentURL: newUrlOnTab, 
+          currentURL: currentURL, 
           tabId: tabId, 
           message: 'alive?', 
           from: 'devTools.js'
@@ -142,25 +142,33 @@ if (tabId) {
   chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     if (message.type.match('webNavigation-onDOMContentLoaded') && tabId == message.tabId) {  
 
-      // Inject Content Script
-      if (!contectScriptInjected) {
-        console.log("Injecting ContentScript");
-        injectContentScript(tabId, message.frameId).then(function() {
-          contectScriptInjected = true;
-        });
-      }
-
-      if (!timer) {
-        console.log('Timer On');
-        timer = true;
-        startInterval();
-      }
-
       // Stop Buffering Request
       console.log("Buffering Stopped");
       bufferNetworkRequests = false;
     }
   });
+
+  // webNavigation.onCompleted
+  chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+    if (message.type.match('page-onload-event') && tabId == message.tabId) {
+      if (message.frameId == 0) {
+        currentURL = message.newUrl;
+        if (!contectScriptInjected) {
+          console.log("Injecting ContentScript");
+          injectContentScript(tabId, message.frameId).then(function() {
+            contectScriptInjected = true;
+          });
+        }
+
+        if (!timer) {
+          console.log('Timer On');
+          timer = true;
+          startInterval();
+        }
+      }
+    }
+  });
+
 
   chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     if (message.type.match('found-image') && tabId == message.tabId) {

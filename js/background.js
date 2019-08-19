@@ -36,6 +36,7 @@ chrome.webNavigation.onCompleted.addListener(
          type: 'page-onload-event', 
          message: details, 
          tabId: details.tabId,
+         newUrl: details.url,
          frameId: details.frameId
       });
 		}

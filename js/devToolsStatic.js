@@ -16,6 +16,7 @@ var onDOMContentLoadedEvent = false;
 var bufferNetworkRequests = false;
 var networkRequestBuffer = [];
 var newUrlOnTab = "";
+var currentURL = "";
 
 // For Content Script
 var contectScriptInjected = false;
