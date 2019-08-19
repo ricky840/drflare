@@ -1,11 +1,6 @@
 var updateStatHtml = (function(global) {
 
   function updateStats() {
-    // $("#overview-cf-proxied-ratio").html(cfProxiedRequestRatio);
-    // $("#overview-cf-cache-hit-ratio").html(cfCachedRequestRatio);
-    // $("#overview-cf-cache-miss-ratio").html(cfUnCachedRequestRatio);
-    // $("#overview-external-request-ratio").html(externalRequestRatio);
-    
     $("[cfstat=overview-total-number-of-request]").html(totalNumberOfRequests);
     $("[cfstat=overview-proxied-number-of-request]").html(totalNumberOfCfRequests);
     $("[cfstat=overview-cfcached-number-of-requests]").html(cachedNumberOfCfRequests);
@@ -17,7 +12,6 @@ var updateStatHtml = (function(global) {
     $("[cfstat=overview-external-bytes]").html(sizeWording(externalBytes));
     $("[cfstat=overview-cf-cached-bytes]").html(sizeWording(cfProxiedByteCached));
     $("[cfstat=overview-cf-uncached-bytes]").html(sizeWording(cfProxiedByteUnCached));
-    // $("#overview-cf-cached-bytes-ratio").html(cfProxiedByteCachedRatio);
     $("[cfstat=overview-number-of-connections]").html(connectionIds.length);
 
     $("[cfstat=overview-avg-waiting-cf-cached]").html(parseFloat(getAvgArray(waitingCfCached)).toFixed());

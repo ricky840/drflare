@@ -1,164 +1,28 @@
-var tabId = chrome.devtools.inspectedWindow.tabId;
-var currentURL = "";
-var requestObjects = {};
-var requestObjectsImages = [];
-var paintedObjectsImages = [];
-var pageOnCompleteEvent = false;
-var contectScriptInjected = false;
-var timer = false;
-var interval = null;
-
-const REQUEST_ID_START = 10000;
-var requestId = REQUEST_ID_START;
-const REFRESH_RATE = 300;
-var panelReady = false;
-var contentInterval = false;
-
-
-// Reset Trigger
-var bufferNetworkRequests = false;
-var networkRequestBuffer = [];
-var newUrlOnTab = "";
-
-if (tabId) {
-  let backgroundPageConnectionPort = chrome.runtime.connect({name: "devtools-page" + "-" + tabId});
-
-  chrome.devtools.panels.create(PANEL_NAME, PANEL_LOGO, PANEL_HTML, function(panel) {
-    panelReady = true;
-    panel.onSearch.addListener(function(action, queryString) {
-      chrome.runtime.sendMessage({
-        type: 'search-panel-string',
-        action: action, 
-        query: queryString,
-        tabId: tabId,
-        from: 'devtools.js'
-      });
-    });
-  });
-
-  //Network Tab onRequestFinished
-  chrome.devtools.network.onRequestFinished.addListener(function(request) {
-    if (bufferNetworkRequests) {
-      if (!request.request.url.startsWith('data:')) {
-        networkRequestBuffer.push(request);
-        console.log(`Buffering request ${request.request.url}`);
-      }
-    } else if (!bufferNetworkRequests) {
-
-      // send buffered requests first
-      if (networkRequestBuffer.length > 0) {
-        var requestsFiltered = [];
-        var saveFlag = false;
-
-        for (let i=0; i < networkRequestBuffer.length; i++) {
-          if (networkRequestBuffer[i].request.url == newUrlOnTab) {
-            saveFlag = true;
-          }
-          if (saveFlag) {
-            console.log(`Filtered requests (saving) - ${networkRequestBuffer[i].request.url}`);
-            requestsFiltered.push(networkRequestBuffer[i]);
-          }
-        }
-
-        // Send requests to panel
-        if (requestsFiltered.length > 0) {
-          for (let i=0; i < requestsFiltered.length; i++) {
-            sendRequestToPanel(requestsFiltered[i]);
-          }
-        }
-
-        // Empty buffer
-        networkRequestBuffer = [];
-      }
-      sendRequestToPanel(request);
-
-    }
-
-    // console.dir(request);
-    // console.log(request.request.url);
-  });
-}
-
-// onRefresh or onUrlChange
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type.match('webnavigation-before-refresh') && tabId == message.tabId) {
-    console.log("Buffering turned on");
-    bufferNetworkRequests = true;
-    newUrlOnTab = message.newUrl;
-    console.log(`Entered URL is - ${message.newUrl}`);
-    resetDevTools();
-  }
-  if (message.type.match('page-onDOMContentLoad-event') && tabId == message.tabId) {
-    console.log("Buffering turned off");
-    console.log(`Bufferered requests: ${networkRequestBuffer.length}`);
-    bufferNetworkRequests = false;
-  }
-});
-
-
-// onDOMContentLoaded Event 
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type.match('page-onDOMContentLoad-event') && tabId == message.tabId) {  
-		console.log("onDOMContentLoad-event");
-    if (message.frameId === 0) { currentURL = message.message.url; }
-  }
-});
-
-// onDOMContentLoaded Event 
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type.match('page-onload-event') && tabId == message.tabId) {  
-    console.log("pageOnLoadEvent");
-    // console.log(message.frameId);
-    // console.dir(message.message);
-
-    if (!contectScriptInjected) {
-      console.log("Injecting ContentScript");
-      injectContentScript(tabId, message.frameId).then(function() {
-        contectScriptInjected = true;
-      });
-    }
-
-    pageOnCompleteEvent = true;
-    if (!timer) {
-      console.log('Timer On');
-      timer = true;
-      startInterval();
-    }
-  }
-});
-
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type.match('found-image') && tabId == message.tabId) {
-    chrome.tabs.sendMessage(tabId, {
-      type: 'found-image-response',
-      message: message.message, 
-      tabId: tabId
-    });
-  }
-});
-
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type.match('reset-previous-image') && tabId == message.tabId) {
-    chrome.tabs.sendMessage(tabId, {
-      type: 'remove-grey-scale',
-      tabId: tabId
-    });
-  }
-});
+"use strict";
 
 function startInterval() {
   interval = setInterval(function() { 
-    // console.log('timer');
     if (requestObjectsImages.length > 0) {
       if(contectScriptInjected) {
-        chrome.tabs.sendMessage(tabId, {type: 'content-script-dom-status', currentURL: currentURL, tabId: tabId, message: 'alive?', from: 'devTools.js'}, function(response) {
+        let heartBeatMsg = {
+          type: 'content-script-dom-status', 
+          currentURL: newUrlOnTab, 
+          tabId: tabId, 
+          message: 'alive?', 
+          from: 'devTools.js'
+        };
+        chrome.tabs.sendMessage(tabId, heartBeatMsg, function(response) {
           if (response !== undefined && response.result === true) {
             paintedObjectsImages = requestObjectsImages;
+            chrome.tabs.sendMessage(tabId, {
+              type: 'content-script-paint', 
+              requests: paintedObjectsImages, 
+              tabId: tabId, 
+              from: 'devTools.js'
+            });
             requestObjectsImages = [];
-            console.log('send image from devTools');
-            chrome.tabs.sendMessage(tabId, {type: 'content-script-paint', requests: paintedObjectsImages, tabId: tabId, from: 'devTools.js'});
           } else {
-            console.log("dom is not ready yet");
+            console.log("ContentScript did not respond");
           }
         });
       }
@@ -166,10 +30,16 @@ function startInterval() {
   }, REFRESH_RATE);
 }
 
-// function injectContentScript(tabId) {
 function injectContentScript(tabId, frameId) {
   return new Promise(function(resolve, reject) {
-    chrome.tabs.sendMessage(tabId, {type: 'content-script-status', tabId: tabId, frameId: frameId, message: 'alive?', from: 'devTools.js'}, function(response) {
+    let heartBeatMsg = {
+      type: 'content-script-status', 
+      tabId: tabId, 
+      frameId: frameId, 
+      message: 'alive?', 
+      from: 'devTools.js'
+    };
+    chrome.tabs.sendMessage(tabId, heartBeatMsg, function(response) {
       if (response !== undefined && response.result === true) {
         console.log("ContentScript already exists");
         resolve();
@@ -185,18 +55,6 @@ function injectContentScript(tabId, frameId) {
       }
     });
   });
-}
-
-function resetDevTools() {
-  requestObjects = {};
-  requestObjectsImages = [];
-  paintedObjectsImages = [];
-  pageOnCompleteEvent = false;
-  contectScriptInjected = false;
-  clearInterval(interval);
-  timer = false;
-  requestId = REQUEST_ID_START;
-  contentInterval = false;
 }
 
 function sendRequestToPanel(requestObject) {
@@ -218,4 +76,108 @@ function sendRequestToPanel(requestObject) {
       requestObjectsImages.push(networkRequest);
     }
   }
+}
+
+function resetDevTools() {
+  clearInterval(interval);
+  requestObjectsImages = [];
+  paintedObjectsImages = [];
+  contectScriptInjected = false;
+  timer = false;
+  requestId = REQUEST_ID_START;
+}
+
+if (tabId) {
+  chrome.devtools.panels.create(PANEL_NAME, PANEL_LOGO, PANEL_HTML, function(panel) {
+    panelReady = true;
+    panel.onSearch.addListener(function(action, queryString) {
+      chrome.runtime.sendMessage({
+        type: 'search-panel-string',
+        action: action, 
+        query: queryString,
+        tabId: tabId
+      });
+    });
+  });
+
+  //Network Panel onRequestFinished
+  chrome.devtools.network.onRequestFinished.addListener(function(request) {
+    if (bufferNetworkRequests && !request.request.url.startsWith('data:')) {
+      networkRequestBuffer.push(request);
+    } else if (!bufferNetworkRequests) {
+      // Send Buffered Requests First
+      if (networkRequestBuffer.length > 0) {
+        let requestsFiltered = [];
+        let saveFlag = false;
+        for (let i=0; i < networkRequestBuffer.length; i++) {
+          if (networkRequestBuffer[i].request.url == newUrlOnTab) {
+            saveFlag = true;
+          }
+          if (saveFlag) {
+            requestsFiltered.push(networkRequestBuffer[i]);
+          }
+        }
+        if (requestsFiltered.length > 0) {
+          for (let i=0; i < requestsFiltered.length; i++) {
+            sendRequestToPanel(requestsFiltered[i]);
+          }
+        }
+        networkRequestBuffer = [];
+      }
+      sendRequestToPanel(request);
+    }
+  });
+
+  // On webNavigation-onBeforeNavigate
+  chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+    if (message.type.match('webNavigation-onBeforeNavigate') && tabId == message.tabId) {
+      console.log("Buffering Requests");
+      bufferNetworkRequests = true;
+      newUrlOnTab = message.newUrl;
+      resetDevTools();
+    }
+  });
+
+  // webNavigation.onDOMContentLoaded
+  chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+    if (message.type.match('webNavigation-onDOMContentLoaded') && tabId == message.tabId) {  
+
+      // Inject Content Script
+      if (!contectScriptInjected) {
+        console.log("Injecting ContentScript");
+        injectContentScript(tabId, message.frameId).then(function() {
+          contectScriptInjected = true;
+        });
+      }
+
+      if (!timer) {
+        console.log('Timer On');
+        timer = true;
+        startInterval();
+      }
+
+      // Stop Buffering Request
+      console.log("Buffering Stopped");
+      bufferNetworkRequests = false;
+    }
+  });
+
+  chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+    if (message.type.match('found-image') && tabId == message.tabId) {
+      chrome.tabs.sendMessage(tabId, {
+        type: 'found-image-response',
+        message: message.message, 
+        tabId: tabId
+      });
+    }
+  });
+
+  chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+    if (message.type.match('reset-previous-image') && tabId == message.tabId) {
+      chrome.tabs.sendMessage(tabId, {
+        type: 'remove-grey-scale',
+        tabId: tabId
+      });
+    }
+  });
 }

@@ -1,4 +1,4 @@
-// types of headers
+// Types of headers
 const CF_CACHE_STATUS_HEADER = "cf-cache-status";
 const CF_POLISH_HEADER = "cf-polished";
 const CF_BGJ_HEADER = "cf-bgj"; // used for minification / image polish / mirage? no..
@@ -9,10 +9,10 @@ const CACHE_CONTROL_HEADER = "cache-control";
 const CONTENT_TYPE_HEADER = "content-type";
 const CONTENT_LENGTH_HEADER = "content-length";
 
+// Cache status
 const CACHE_STATUS_HIT = "hit";
 const CACHE_REVALIDATE = "revalidate";
 const CACHE_STALE = "revalidate";
-
 const CACHE_STATUSES = [CACHE_STATUS_HIT, CACHE_REVALIDATE, CACHE_STALE];
 
 class NetworkRequest {

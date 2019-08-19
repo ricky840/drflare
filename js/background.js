@@ -1,43 +1,56 @@
-var inspectedWindowCount = 0;
+// onBeforePageReload
+chrome.webNavigation.onBeforeNavigate.addListener(
+	function(details) {
+    if (details.frameId == 0) {
+      // console.log(`webNavigation.onBeforeNavigate Triggered - ${details.url}`);
+      chrome.runtime.sendMessage({
+        type: 'webNavigation-onBeforeNavigate', 
+        tabId: details.tabId, 
+        newUrl: details.url
+      });
+		}
+	}
+);
 
-chrome.runtime.onConnect.addListener(function(port) {
-  if (port.name.startsWith("devtools-page")) {
-    inspectedWindowCount++;
-    var inspectedWindowTabId = parseInt(port.name.split("-")[2]);
-    console.log("DevTool Window Open TabId: " + inspectedWindowTabId);
-    addToListener(inspectedWindowTabId, function(refreshTabId) {
-      // chrome.tabs.reload(refreshTabId, {bypassCache: true});
-    });
+// onDOMContentLoaded
+chrome.webNavigation.onDOMContentLoaded.addListener(
+	function(details) {
+    if (details.frameId == 0) {
+      // console.log("webNavigation.onDOMContentLoaded Triggered");
+      chrome.runtime.sendMessage({
+         type: 'webNavigation-onDOMContentLoaded', 
+         message: details,
+         frameId: details.frameId,
+         tabId: details.tabId
+      });
+		}
+	}
+);
 
-    port.onDisconnect.addListener(function(port) {
-      inspectedWindowCount--;
-      console.log("DevTool Window Closed TabId: " + inspectedWindowTabId);
-      removeFromListner(inspectedWindowTabId);
-      if (inspectedWindowCount == 0) {
-        inspectedTabIds = [];
-      }
-    });
-  }
+// onCompleted (onLoadEvent)
+chrome.webNavigation.onCompleted.addListener(
+	function(details) {
+    if (details.frameId == 0) {
+      // console.log("webNavigation.onCompleted Triggered");
+      chrome.runtime.sendMessage({
+         type: 'page-onload-event', 
+         message: details, 
+         tabId: details.tabId,
+         frameId: details.frameId
+      });
+		}
 });
 
-
-// init
-var initStorage = function() {
-  console.log('init');
-  chrome.storage.local.set({'domElements': {}}); 
-}
-
-// Fire when ext installed
-chrome.runtime.onInstalled.addListener(function() {
-  initStorage();
+// tabs.onUpdated
+chrome.tabs.onUpdated.addListener (
+	function(tabId, changeInfo, tab) {
+		if (changeInfo.status == "loading") {
+      // console.log("tabs.onUpdated Triggered");
+			chrome.runtime.sendMessage({
+         type: 'tab-onUpdated', 
+         message: {}, 
+         tabId: tabId,
+         newUrl: tab.url
+      });
+		}
 });
-
-// Fires when Chrome starts or when user clicks refresh button in extension page
-chrome.runtime.onStartup.addListener(function() {
-  initStorage();
-});
-
-// Fires when user clicks disable / enable button in extension page
-window.onload = function() {
-  initStorage(); 
-};
