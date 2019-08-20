@@ -147,27 +147,25 @@ function moveChecker(mX, mY) {
   isReadyToCheck = true;
 }
 
-function handleHoveredImages(imageDOMs) {
+function handleHoveredImages(imageDOMs, imageCount) {
   resetPrevIMG();
   let imageDOM, style, imageRequest;
   let imageDOMsLength = imageDOMs.length;
+  // console.log(`length: ${imageDOMsLength}`);
   for (let i = 0; i < imageDOMsLength; i++) {
     imageDOM = imageDOMs[i];
     style = imageDOM.attr("cf-debugger-style");
-    if (!style.match('hover')) {
-      imageDOM.attr("cf-debugger-style", 'hover');
-      imageRequest = getImageRequest(imageDOM);
 
-      if (imageRequest) previousHoveredImages[imageRequest.requestId] = imageDOM;
-
-      if (checkIFrameImage()) {
-        if (iFrameMouseMovementCounter()) sendImageToDevTools(imageRequest);
-      } else {
-        if (i == 0) {
-          setPopupPosition(imageDOM);
-          updatePopupDOM(imageRequest, hoveredImageCount);
-          showPopup();
-        }
+    if (!style.match('hover')) imageDOM.attr("cf-debugger-style", 'hover');
+    imageRequest = getImageRequest(imageDOM);
+    if (imageRequest) previousHoveredImages[imageRequest.requestId] = imageDOM;
+    if (checkIFrameImage()) {
+      if (iFrameMouseMovementCounter()) sendImageToDevTools(imageRequest);
+    } else {
+      if (i == 0) {
+        setPopupPosition(imageDOM);
+        updatePopupDOM(imageRequest, imageCount);
+        showPopup();
       }
     }
   }
@@ -315,18 +313,12 @@ function appendPopupDOMToBody() {
   document.body.appendChild(popupDiv);
 }
 
-function showPopup() {
-  // // Get scrolled heights
-  // let scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-  // $('.cf-debugger-popup').show()
-  //   .css('top', mouseEnterY + scrollTop)
-  //   .css('left', mouseEnterX);
+function showPopup() { $('.cf-debugger-popup').show(); }
 
-  $('.cf-debugger-popup').show();
-}
+function hidePopup() { $('.cf-debugger-popup').hide(); }
 
-function hidePopup() {
-  $('.cf-debugger-popup').hide();
+function isPopupHidden() {
+  return $('.cf-debugger-popup').is(":hidden");
 }
 
 function sendImageToDevTools(imageRequest) {
