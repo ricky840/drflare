@@ -87,6 +87,18 @@ function resetDevTools() {
   requestId = REQUEST_ID_START;
 }
 
+function dateTimeInUnix(dateTime) {
+  return new Date(dateTime).getTime();
+}
+
+function compareStartedDateTime(a, b) {
+  if (dateTimeInUnix(a.startedDateTime) < dateTimeInUnix(b.startedDateTime)) return -1;
+  if (dateTimeInUnix(a.startedDateTime) > dateTimeInUnix(b.startedDateTime)) return 1;
+  return 0;
+}
+
+
+
 if (tabId) {
   chrome.devtools.panels.create(PANEL_NAME, PANEL_LOGO, PANEL_HTML, function(panel) {
     panelReady = true;
@@ -109,6 +121,8 @@ if (tabId) {
       if (networkRequestBuffer.length > 0) {
         let requestsFiltered = [];
         let saveFlag = false;
+        // Sort by startedTime before filtering
+        networkRequestBuffer.sort(compareStartedDateTime);
         for (let i=0; i < networkRequestBuffer.length; i++) {
           if (networkRequestBuffer[i].request.url == newUrlOnTab) {
             saveFlag = true;
@@ -159,7 +173,6 @@ if (tabId) {
             contectScriptInjected = true;
           });
         }
-
         if (!timer) {
           console.log('Timer On');
           timer = true;
@@ -168,7 +181,6 @@ if (tabId) {
       }
     }
   });
-
 
   chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     if (message.type.match('found-image') && tabId == message.tabId) {
