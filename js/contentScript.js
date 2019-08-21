@@ -28,7 +28,7 @@ var mouseMoveHoverTheshold = 1;
 var imageObjectCountLimit = 80;
 var numberOfLabelsInRow = 4;
 // var popupMouseOffset = 100;
-var popupMouseOffset = 100000;
+var popupMouseOffset = 50;
 
 var tabId = null;
 
@@ -175,14 +175,15 @@ function handleHoveredImages(imageDOMs, imageCount) {
 function setPopupPosition(imageDOM = null) {
   let popupDOM = $('.cf-debugger-popup');
   let popupDOMDimension = popupDOM[0].getBoundingClientRect();
+  let windowWidth = $(window).width();
   let width = (popupDOMDimension.width == 0) ? popupWidth : popupDOMDimension.width;
 
-  if ((width + popupMouseOffset) > mouseX) {
-    popupDOM[0].style.removeProperty('left');
-    popupDOM[0].style.right = 0;
-  } else {
+  if ((windowWidth - (width + popupMouseOffset)) < mouseX) {
     popupDOM[0].style.removeProperty('right');
     popupDOM[0].style.left = 0;
+  } else {
+    popupDOM[0].style.removeProperty('left');
+    popupDOM[0].style.right = 0;
   }
 }
 
