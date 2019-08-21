@@ -27,7 +27,8 @@ var mouseMoveHoverTheshold = 1;
 
 var imageObjectCountLimit = 80;
 var numberOfLabelsInRow = 4;
-var popupMouseOffset = 100;
+// var popupMouseOffset = 100;
+var popupMouseOffset = 100000;
 
 var tabId = null;
 
@@ -45,8 +46,8 @@ var popupResponseHeaders = [
 ];
 
 var cloudflareFeatureNames = [
-  'Proxied', 'Cache HIT', 'Cache Miss', '3rd Party',
-  'Railgun', 'Auto Minify', 'IMG Polish', 'IMG Resized'
+  'Proxied', 'HIT', 'MISS', 'External',
+  'Railgun', 'Minify', 'Polish', 'Resized'
 ];
 
 var timestamp = null;
@@ -290,8 +291,7 @@ function appendPopupDOMToBody() {
   popupURLHolder.appendChild(textNode);
   popupDiv.appendChild(popupURLHolder);
 
-  let popupURLTextAra = document.createElement('textarea');
-  popupURLTextAra.className = 'cf-debugger-popup-url-text-area';
+  let popupURLTextAra = document.createElement('textarea'); popupURLTextAra.className = 'cf-debugger-popup-url-text-area';
   textNode = document.createTextNode('');
   popupURLTextAra.appendChild(textNode);
   popupDiv.appendChild(popupURLTextAra);
@@ -362,25 +362,25 @@ function updatePopupDOM(imageRequest, count = 0) {
         case ('Proxied'):
           popupLabels[i].setAttribute('cf-label', (imageRequest.rayId != "") ? "green" : "grey");
           break;
-        case ('Cache HIT'):
+        case ('HIT'):
           popupLabels[i].setAttribute('cf-label', (imageRequest.cfCached != "") ? "green" : "grey");
           break;
-        case ('Cache Miss'):
+        case ('MISS'):
           popupLabels[i].setAttribute('cf-label', (!imageRequest.cfCached && imageRequest.rayId != "") ? "green" : "grey");
           break;
-        case ('3rd Party'):
+        case ('External'):
           popupLabels[i].setAttribute('cf-label', (imageRequest.rayId == "") ? "green" : "grey");
           break;
         case ('Railgun'):
           popupLabels[i].setAttribute('cf-label', (imageRequest.railguned) ? "green" : "grey");
           break;
-        case ('IMG Polish'):
+        case ('Polish'):
           popupLabels[i].setAttribute('cf-label', (imageRequest.imagePolished != "") ? "green" : "grey");
           break;
-        case ('Auto Minify'):
+        case ('Minify'):
           popupLabels[i].setAttribute('cf-label', (imageRequest.minified != "") ? "green" : "grey");
           break;
-        case ('IMG Resized'):
+        case ('Resized'):
           popupLabels[i].setAttribute('cf-label', (imageRequest.imageResized != "") ? "green" : "grey");
           break;
       }
