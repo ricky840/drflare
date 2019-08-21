@@ -13,9 +13,13 @@
   },
   "devtools_page": "devtools.html",
   "browser_action": {
-    "default_icon": "img/cf-logo-v-rgb-rev.png",
     "default_popup": "popup.html",
     "default_title": "Doctorflare"
+  },
+  "icons": {
+    "16": "img/simple2.png",
+    "48": "img/circle-logo1.png",
+    "128": "img/simple2.png"
   },
   "permissions": [
     "activeTab",

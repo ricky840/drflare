@@ -14,7 +14,7 @@
         <a class="item active disabled" tab="overview"><img src="img/cf-logo-v-rgb-rev.png" style="width: 70px"></a>
         <a class="item disabled" tab="cached">Cached Requests<div class="ui circular label mini disabled" cfstat="overview-cfcached-number-of-requests">0</div></a>
         <a class="item disabled" tab="nocached">Uncached Requests<div class="ui circular label mini disabled" cfstat="overview-cfuncached-number-of-requests">0</div></a>
-        <a class="item disabled" tab="3rdparty">None Cloudflare<div class="ui circular label mini disabled" cfstat="overview-external-number-of-requests">0</div></a>
+        <a class="item disabled" tab="3rdparty">Non Cloudflare<div class="ui circular label mini disabled" cfstat="overview-external-number-of-requests">0</div></a>
         <a class="item disabled" tab="polish">Image Polish<div class="ui circular label mini disabled" cfstat="overview-image-polished">0</div></a>
         <a class="item disabled" tab="minify">Auto Minify<div class="ui circular label mini disabled" cfstat="overview-num-of-minified">0</div></a>
         <a class="item disabled" tab="railgun">Railgun<div class="ui circular label mini disabled" cfstat="overview-railgun-applied">0</div></a>
@@ -69,7 +69,7 @@
               <div class="row">
 								<div class="ui statistic inverted orange small">
 									<div class="value"><span cfstat="overview-external-bytes">0</span></div>
-									<div class="label" data-tooltip="Total bytes for none Cloudflare traffic" data-inverted="" data-position="bottom left">None Cloudflare</div>
+									<div class="label" data-tooltip="Total bytes for non Cloudflare traffic" data-inverted="" data-position="bottom left">Non Cloudflare</div>
 								</div>
               </div>
               <div class="row">
@@ -152,7 +152,7 @@
               <div class="row">
                   <div class="ui statistic inverted green small">
                     <div class="value"><span cfstat="overview-avg-waiting-not-proxied">0</span><span class="msecond">ms</span></div>
-                    <div class="label" data-tooltip="Time to first byte (average) for None Cloudflare requests" data-inverted="" data-position="bottom left">TTFB Not Proxied (Avg)</div>
+                    <div class="label" data-tooltip="Time to first byte (average) for Non Cloudflare requests" data-inverted="" data-position="bottom left">TTFB Not Proxied (Avg)</div>
                   </div>
               </div>
             </div>

@@ -2,132 +2,59 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>Cloudflare Performance Debugger</title>
-		<!-- <link rel="stylesheet" type="text/css" href="/css/custom.css"> -->
-		<link rel="stylesheet" type="text/css" href="/css/semantic.css">
-
-    <!-- <script src="https://www.amcharts.com/lib/4/core.js"></script>
-    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
-    <script src="https://www.amcharts.com/lib/4/themes/material.js"></script>
-    <script src="https://www.amcharts.com/lib/4/lang/de_DE.js"></script>
-    <script src="https://www.amcharts.com/lib/4/geodata/germanyLow.js"></script> -->
-
-
+		<title>Dr.FLARE</title>
+		<link rel="stylesheet" type="text/css" href="css/semantic.css">
+		<link rel="stylesheet" type="text/css" href="css/popup.css">
 	</head>
 
 	<body>
-		<div class="ui divided items" style="margin-bottom: 0px;">
+    <div class="ui container">
+      <div class="ui grid padded">
+        <div class="two column row no-padding-bottom">
+          <div class="left floated column column-no-padding-sides">
+            <img class="popup-logo" src="img/dr-logo-black.png">
+          </div>
+          <div class="right floated column column-no-padding-sides">
+            <div class="ui orange label mini" style="float: right;">v0.0.1</div>
+          </div>
+        </div>
 
-			<!-- Top Logo -->
-    	<div class="item">
-       	<a class="ui tiny image" style="padding: 0px 10px 0px 10px; text-align:center;">
-          <img id="logoimg" class="main_logo" src="/img/cloudflare-logo.png">
-       	</a>
-  		</div>
-  		<div class="ui divided selection list">
-			  <a class="item">
-			    <div class="ui red horizontal label">Fruit</div>
-			    Kumquats
-			  </a>
-			  <a class="item">
-			    <div class="ui green horizontal label">Candy</div>
-			    Ice Cream
-			  </a>
-			  <a class="item">
-			    <div class="ui yellow horizontal label">Fruit</div>
-			    Orange
-			  </a>
-			  <a class="item">
-			    <div class="ui horizontal label">Dog</div>
-			    Poodle
-			  </a>
-			</div>
+        <div class="ui divider no-margin-sides"></div>
 
-  		<!-- Checkbox Controller -->
-  		<div class="item">
-  			<div class="ui vertically divded grid">
-				
-					<!-- Caching -->
-					<div id="cache" class="two column row">
-						<div class="column">
-							<p class="label">Caching</p>
-						</div>
-						<div class="column">
-							<div class="ui toggle checkbox">
-								<input type="checkbox" name="caching_checkbox">
-								<label id="checkbox_label"></label>
-							</div>
-						</div>
-						
-					</div>
+        <div class="row row-no-padding">
+          <div class="ui items">
+            <div class="item item-less-margin-top">
+              <div class="middle aligned content">
+                <div class="ui toggle checkbox">
+                  <input type="checkbox" name="public">
+                  <label>Disable painting images</label>
+                </div>
+              </div>
+            </div>
+            <div class="item item-less-margin-bottom">
+              <div class="middle aligned content">
+                <div class="ui toggle checkbox">
+                  <input type="checkbox" name="public">
+                  <label>Disable popups</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-					<!-- Railgun -->
-					<div id="railgun" class="two column row">
-						<div class="column">
-							<p class="label">Railgun</p>
-						</div>
-						<div class="column">
-							<div class="ui toggle checkbox">
-								<input type="checkbox" name="railgun_checkbox">
-								<label class="checkbox_label"></label>
-							</div>
-						</div>
-							
-					</div>
+        <div class="ui divider no-margin-sides no-margin-top-bottom"></div>
 
-					<!-- Polish -->
-					<div id="polish" class="two column row">
-						<div class="column">
-							<p class="label">Polish</p>
-						</div>
-						<div class="column">
-							<div class="ui toggle checkbox">
-								<input type="checkbox" name="polish_checkbox">
-								<label class="checkbox_label"></label>
-							</div>
-						</div>
-							
-					</div>
+        <div class="row">
+          <a href="">Feedback?</a>
+        </div>
 
-					<!-- Image Resizing (Beta) -->
-					<div id="image_resizing" class="two column row">
-						<div class="column">
-							<p class="label">Image Resizing</p>
-						</div>
-						<div class="column">
-							<div class="ui toggle checkbox">
-						      <input type="checkbox" name="image_resizing_checkbox">
-						      <label class="checkbox_label"></label>
-						   </div>
-						</div>
-					</div>
-
-					<div id="test" class="two column row">
-						<div class="column">
-							<p class="label">Debugging</p>
-						</div>
-						<div class="column button">
-							<button class="ui button">
-							  Check Requests
-							</button>
-						</div>
-					</div>
-				</div>
-  		</div>
-   	</div>
-
-   	<div class="ui two column grid">
-		<div class="four column centered row">
-		    <div class="column">something</div>
-		    <div class="column">else</div>
-	  	</div>
-	</div>
+        </div>
+      </div>
+    </div>
 
 		<script type="text/javascript" src="/lib/jquery-3.1.1.min.js"></script>
 		<script type="text/javascript" src="/lib/semantic.min.js"></script>
     <script type="text/javascript" src="js/popup.js"></script>
 	</body>
 
-	<footer>
-	</footer>
 </html>
