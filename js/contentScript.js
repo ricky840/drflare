@@ -297,6 +297,24 @@ function appendPopupDOMToBody() {
   popupURLTextAra.appendChild(textNode);
   popupDiv.appendChild(popupURLTextAra);
 
+
+
+//////////////////////////////////////////////////////////////
+ 
+
+  let popupImageCount = document.createElement('h4');
+  popupImageCount.className = 'cf-debugger-popup-image-counter';
+  textNode = document.createTextNode('0');
+  popupImageCount.appendChild(textNode);
+  popupDiv.appendChild(popupImageCount); 
+
+  let popupDividerForth = document.createElement('div');
+  popupDividerForth.className = 'cf-debugger-popup-divider';
+  popupDiv.appendChild(popupDividerForth);  
+
+
+//////////////////////////////////////////////////////////////
+
   let popupReasponseHeader = document.createElement('h4');
   popupReasponseHeader.className = 'cf-debugger-popup-title';
   textNode = document.createTextNode('Response Headers');
@@ -311,6 +329,7 @@ function appendPopupDOMToBody() {
   popupResponseHolder.className = 'cf-debugger-popup-headers';
   popupDiv.appendChild(popupResponseHolder);
 
+  
   document.body.appendChild(popupDiv);
 }
 
@@ -389,11 +408,15 @@ function updatePopupDOM(imageRequest, count = 0) {
 
     let popupURL = document.getElementsByClassName('cf-debugger-popup-url-holder')[0];
     popupURL.textContent = imageRequest.url;
+
     let popupURLTextArea = document.getElementsByClassName('cf-debugger-popup-url-text-area')[0];
     popupURLTextArea.textContent = imageRequest.url;
-    
+
+    let popupImageCount = document.getElementsByClassName('cf-debugger-popup-image-counter')[0];
+    popupImageCount.textContent = count;
     
     let popupTitle = document.getElementsByClassName('cf-debugger-popup-headers')[0];
+    popupURL.textContent = imageRequest.url;
 
     while (popupTitle.hasChildNodes()) {   
       popupTitle.removeChild(popupTitle.firstChild);
