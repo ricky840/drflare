@@ -97,8 +97,6 @@ function compareStartedDateTime(a, b) {
   return 0;
 }
 
-
-
 if (tabId) {
   chrome.devtools.panels.create(PANEL_NAME, PANEL_LOGO, PANEL_HTML, function(panel) {
     panelReady = true;
