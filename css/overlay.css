@@ -114,7 +114,7 @@
   background-color: #E8E8E8 !important;
   font-weight: bold !important;
   border-radius: 0.28571429rem !important;
-  line-height: 25px !important; /* this value should be the same as row height in order place the text in the middle */
+  line-height: 25px !important; /* this value should be the same as the row height in order to place the text in the middle */
 }
 
 .cf-debugger-popup-url-holder {
