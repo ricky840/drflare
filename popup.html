@@ -10,14 +10,43 @@
 	<body>
     <div class="ui container">
       <div class="ui grid padded">
+
         <div class="two column row no-padding-bottom">
           <div class="left floated column column-no-padding-sides">
-            <img class="popup-logo" src="img/dr-logo-black.png">
+            <img class="popup-logo" src="img/hori-logo.png">
           </div>
           <div class="right floated column column-no-padding-sides">
-            <div class="ui orange label mini" style="float: right;">v0.0.1</div>
+            <div class="ui blue label mini version-label">v0.0.1</div>
           </div>
         </div>
+
+        <div class="ui divider no-margin-sides"></div>
+
+        <div class="row row-no-padding">
+					<div class="ui list large">
+						<div class="item">
+							<img class="ui avatar image sample-image cache" src="img/circle-logo3.png">
+							<div class="content" style="max-width: 90%">
+								<div class="header">Cache HIT</div>
+								<div class="description">Image was served from Cloudflare cache</div>
+							</div>
+						</div>
+						<div class="item">
+							<img class="ui avatar image sample-image miss" src="img/circle-logo3.png">
+							<div class="content" style="max-width: 90%">
+								<div class="header">Cache MISS</div>
+								<div class="description">Image was served from the origin</div>
+							</div>
+						</div>
+						<div class="item">
+							<img class="ui avatar image sample-image external" src="img/circle-logo3.png">
+							<div class="content" style="max-width: 90%">
+								<div class="header">External</div>
+								<div class="description">Image was not served from Cloudflare</div>
+							</div>
+						</div>
+					</div>
+				</div>
 
         <div class="ui divider no-margin-sides"></div>
 
@@ -31,21 +60,7 @@
                 </div>
               </div>
             </div>
-            <div class="item item-less-margin-bottom">
-              <div class="middle aligned content">
-                <div class="ui toggle checkbox">
-                  <input type="checkbox" name="public">
-                  <label>Disable popups</label>
-                </div>
-              </div>
-            </div>
           </div>
-        </div>
-
-        <div class="ui divider no-margin-sides no-margin-top-bottom"></div>
-
-        <div class="row">
-          <a href="">Feedback?</a>
         </div>
 
         </div>

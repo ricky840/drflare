@@ -1,5 +1,5 @@
 {
-  "name": "Doctorflare",
+  "name": "Dr.FLARE",
   "version": "0.0.1",
   "description": "A little debug tool for Cloudflare",
   "manifest_version": 2,
@@ -14,11 +14,11 @@
   "devtools_page": "devtools.html",
   "browser_action": {
     "default_popup": "popup.html",
-    "default_title": "Doctorflare"
+    "default_title": "Dr.FLARE"
   },
   "icons": {
-    "16": "img/simple2.png",
-    "48": "img/simple2.png",
+    "16": "img/test.png",
+    "48": "img/test.png",
     "128": "img/simple2.png"
   },
   "permissions": [

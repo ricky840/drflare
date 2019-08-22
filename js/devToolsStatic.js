@@ -1,5 +1,5 @@
 // Panel Creation
-const PANEL_NAME = "Doctorflare";
+const PANEL_NAME = "Dr.FLARE";
 const PANEL_LOGO = "img/cloudflare-logo.png";
 const PANEL_HTML = "panel.html";
 

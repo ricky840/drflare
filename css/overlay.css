@@ -30,8 +30,8 @@
 }
 
 [cf-debugger-style=external] {
-  -webkit-filter: grayscale(100%) brightness(0.40) !important;
-  filter: grayscale(100%) brightness(0.40) !important;
+  -webkit-filter: grayscale(100%) brightness(0.50) !important;
+  filter: grayscale(100%) brightness(0.50) !important;
 }
 
 [cf-debugger-style=hover] {

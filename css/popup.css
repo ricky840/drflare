@@ -1,14 +1,24 @@
 body {
   padding-top: 10px;
-  min-width: 280px;
-  /* background: rgb(224, 224, 224); */
-  background: #F5F5F5;
-  /* background: lightgray; */
 }
 
-.popup-logo {
-  width: 130px;
-  /* padding: 5px; */
+.version-label {
+  float: right;
+  margin-top: 10px;
+  padding: 4px;
+}
+
+.sample-image {
+  width: 2.5em !important;
+  height: 2.5em !important;
+}
+
+.header {
+  font-size: 0.9em !important;
+}
+
+.description {
+  font-size: 0.8em !important;
 }
 
 .no-padding-bottom {
@@ -41,4 +51,19 @@ body {
 .row-no-padding {
   padding-top: 0px !important;
   padding-bottom: 0px !important;
+}
+
+.cache {
+  -webkit-filter: grayscale(100%) brightness(40%) sepia(100%) hue-rotate(50deg) saturate(1000%) contrast(0.8) !important;
+  filter: grayscale(100%) brightness(40%) sepia(100%) hue-rotate(50deg) saturate(1000%) contrast(0.8) !important;
+}
+
+.miss {
+  -webkit-filter: invert(40%) grayscale(100%) brightness(40%) sepia(100%) hue-rotate(-50deg) saturate(400%) contrast(2);
+  filter: grayscale(100%) brightness(40%) sepia(100%) hue-rotate(-50deg) saturate(600%) contrast(0.8);
+}
+
+.external {
+  -webkit-filter: grayscale(100%) brightness(0.50) !important;
+  filter: grayscale(100%) brightness(0.50) !important;
 }
