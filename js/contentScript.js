@@ -297,8 +297,6 @@ function appendPopupDOMToBody() {
   popupURLTextAra.appendChild(textNode);
   popupDiv.appendChild(popupURLTextAra);
 
-
-
 //////////////////////////////////////////////////////////////
  
 
