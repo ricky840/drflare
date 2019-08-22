@@ -60,6 +60,7 @@
   font-size: 12px !important;
   color: rgba(255, 255, 255, 0.8) !important;
   font-weight: bold !important;
+  display: none;
 }
 
 .cf-debugger-popup-title {
