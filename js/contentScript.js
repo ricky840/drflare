@@ -278,7 +278,6 @@ function appendPopupDOMToBody() {
 
   popupDiv.appendChild(popupGrid);
 
-
   let popupURLHeader = document.createElement('h4');
   popupURLHeader.className = 'cf-debugger-popup-title';
   textNode = document.createTextNode('Image URL');
@@ -294,8 +293,6 @@ function appendPopupDOMToBody() {
   textNode = document.createTextNode('');
   popupURLHolder.appendChild(textNode);
   popupDiv.appendChild(popupURLHolder);
-
-
 
   let popupImageThumbnailHeader = document.createElement('h4');
   popupImageThumbnailHeader.className = 'cf-debugger-popup-title';
@@ -315,12 +312,6 @@ function appendPopupDOMToBody() {
   popupImageThumbnailContainer.appendChild(popupImageThumbnail);  
 
   popupDiv.appendChild(popupImageThumbnailContainer);  
-
-
-
-
-
-
 
   let popupImageCountHeader = document.createElement('h4');
   popupImageCountHeader.className = 'cf-debugger-popup-title';
