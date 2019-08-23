@@ -55,3 +55,32 @@ chrome.tabs.onUpdated.addListener (
       });
 		}
 });
+
+var initStorage = function() {
+  console.log("Initializing Storage");
+  chrome.storage.local.get("options", function(result) {
+    if(result['options'] === undefined) {
+      let options = { disablePaintAndPopup: false };
+      chrome.storage.local.set({options: options}); 
+    }
+  });
+}
+
+// Fire when ext installed
+chrome.runtime.onInstalled.addListener(function(event) {
+  initStorage();
+});
+
+// Fires when Chrome starts or when user clicks refresh button in extension page
+chrome.runtime.onStartup.addListener(function() {
+  initStorage();
+});
+
+// Fires when user clicks disable / enable button in extension page
+window.onload = function() {
+  initStorage(); 
+};
+
+
+
+

@@ -9,6 +9,9 @@ const tabId = chrome.devtools.inspectedWindow.tabId;
 // Panel Open Status
 var panelReady = false;
 
+// Popup window Option
+var optionDisablePaintingAndPopupCache = false;
+
 // webNavigation.onDOMContentLoaded Event Flag
 var onDOMContentLoadedEvent = false;
 

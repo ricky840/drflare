@@ -4,8 +4,8 @@ body {
 
 .version-label {
   float: right;
-  margin-top: 10px;
-  padding: 4px;
+  margin-top: 10px !important;
+  padding: 4px !important;
 }
 
 .sample-image {
@@ -15,6 +15,7 @@ body {
 
 .header {
   font-size: 0.9em !important;
+  font-weight: bold;
 }
 
 .description {

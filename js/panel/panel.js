@@ -95,6 +95,9 @@ function startChartInterval() {
 includeCharts(CHARTS);
 
 $(document).ready(function() {
+  // Update Version Info
+  var manifest = chrome.runtime.getManifest();
+  $("#extVersion").html("v" + manifest.version);
 
   // Enable Menu only when the document is ready
   $(".menu .item.disabled").removeClass("disabled");
