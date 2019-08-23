@@ -1,6 +1,3 @@
-table {
-}
-
 table td {
  word-break: break-all;
 }
@@ -13,12 +10,15 @@ table td {
 .dark-background {
   background-color:rgb(33, 33, 36);
 }
+
 .border-noradius {
   border-radius: 0 !important;
 }
+
 .zero-magin-bottom {
   margin-bottom: 0px !important;
 }
+
 .zero-magin-top {
   margin-top: 0px !important;
 }
@@ -66,8 +66,13 @@ table td {
   padding: 1em;
   border-style: none !important;
 }
+
 .hiddenTable .item .label {
   width: 100px;
+}
+
+.hiddenTable .item .label.grey {
+  color: rgb(180,180,180) !important;
 }
 
 tr[reqid] {

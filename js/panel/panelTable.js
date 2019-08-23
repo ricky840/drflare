@@ -414,7 +414,7 @@ var requestTable = (function(global) {
 
     html += '<div class="item">';
     html += '<div class="content">';
-    html += `<div class="ui horizontal label ${(request.rayId == "") ? "green" : "grey"} inverted">3rd Party</div>`;
+    html += `<div class="ui horizontal label ${(request.rayId == "") ? "green" : "grey"} inverted">External</div>`;
     html += '</div>';
     html += '</div>';
 
