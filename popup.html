@@ -4,6 +4,7 @@
 		<meta charset="utf-8">
 		<title>Dr.FLARE</title>
 		<link rel="stylesheet" type="text/css" href="css/semantic.css">
+    <link rel="stylesheet" type="text/css" href="css/icon.min.css">
 		<link rel="stylesheet" type="text/css" href="css/popup.css">
 	</head>
 
@@ -16,11 +17,20 @@
             <img class="popup-logo" src="img/hori-logo.png">
           </div>
           <div class="right floated column column-no-padding-sides">
-            <div id="extVersion" class="ui blue label mini version-label"></div>
+            <div id="extVersion" class="ui orange label mini version-label"></div>
           </div>
         </div>
 
         <div class="ui divider no-margin-sides"></div>
+
+        <div id="notification_area" class="row row-no-padding" style="display: none;">
+          <div style="margin-bottom: 10px; width: 100%;">
+            <div class="ui info message">
+              <i class="close icon" style="float: right;"></i>
+              <div id="notification_message" class="header"></div>
+            </div>
+          </div>
+        </div>
 
         <div class="row row-no-padding">
 					<div class="ui list large">
@@ -65,7 +75,7 @@
           </div>
           <div class="twelve wide column">
             <div class="header">Disable Painting Images</div>
-            <div class="description">Requires a page refresh</div>
+            <div class="description">Requires a page refresh to apply</div>
           </div>
         </div>
 
@@ -73,8 +83,8 @@
       </div>
     </div>
 
-		<script type="text/javascript" src="/lib/jquery-3.1.1.min.js"></script>
-		<script type="text/javascript" src="/lib/semantic.min.js"></script>
+		<script type="text/javascript" src="lib/jquery-3.1.1.min.js"></script>
+		<script type="text/javascript" src="lib/semantic.min.js"></script>
     <script type="text/javascript" src="js/popup.js"></script>
 	</body>
 

@@ -69,6 +69,16 @@ var initStorage = function() {
 // Fire when ext installed
 chrome.runtime.onInstalled.addListener(function(event) {
   initStorage();
+  if (event.reason === 'install') {
+    chrome.storage.local.set({freshInstalled: true, extUpdated: false}, function() {
+      console.log("Extension Installed");
+    });
+  }
+  if (event.reason === 'update') {
+    chrome.storage.local.set({extUpdated: true, freshInstalled: false}, function() {
+      console.log("Extension Updated");
+    })
+  }
 });
 
 // Fires when Chrome starts or when user clicks refresh button in extension page

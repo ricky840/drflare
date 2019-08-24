@@ -1,7 +1,7 @@
 {
   "name": "Dr.FLARE",
-  "version": "0.0.1",
-  "description": "A debug tool for Cloudflare",
+  "version": "0.1.0",
+  "description": "Debug tool for Cloudflare",
   "manifest_version": 2,
   "background": {
     "persistent": true,
@@ -17,9 +17,9 @@
     "default_title": "Dr.FLARE"
   },
   "icons": {
-    "16": "img/test.png",
-    "48": "img/test.png",
-    "128": "img/simple2.png"
+    "16": "img/circle-new-logo.png",
+    "48": "img/circle-new-logo.png",
+    "128": "img/circle-new-logo.png"
   },
   "permissions": [
     "activeTab",

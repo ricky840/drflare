@@ -20,6 +20,7 @@ body {
 
 .description {
   font-size: 0.8em !important;
+  color: red;
 }
 
 .no-padding-bottom {
