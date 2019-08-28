@@ -259,8 +259,8 @@ var requestTable = (function(global) {
         request.origSize,
         request.contentLength,
         (polishSavedRatio > 0) ? "<p class='ui header inverted tiny green'>" + polishSavedRatio +"%</p>" : "0%",
-        cacheStatus,
-        request.colo
+        request.colo,
+        cacheStatus
       ]).draw(false);
     } else if (tableCode == "IMGRESIZE") {
       dataTables[TABLE_CODES["IMGRESIZE"]].row.add([
