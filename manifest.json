@@ -1,6 +1,6 @@
 {
   "name": "Dr.FLARE",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Get insights of your Cloudflared website. Provides an easy way to see benefits with Cloudflare.",
   "manifest_version": 2,
   "background": {

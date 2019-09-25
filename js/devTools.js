@@ -1,7 +1,16 @@
+/**
+ * Listen incoming network request from the Google DevTool Network tab and
+ * forward them to the content script and the panel.
+ */
+
 "use strict";
 
+/**
+ * Fires an time interval that sends a bulk of image requests instead of
+ * sending one-by-one. This definitely helps loading speed tremendously.
+ */
 function startInterval() {
-  interval = setInterval(function() { 
+  interval = setInterval(function() {
     if (requestObjectsImages.length > 0) {
       if(contectScriptInjected) {
         let heartBeatMsg = {
@@ -34,6 +43,14 @@ function startInterval() {
   }, REFRESH_RATE);
 }
 
+/**
+ * Injecting content script to loaded page for image color filtering
+ * and mouse events.
+ * 
+ * @param {*} tabId   - Tab ID for the devtool
+ * @param {*} frameId - Frame ID of each page
+ * @returns {*} - new Promise
+ */
 function injectContentScript(tabId, frameId) {
   return new Promise(function(resolve, reject) {
     let heartBeatMsg = {
@@ -66,7 +83,38 @@ function injectContentScript(tabId, frameId) {
   });
 }
 
+/**
+ * Check if a new incoming request was requested because of the popup window image.
+ * 
+ * @param {*} requestObject - Incoming request object from the Network tab
+ * @returns {bool} true if the request is related to hovered image
+ */
+function isHoveredImageRequest(requestObject) {
+  if (requestObject && requestObject.request) {
+    let request = requestObject.request;
+    if (request.headers) {
+      let requestHeaders = request.headers;
+      for (let header in requestHeaders) {
+        header = requestHeaders[header];
+        if (header['name'] && header['name'].toLowerCase() === POPUP_IMAGE_REQUEST_HEADER) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Send each request to Panel and filter out image requests and collect them.
+ *
+ * @param {*} requestObject - A network request
+ */
 function sendRequestToPanel(requestObject) {
+  // Check if the incoming request has the same URL as the hovered image which
+  // is unnecessary to include in the overview.
+  if (isHoveredImageRequest(requestObject)) return;
+
   requestId += 1;
   let networkRequest = new NetworkRequest(requestId);
   networkRequest.setDetails(requestObject);
@@ -86,7 +134,10 @@ function sendRequestToPanel(requestObject) {
     }
   }
 }
-
+/**
+ * Whenever a user refresh or load a different URL, it resets
+ * all dynamic variables.
+ */
 function resetDevTools() {
   clearInterval(interval);
   requestObjectsImages = [];
@@ -96,10 +147,21 @@ function resetDevTools() {
   requestId = REQUEST_ID_START;
 }
 
+/**
+ * Create a new Date object with the current timestamp.
+ *
+ * @param {*} dateTime - Date time
+ */
 function dateTimeInUnix(dateTime) {
   return new Date(dateTime).getTime();
 }
 
+/**
+ * Date time comparator.
+ *
+ * @param {*} a - A network request
+ * @param {*} b - Another network request
+ */
 function compareStartedDateTime(a, b) {
   if (dateTimeInUnix(a.startedDateTime) < dateTimeInUnix(b.startedDateTime)) return -1;
   if (dateTimeInUnix(a.startedDateTime) > dateTimeInUnix(b.startedDateTime)) return 1;
@@ -207,6 +269,8 @@ if (tabId) {
     }
   });
 
+  // Passing image found image request from iframe content script to the content script
+  // of the main where popup window can be accessed
   chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     if (message.type.match('found-image') && tabId == message.tabId) {
       chrome.tabs.sendMessage(tabId, {
@@ -217,8 +281,12 @@ if (tabId) {
     }
   });
 
+  // Send the 'remove-grey-scale' message back to every content script including the ones
+  // in iframe
   chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     if (message.type.match('reset-previous-image') && tabId == message.tabId) {
+      hoveredImageURL = "";
+      hoveredImageRedirectURL = "";
       chrome.tabs.sendMessage(tabId, {
         type: 'remove-grey-scale',
         tabId: tabId
