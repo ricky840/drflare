@@ -54,6 +54,7 @@ var hoveredImageCount = 0;
 
 // All image DOMs were hovered previously
 var previousHoveredImages = {};
+var previousHoveredImageURL = "";
 
 // A blocker for mousemove event
 var isReadyToCheck = true;
@@ -636,14 +637,22 @@ function moveChecker(mX, mY) {
     });
   }
 
-  // Apply the hovered images to the popup DOM
-  handleHoveredImages(hoveredImages, hoveredImageCount);
+  // // Apply the hovered images to the popup DOM
+  // handleHoveredImages(hoveredImages, hoveredImageCount);
 
-  // If no matching image was found, reset the previous hovered image
-  // and hide popup
-  if (!found) {
-    resetPrevIMG();
+  // // If no matching image was found, reset the previous hovered image
+  // // and hide popup
+  // if (!found) {
+  //   resetPrevIMG();
+  //   hidePopup();
+  // }
+  resetPrevIMG();
+  if (found) {
+    handleHoveredImages(hoveredImages, hoveredImageCount);
+  } else {
+    // resetPrevIMG();
     hidePopup();
+    previousHoveredImageURL = "";
   }
 
   // Accept 'mousemove' event again
@@ -657,7 +666,7 @@ function moveChecker(mX, mY) {
  * @param {*} imageCount - Total number of images right underneath of cursor
  */
 function handleHoveredImages(imageDOMs, imageCount) {
-  resetPrevIMG();
+  // resetPrevIMG();
   let imageDOM, style, imageRequest;
   let imageDOMsLength = imageDOMs.length;
   // console.log(`length: ${imageDOMsLength}`);
@@ -807,7 +816,8 @@ function updatePopupDOM(imageRequest, count = 0) {
  * @param {*} thumbnailImage - Thumbnail image holder DOM
  */
 function sendPopupImageWithSpecialHeader(imageURL, thumbnailImage = null) {
-  if (thumbnailImage) {
+  if (thumbnailImage && (previousHoveredImageURL !== imageURL)) {
+    previousHoveredImageURL = imageURL;
     let thumbnailImageRequest = new XMLHttpRequest();
     thumbnailImageRequest.open("GET", imageURL, true);
     // Special Popup image request header
@@ -817,6 +827,7 @@ function sendPopupImageWithSpecialHeader(imageURL, thumbnailImage = null) {
       // Response's body content in ArrayBuffer
       let arrayBuffer = thumbnailImageRequest.response;
       if (arrayBuffer) {
+        let contentType = this.getResponseHeader('content-type');
         // ArrayBuffer to base64 encoded image
         let u8 = new Uint8Array(arrayBuffer);
         /**
@@ -828,7 +839,8 @@ function sendPopupImageWithSpecialHeader(imageURL, thumbnailImage = null) {
         let b64encoded = btoa(new Uint8Array(u8).reduce(function (data, byte) {
           return data + String.fromCharCode(byte);
         }, ''));
-        thumbnailImage.src = `data:image/png;base64,${b64encoded}`;
+
+        thumbnailImage.src = `data:${contentType};base64,${b64encoded}`;
       }
     };
     thumbnailImageRequest.send(null);
@@ -882,7 +894,6 @@ function hoverMouseMovementCounter() {
 function resetPrevIMG() {
   let requestId;
   for (requestId in previousHoveredImages) {
-
     // Cloudflare cached image
     if (previousHoveredImages[requestId] && imageRequests[requestId].cfCached) {
       previousHoveredImages[requestId].attr("cf-debugger-style", 'cache');
@@ -895,7 +906,6 @@ function resetPrevIMG() {
       previousHoveredImages[requestId].attr('cf-debugger-style', 'external');
     }
   }
-
   previousHoveredImages = {};
 }
 
