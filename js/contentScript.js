@@ -1,7 +1,8 @@
 /**
- * Player 
+ * A copy of this content script not only gets injected to the main
+ * HTML (the loaded page) but also to each iframe HTML on the page.
  *
- * Handles the following tasks:
+ * Handle the following tasks:
  * - Receive every image requests from Network tab (devTools.js).
  * - Scrape every image DOM from the web context and match URLs.
  * - Identify hovered images and display popup on web pages.
@@ -12,17 +13,17 @@
 // All image requests from devtool (Network tab)
 var imageRequests = {};
 
-// All images that are hovered
+// All image DOMs that are underneath of cursor
 var childMatch = [];
 var iFrameImage = false;
 var iFrameImageFound = true;
 
-// Current mouse X&Y position
+// Current mouse X and Y position
 var mouseX = 0;
 var mouseY = 0;
 
-// Mouse event frequency scalses to the number of Iframe on a page.
-// These limit were set to optimize the mouse event performance.
+// Mouse event frequency scalses with the number of iframes on a page
+// These limit were set to optimize the mouse event performance
 var mouseMoveThreashold = 15;
 var mouseMoveIFrameTheshold = 2;
 var mouseMoveHoverTheshold = 1;
@@ -32,12 +33,14 @@ var mouseMovementCounterForIFrame = 0;
 var mouseMovementCounterForParent = 0;
 var mouseMovementCounterForHover = 0;
 
-// Upper limit for hovered images to optimize mouse event performance
+// Upper limit for the number of hovered images for the second
+// level DOM hierarchy
 var imageObjectCountLimit = 80;
 
+// Number of labels on the popup window.
 var numberOfLabelsInRow = 4;
 
-// Number of Pixels off from the popup location
+// Number of pixels off from the popup location
 var popupMouseOffset = 50;
 
 // Chrome tab ID
@@ -46,20 +49,14 @@ var tabId = null;
 // Image DOMs that are hovered
 var hoveredImages = [];
 
-// Number of images that are hovered
+// Number of image DOMs that are hovered
 var hoveredImageCount = 0;
 
-// All images were hovered previously
+// All image DOMs were hovered previously
 var previousHoveredImages = {};
 
 // A blocker for mousemove event
 var isReadyToCheck = true;
-
-// var popupResponseHeaders = [
-//   'status', 'cf-ray', 'cf-cache-status', 'content-type',
-//   'content-length', 'expires', 'age', 'cf-railgun',
-//   'cf-polished', 'cf-bgj', 'cf-resized'
-// ];
 
 // A list of popup response headers
 var popupResponseHeaders = [
@@ -67,13 +64,21 @@ var popupResponseHeaders = [
   'content-length'
 ];
 
+/* Another collection of popup response header list
+var popupResponseHeaders = [
+  'status', 'cf-ray', 'cf-cache-status', 'content-type',
+  'content-length', 'expires', 'age', 'cf-railgun',
+  'cf-polished', 'cf-bgj', 'cf-resized'
+];
+*/
+
 // A list of popup labels
 var cloudflareFeatureNames = [
   'Proxied', 'HIT', 'MISS', 'External',
   'Railgun', 'Minify', 'Polish', 'Resized'
 ];
 
-// Popup Dimension
+// Popup dimension: width and height
 var popupWidth = 370;
 var popupHeight = 550;
 
@@ -84,7 +89,7 @@ var popupHeight = 550;
 ///////////////////////////////////////////////////////////////////////////////
  
 /**
- * Check to see if ContentJS is injected
+ * Check to see if content script has already been injected
  */
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type !== 'content-script-status') return;
@@ -108,24 +113,27 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     let i, iframeBodyDOM, iframeDOMS;
 
     for (i = 0; i < documentDOMLength; i++) {
-      // Append customized popup DOM at the end of the main HTML DOM.
+      // Append one customized popup DOM at the end of the main HTML.
       if ((message.currentURL == documentDOM[i].URL) || hasPopUpDOM()) {
         if (!hasPopUpDOM()) {
           appendPopupDOMToBody();
           iframeDOMS = $(documentDOM[i].querySelectorAll('iframe'));
-
-          // Each ifram will have a SEPARATE copy of contentJS injected. In
-          // other words, the number of mouse events will also scale up.
-          // Therefore, the mouseMoveThreshold needs to be scale with the
-          // number of iframe on a page.
+          /**
+           * Each ifram will have a SEPARATE copy of contentJS injected. In
+           * other words, the number of mouse events will also scale up.
+           * Therefore, the mouseMoveThreshold needs to be scale with the
+           * number of iframe on a page.
+           */
           mouseMoveThreashold = mouseMoveThreashold * (1 + iframeDOMS.length);
         }
-        
-      // iframes need an indentifier class because the images DOMs cannot be
-      // accessed from the main HTML DOM. In order to access iframe image DOM 
-      // for the popup in main, the hovered iframe image information needs to 
-      // be send through background.
-      // contentscript (iframe) -> background (devTools) -> contentscript (main)
+      /**
+       * iframes need an indentifier class because the images DOMs in iframe
+       * cannot be accessed from the main HTML DOM. In order to access iframe
+       * image DOM for the popup in main, the hovered iframe image information
+       * needs to be send through background.
+       * Current flow:
+       * contentscript (iframe) -> background (devTools) -> contentscript (main)
+       */ 
       } else {
         iframeBodyDOM = $(documentDOM[i].querySelectorAll('body'));
         if (iframeBodyDOM.attr("class") && iframeBodyDOM.attr("class").match("cfdebugger-iframe-body")) {
@@ -143,16 +151,16 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 });
 
 /**
- * Construct and append the Popup DOM at the end of the main 'body'.
+ * Construct and append a popup DOM at the end of the main 'body'.
  * Note: Tried to append this popup as a HTML string but that broke some of
- * websites tested on.
+ * tested websites.
  */
 function appendPopupDOMToBody() {
   let textNode;
   let popupDiv = document.createElement('div');
   popupDiv.className = 'cf-debugger-popup';
 
-  // Empty for now
+  // Empty title for now
   let popupFeatureHeader = document.createElement('p');
   popupFeatureHeader.className = 'cf-debugger-popup-title';
   textNode = document.createTextNode('Cloudflare Features');
@@ -274,13 +282,13 @@ function hasPopUpDOM() {
 
 /**
  * Receive image requests from the background (devTools.js) and fetch all
- * image DOMs on the page. Then, it calls markAllImg function to find the
+ * image DOMs on the page. Then, it calls 'markEveryImage' function to find the
  * matching image DOMs from the received requests.
  */
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type !== 'content-script-paint') return;
 
-  // Ends if no new image request came.
+  // End if no new image request(s) came in.
   let imageRequestLength = message.requests.length;
   if (imageRequestLength < 1) return;
 
@@ -296,13 +304,13 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   // A place holder for every image DOM on a page.
   let paintTargetElements = [];
 
-  // Get all Image objects
+  // Get all 'image' tagged DOMs
   let htmlElementsImg = $("img:not([cfdebugger-request-id])");
   htmlElementsImg.each(function(index, value) {
     paintTargetElements.push($(this));
   });
 
-  // Get all Figure objects
+  // Get all 'figure' tagged DOMs
   let htmlElementsFigure = $("figure:not([cfdebugger-request-id])");
   htmlElementsFigure.each(function(index, value) {
     paintTargetElements.push($(this));
@@ -310,7 +318,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
   let temp;
 
-  // Get all background-image with 'div' tag.
+  // Get all background-image with 'div' tag
   $("div:not([cfdebugger-request-id])").filter(function() {
     temp = $(this).css("background-image");
     if (temp.includes("url") && !temp.includes("data:image")) {
@@ -318,7 +326,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     }
   });
 
-  // Get all background-image with 'span' tag.
+  // Get all background-image with 'span' tag
   $("span:not([cfdebugger-request-id])").filter(function() {
     temp = $(this).css("background-image");
     if (temp.includes("url") && !temp.includes("data:image")) {
@@ -326,7 +334,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     }
   });
 
-  // Get all background-image with 'a' tag.
+  // Get all background-image with 'a' tag
   $("a:not([cfdebugger-request-id])").filter(function() {
     temp = $(this).css("background-image");
     if (temp.includes("url") && !temp.includes("data:image")) {
@@ -342,7 +350,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     }
   });
 
-  markAllImg(paintTargetElements);
+  markEveryImage(paintTargetElements);
   sendResponse({ result: true });
 });
 
@@ -350,27 +358,30 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
  * Go through invidual image DOM and mark them 'cache', 'miss', 'external'
  * @param {*} targetImages - Every image DOM on the page.
  */
-function markAllImg(targetImages) {
+function markEveryImage(targetImages) {
+  // Make a copy of image DOMs
   let paintTargetElements = targetImages;
   let imgjQueryObj = null;
   let imgRequest = null;
   let paintTargetElementsLength = paintTargetElements.length;
   for (let i = 0; i < paintTargetElementsLength; i++) {
     imgjQueryObj = paintTargetElements[i];
-    // If a Img DOM already has 'cfdebugger-request-id' attribute, the
-    // image has been matched with a request previously.
+    /**
+     * If an image DOM already has 'cfdebugger-request-id' attribute, the
+     * image has been matched with a request previously.
+     */
     if (!imgjQueryObj[0].hasAttribute('cfdebugger-request-id')) {
-      //
+      // Get the matching image request details
       imgRequest = getImageRequest(imgjQueryObj);
       if (imgRequest) {
         imgjQueryObj.attr('cfdebugger-request-id', imgRequest.requestId);
-        // Cloudflare Cached image.
+        // Cloudflare Cached image
         if (imgRequest.cfCached) {
           imgjQueryObj.attr('cf-debugger-style', 'cache');
-        // Existing 'cf-ray' header, cache missed image request.
+        // Existing 'cf-ray' header, cache missed image request
         } else if (imgRequest.rayId != "") {
           imgjQueryObj.attr('cf-debugger-style', 'miss');
-        // External image request.
+        // External image request
         } else {
           imgjQueryObj.attr('cf-debugger-style', 'external');
         }
@@ -380,9 +391,9 @@ function markAllImg(targetImages) {
 }
 
 /**
- * Find the matching image request URL for a image DOM.
+ * Find the matching image request URL for an image DOM.
  * @param {*} imgjQueryObj - An image jQuery object
- * @returns {bool} - true if a matching request was found
+ * @returns {*} - Image request object
  */
 function getImageRequest(imgjQueryObj) {
   let sourceURL, requestObject, requestId;
@@ -398,7 +409,7 @@ function getImageRequest(imgjQueryObj) {
     sourceURL = parseBackgroundURL(imgjQueryObj.css('background-image'));
   }
 
-  // Loop through every received image request.
+  // Loop through every received image request
   for (requestId in imageRequests) {
     requestObject = imageRequests[requestId];
 
@@ -409,8 +420,8 @@ function getImageRequest(imgjQueryObj) {
 }
 
 /**
- * Parse CSS 'background-image' URL and return a full URL.
- * @param {*} backgroundImageURL - 'background-image' URL from jQuery
+ * Parse CSS 'background-image' URL and return as a full URL.
+ * @param {string} backgroundImageURL - 'background-image' currnet source
  * @returns {string} - The full URL of a 'background-image'
  */
 function parseBackgroundURL(backgroundImageURL) {
@@ -426,6 +437,7 @@ function parseBackgroundURL(backgroundImageURL) {
 
 /**
  * A listener for 'copy popup image URL' action from the background script.
+ * Hasn't implemented yet.
  */
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type !== 'copy-url') return;
@@ -446,14 +458,18 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Trigger whenever user cursor enters a different DOM object and it
- * checks the images underneath of the cursor point.
+ * Trigger whenever user cursor enters a different DOM object, and 
+ * then it checks the images underneath of the cursor point.
  */
 $("body").on('mouseenter', '*', function(event) {
   if (hoverMouseMovementCounter()) {
     hoveredImageChecker();
   }
 
+  /**
+   * Case when images in iframe were hovered previously, and
+   * now the cursor is back in the main HTML.
+   */
   if (iFrameImage && !checkIFrameImage()) {
     iFrameImage = false;
     resetPreviousImageMatch();
@@ -465,10 +481,12 @@ $("body").on('mouseenter', '*', function(event) {
  * 'cfdebugger-request-id' attribute.
  */
 function hoveredImageChecker() {
-  // ':hover' query select every DOM element that are underneath
-  // and return a list of DOMs from the BOTTOM layer to the SURFACE
-  // layer.
-  // For example, ['html', 'body', ..., 'div', 'p']
+  /**
+   * ':hover' query select every DOM element that are underneath of
+   * a cursor and return a list of DOMs from the BOTTOM layer to the
+   * SURFACE layer.
+   * For example, ['html', 'body', ..., 'div', 'p']
+   */
   let elementHoverOver = $(document.querySelectorAll(":hover"));
 
   if (elementHoverOver.length < 1) return;
@@ -477,9 +495,11 @@ function hoveredImageChecker() {
 
   // secondLevelParentNode will be used as a default stopping point
   let secondLevelParentNode = null;
-  // firstLevekParentNode will be used in case where:
-  // 1. Its parent doesn't exist.
-  // 2. Its parent node has TOO many images
+  /**
+   * firstLevekParentNode will be used in case where:
+   * 1. Its parent doesn't exist.
+   * 2. Its parent node has TOO many images
+   */
   let firstLevelParentNode = null;
 
   if (lastIndex > 0) firstLevelParentNode = $(elementHoverOver[lastIndex].parentNode);
@@ -496,7 +516,7 @@ function hoveredImageChecker() {
       "[cfdebugger-request-id]");
   }
 
-  // Fall back. Get all image DOMs in the surface layer.
+  // Fallback. Get all image DOMs in the first parent layer.
   if (firstLevelParentNode && childMatch.length > imageObjectCountLimit) {
     childMatch = firstLevelParentNode.find("[cfdebugger-request-id]").addBack(
       "[cfdebugger-request-id]");
@@ -506,7 +526,7 @@ function hoveredImageChecker() {
 }
 
 /**
- * Hide Popup if cursor isn't hovering an image.
+ * Hide popup if cursor isn't hovering an image.
  */
 function hidePopup() { $('.cf-debugger-popup').hide(); }
 
@@ -519,8 +539,8 @@ $("body").on('mousemove', '*', function(event) {
   mouseX = event.clientX;
   mouseY = event.clientY;
 
-  // Check hovered image DOMs when it's currently not processing
-  // previous 'moveChecker' nor hit the event threshold.
+  // Check hovered image DOMs if when it's currently not processing
+  // previous 'moveChecker' and hit the event threshold.
   if (mouseMovementCounter() && isReadyToCheck) {
     moveChecker(mouseX, mouseY);
     // iframe image needs to be handle differently
@@ -533,27 +553,26 @@ $("body").on('mousemove', '*', function(event) {
 });
 
 /**
- * Counter for mouseMovementCounterForParent variable to reduce
- * frequency of hovered images checking logic.
+ * Counter for mouseMovementCounterForParent variable to reduce frequency of
+ * hovered images checking logic.
  * 
- * @returns - true if the counter is great than or equal to its
- *            threshold
+ * @returns - true if the counter is great than or equal to its threshold
  */
 function mouseMovementCounter() {
   if (mouseMovementCounterForParent < mouseMoveThreashold) {
     mouseMovementCounterForParent += 1;
     return false;
   } else {
-    // Set back to 0
     mouseMovementCounterForParent = 0;
     return true;
   }
 }
 
 /**
- * Check if the current DOM belongs to iframe.
+ * Check if the current image DOM belongs to an iframe.
  * 
- * @returns {bool} - true if the current DOM belongs to iframe
+ * @returns {bool} - true if the current image DOM belongs
+ *                   to iframe
  */
 function checkIFrameImage() {
   if ($('body').attr('class') && $('body').attr('class').match(
@@ -563,7 +582,7 @@ function checkIFrameImage() {
 }
 
 /**
- * Send a image 'reset' message to devTool.
+ * Send an image 'reset' message to devTool.
  */
 function resetPreviousImageMatch() {
   chrome.runtime.sendMessage({
@@ -573,18 +592,18 @@ function resetPreviousImageMatch() {
 }
 
 /**
- * Iterate through hovered image DOMs from 'hoveredImageChecker'
- * and check if a cursor is within image DOM dimension.
+ * Iterate through hovered image DOMs from 'hoveredImageChecker' and check if
+ * a cursor is within the image DOM dimension.
  *
  * @param {*} mX - current cursor X position
  * @param {*} mY - current cursor Y position
  */
 function moveChecker(mX, mY) {
 
-  // Stop mousemove events from overloading 
+  // Stop mousemove events from overloading the process 
   isReadyToCheck = false;
 
-  // Get object right underneath of cursor.
+  // Get object right underneath of cursor
   let elementMouseIsOver = $(document.elementFromPoint(mX, mY));
   let found = false;
   hoveredImages = [];
@@ -597,7 +616,7 @@ function moveChecker(mX, mY) {
     hoveredImages.push(elementMouseIsOver);
   }
 
-  // Iterate hovered image DOMs from 'hoveredImageChecker'
+  // Iterate through hovered image DOMs from 'hoveredImageChecker'
   if (childMatch.length > 0) {
     childMatch.each(function() {
       // Get image DOM coordinates and width & height
@@ -627,15 +646,15 @@ function moveChecker(mX, mY) {
     hidePopup();
   }
 
-  // Allow mouse event again
+  // Accept 'mousemove' event again
   isReadyToCheck = true;
 }
 
 /**
- * Handles 
+ * Update popup window details and hovered image filter.
  * 
- * @param {*} imageDOMs  - 
- * @param {*} imageCount - 
+ * @param {*} imageDOMs  - A list of image DOMs right underneath of cursor
+ * @param {*} imageCount - Total number of images right underneath of cursor
  */
 function handleHoveredImages(imageDOMs, imageCount) {
   resetPrevIMG();
@@ -643,15 +662,15 @@ function handleHoveredImages(imageDOMs, imageCount) {
   let imageDOMsLength = imageDOMs.length;
   // console.log(`length: ${imageDOMsLength}`);
 
-  // Loop through each hovered image DOM and display popup
-  // Handle differently if the image belongs to an iframe
+  // Loop through each hovered image DOM and display popup and handle 
+  // differently if the image belongs to an iframe
   for (let i = 0; i < imageDOMsLength; i++) {
     imageDOM = imageDOMs[i];
     style = imageDOM.attr("cf-debugger-style");
 
     // Check if the image DOM has already been hovered previously
     if (!style.match('hover')) imageDOM.attr("cf-debugger-style", 'hover');
-    // Get image Request object with image DOM
+    // Get image request object with image DOM
     imageRequest = getImageRequest(imageDOM);
     if (imageRequest) previousHoveredImages[imageRequest.requestId] = imageDOM;
     // If the current image DOM belongs to an iframe, it needs to send to
@@ -670,11 +689,10 @@ function handleHoveredImages(imageDOMs, imageCount) {
 }
 
 /**
- * Counter for 'mouseMovementCounterForIFrame' variable to reduce
- * frequency of hovered images checking logic.
+ * Counter for 'mouseMovementCounterForIFrame' variable to reduce frequency
+ * of hovered images checking logic.
  * 
- * @returns - true if the counter is great than or equal to its
- *            threshold
+ * @returns - true if the counter is great than or equal to its threshold
  */
 function iFrameMouseMovementCounter() {
   if (mouseMovementCounterForIFrame < mouseMoveIFrameTheshold) {
@@ -688,13 +706,17 @@ function iFrameMouseMovementCounter() {
 }
 
 /**
- * Update popup DOM correspond with the image request information.
+ * Update popup DOM correspond to the hovered image request information.
  * 
  * @param {*} imageRequest - Hovered image request object with all details
  * @param {*} count        - Number of images underneath cursor
  */
 function updatePopupDOM(imageRequest, count = 0) {
   if (imageRequest) {
+    // To avoid unnecessary request count for popup image, send the image URL
+    // to background to omit from any incoming request.
+    
+
     let popupLabels = document.getElementsByClassName('cf-debugger-popup-label');
     let i;
 
@@ -728,20 +750,21 @@ function updatePopupDOM(imageRequest, count = 0) {
       }
     }
 
-    let popupURL = document.getElementsByClassName(
-      'cf-debugger-popup-url-holder')[0];
+    let popupURL = document.getElementsByClassName('cf-debugger-popup-url-holder')[0];
     popupURL.textContent = imageRequest.url;
 
-    let thumbnailImage = document.getElementsByClassName(
-      'cf-debugger-popup-thumbnail')[0];
-    thumbnailImage.src = imageRequest.url;
+    let thumbnailImage = document.getElementsByClassName('cf-debugger-popup-thumbnail')[0];
+    // thumbnailImage.src = imageRequest.url;
 
-    let popupImageCount = document.getElementsByClassName(
-      'cf-debugger-popup-image-counter')[0];
+    // Sending a popup image request with a special header so that it won't counted as a new
+    // request in Panel.
+    let src = imageRequest.url;
+    sendPopupImageWithSpecialHeader(src, thumbnailImage);
+
+    let popupImageCount = document.getElementsByClassName('cf-debugger-popup-image-counter')[0];
     popupImageCount.textContent = `DOM has ${count} layers of image`;
 
-    let popupTitle = document.getElementsByClassName(
-      'cf-debugger-popup-headers')[0];
+    let popupTitle = document.getElementsByClassName('cf-debugger-popup-headers')[0];
     popupURL.textContent = imageRequest.url;
 
     while (popupTitle.hasChildNodes()) {
@@ -776,8 +799,45 @@ function updatePopupDOM(imageRequest, count = 0) {
 }
 
 /**
+ * Send a popup image request with a special header which can be use as
+ * an identifier for our listener.
+ * Note: a bug fix for version 0.1.1
+ *
+ * @param {*} imageURL       - URL of thumbnail image
+ * @param {*} thumbnailImage - Thumbnail image holder DOM
+ */
+function sendPopupImageWithSpecialHeader(imageURL, thumbnailImage = null) {
+  if (thumbnailImage) {
+    let thumbnailImageRequest = new XMLHttpRequest();
+    thumbnailImageRequest.open("GET", imageURL, true);
+    // Special Popup image request header
+    thumbnailImageRequest.setRequestHeader("Dr-Flare-Popup", "1");
+    thumbnailImageRequest.responseType = "arraybuffer";
+    thumbnailImageRequest.onload = function (oEvent) {
+      // Response's body content in ArrayBuffer
+      let arrayBuffer = thumbnailImageRequest.response;
+      if (arrayBuffer) {
+        // ArrayBuffer to base64 encoded image
+        let u8 = new Uint8Array(arrayBuffer);
+        /**
+         * let b64encoded = btoa(String.fromCharCode.apply(null, u16)) was causing
+         * To resolve Uncaught RangeError: Maximum call stack size exceeded
+         * https://stackoverflow.com/questions/49123222/converting-array-buffer-
+         * to-string-maximum-call-stack-size-exceeded/49124600
+         */
+        let b64encoded = btoa(new Uint8Array(u8).reduce(function (data, byte) {
+          return data + String.fromCharCode(byte);
+        }, ''));
+        thumbnailImage.src = `data:image/png;base64,${b64encoded}`;
+      }
+    };
+    thumbnailImageRequest.send(null);
+  }
+}
+
+/**
  * Depending on cursor's position, popup displays on a different location.
- * By default, the popup displays top right corner of the page.
+ * By default, the popup window displays on the top right corner of the page.
  * 
  * @param {*} imageDOM - Hovered image DOM
  */
@@ -785,10 +845,11 @@ function setPopupPosition(imageDOM = null) {
   let popupDOM = $('.cf-debugger-popup');
   let popupDOMDimension = popupDOM[0].getBoundingClientRect();
   let windowWidth = $(window).width();
+  // On the very first, popup window width is set to 0
   let width = (popupDOMDimension.width == 0) ? popupWidth : popupDOMDimension.width;
   
   // Popup stays at the right corner unless cursor X position is closer to
-  // default popup position. Y-axis is ignored.
+  // default popup position. Y-axis isn't important.
   if ((windowWidth - (width + popupMouseOffset)) < mouseX) {
     popupDOM[0].style.removeProperty('right');
     popupDOM[0].style.left = 0;
@@ -799,11 +860,10 @@ function setPopupPosition(imageDOM = null) {
 }
 
 /**
- * Counter for 'mouseMovementCounterForHover' variable to reduce
- * frequency of hovered images checking logic.
+ * Counter for 'mouseMovementCounterForHover' variable to reduce frequency of
+ * hovered images checking logic.
  * 
- * @returns - true if the counter is great than or equal to its
- *            threshold
+ * @returns - true if the counter is great than or equal to its threshold
  */
 function hoverMouseMovementCounter() {
   if (mouseMovementCounterForHover < mouseMoveHoverTheshold) {
@@ -823,14 +883,14 @@ function resetPrevIMG() {
   let requestId;
   for (requestId in previousHoveredImages) {
 
-    // Cloudflare Cached image
+    // Cloudflare cached image
     if (previousHoveredImages[requestId] && imageRequests[requestId].cfCached) {
       previousHoveredImages[requestId].attr("cf-debugger-style", 'cache');
     // Cloudflare cache missed image
     } else if (previousHoveredImages[requestId] && imageRequests[requestId].rayId !=
       "") {
       previousHoveredImages[requestId].attr("cf-debugger-style", 'miss');
-    // External image
+    // External (or third party) image
     } else {
       previousHoveredImages[requestId].attr('cf-debugger-style', 'external');
     }
@@ -845,9 +905,9 @@ function resetPrevIMG() {
 function showPopup() { $('.cf-debugger-popup').fadeIn('fast'); }
 
 /**
- * For image in iframe, hovered image request needs to be sent back to
- * the background (devtool.js) and forwarded to the main contentJS where
- * the popup DOM can be accessed.
+ * For images in iframe, hovered image request needs to be sent back to the
+ * background (devtool.js) and then forwarded it to the main contentJS where
+ * the popup window can be accessed.
  * 
  * @param {*} imageRequest - Hovered image request object
  */
@@ -863,7 +923,7 @@ function sendImageToDevTools(imageRequest) {
   }
 }
 
-// Handles when iframe image request object was hovered.
+// Update the popup window when iframe image was hovered.
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('found-image-response') && tabId == message.tabId) {
     if (!checkIFrameImage()) {
@@ -880,6 +940,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 // Reset iframe image back to its original color filtering.
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type.match('remove-grey-scale') && tabId == message.tabId) {
+    // Only when the current content script is on iframe
     if (checkIFrameImage()) {
       resetPrevIMG();
     }

@@ -1,3 +1,7 @@
+/**
+ * Constant and global variables for devTools.js file
+ */
+
 // Panel Creation
 const PANEL_NAME = "Dr.FLARE";
 const PANEL_LOGO = "img/cloudflare-logo.png";
@@ -5,6 +9,9 @@ const PANEL_HTML = "panel.html";
 
 // Current Tab ID
 const tabId = chrome.devtools.inspectedWindow.tabId;
+
+// Special popup image request header
+const POPUP_IMAGE_REQUEST_HEADER = 'dr-flare-popup';
 
 // Panel Open Status
 var panelReady = false;
@@ -38,3 +45,7 @@ const REFRESH_RATE = 300;
 // Request ID Start Point
 const REQUEST_ID_START = 1000;
 var requestId = REQUEST_ID_START;
+
+// Hovered image URL
+var hoveredImageURL = "";
+var hoveredImageRedirectURL = "";

@@ -1,3 +1,8 @@
+/**
+ * NetworkRequest class is used to parse request details from the Devtool
+ * Network tab request.
+ */
+
 // Types of headers
 const CF_CACHE_STATUS_HEADER = "cf-cache-status";
 const CF_POLISH_HEADER = "cf-polished";

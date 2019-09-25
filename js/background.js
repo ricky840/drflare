@@ -90,7 +90,3 @@ chrome.runtime.onStartup.addListener(function() {
 window.onload = function() {
   initStorage(); 
 };
-
-
-
-
