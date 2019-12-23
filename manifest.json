@@ -11,6 +11,16 @@
       "js/class/NetworkRequest.js"
     ]
   },
+  "commands": {
+    "toggle-copy-popup-url": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+C",
+        "windows": "Ctrl+Shift+C",
+        "mac": "Alt+Shift+C"
+      },
+      "description": "Toggle Popup URL copy"
+    }
+  },
   "devtools_page": "devtools.html",
   "browser_action": {
     "default_popup": "popup.html",
@@ -21,11 +31,5 @@
     "48": "img/circle-new-logo.png",
     "128": "img/circle-new-logo.png"
   },
-  "permissions": [
-    "activeTab",
-    "storage",
-    "tabs",
-    "webNavigation",
-    "<all_urls>"
-  ]
+  "permissions": ["activeTab", "storage", "tabs", "webNavigation", "<all_urls>"]
 }
