@@ -67,13 +67,6 @@
   display: none;
 }
 
-/* .cf-debugger-popup-title {
-  color: #ff851b !important;
-  font-size: 13px !important;
-  margin-top: 10px !important;
-  margin-bottom: 0px !important;
-} */
-
 .cf-debugger-popup-title {
   font-family: "Lato", "Helvetica Neue", Arial, Helvetica, sans-serif !important;
   color: #ff851b !important;
@@ -192,36 +185,50 @@
 
 .cf-debugger-copy-url-notification {
   position: absolute;
-  z-index: 101;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: #fde073;
+  top: 0px;
+  width: 100%;
+  height: 0;
+  box-sizing: border-box;
+  color: white;
   text-align: center;
-  line-height: 2.5;
+  background: rgba(0, 0, 0, 0.6);
   overflow: hidden;
-  -webkit-box-shadow: 0 0 5px black;
-  -moz-box-shadow: 0 0 5px black;
-  box-shadow: 0 0 5px black;
+  box-sizing: border-box;
+  transition: height 0.2s;
+
+  /* position: absolute;
+  width: 100%;
+  height: 0;
+  box-sizing: border-box;
+  color: orange;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  box-sizing: border-box;
+  transition: height 0.2s;
+  border-radius: 0.28571429rem !important;
+  top: 10px !important;
+  right: 5px !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+  padding-top: 5px !important;
+  padding-bottom: 10px !important; */
 }
 
-@-webkit-keyframes slideDown {
-  0%,
-  100% {
-    -webkit-transform: translateY(-50px);
-  }
-  10%,
-  90% {
-    -webkit-transform: translateY(0px);
-  }
+.cf-debugger-copy-url-notification.active {
+  height: 25px;
 }
-@-moz-keyframes slideDown {
-  0%,
-  100% {
-    -moz-transform: translateY(-50px);
-  }
-  10%,
-  90% {
-    -moz-transform: translateY(0px);
-  }
+
+.cf-debugger-popup-command {
+  font-family: "Lato", "Helvetica Neue", Arial, Helvetica, sans-serif !important;
+  color: #ff851b !important;
+  font-size: 13px !important;
+  margin-top: 10px !important;
+  margin-bottom: 0px !important;
+  display: block !important;
+  margin-block-start: 0.1em !important;
+  margin-block-end: 0em !important;
+  margin-inline-start: 0px !important;
+  margin-inline-end: 0px !important;
+  font-weight: bold !important;
 }

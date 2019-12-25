@@ -234,6 +234,12 @@ function appendPopupDOMToBody() {
   popupURLHolder.appendChild(textNode);
   popupDiv.appendChild(popupURLHolder);
 
+  let popupURLCopyCommand = document.createElement("h4");
+  popupURLCopyCommand.className = "cf-debugger-popup-command";
+  textNode = document.createTextNode("Copy URL Key: Alt (Option) + Shift + C");
+  popupURLCopyCommand.appendChild(textNode);
+  popupDiv.appendChild(popupURLCopyCommand);
+
   // cf-debugger-popup-url-text-area
   let popupURLTextAra = document.createElement("textarea");
   popupURLTextAra.className = "cf-debugger-popup-url-text-area";
@@ -293,9 +299,10 @@ function appendPopupDOMToBody() {
   popupDiv.appendChild(popupResponseHolder);
 
   let notificationDiv = createNotificationDOM();
+  popupDiv.appendChild(notificationDiv);
 
   document.body.appendChild(popupDiv);
-  document.body.appendChild(notificationDiv);
+  // document.body.appendChild(notificationDiv);
 }
 
 /**
@@ -310,7 +317,7 @@ function createNotificationDOM() {
 
   let notificationText = document.createElement("p");
   notificationText.className = "cf-debugger-copy-url-notification-text";
-  textNode = document.createTextNode("Copied the image URL!");
+  textNode = document.createTextNode("Copied the popup image URL.");
   notificationText.appendChild(textNode);
   notificationDiv.appendChild(notificationText);
 
@@ -485,6 +492,7 @@ function parseBackgroundURL(backgroundImageURL) {
 /**
  * A listener for 'copy popup image URL' action from the background script.
  * Hasn't implemented yet.
+ * Resource: https://css-tricks.com/pop-from-top-notification/
  */
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   // key Alt + Shift + C
@@ -492,9 +500,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
   // Ignore iframe since only the main contains the popup DOM.
   // TODO:
-  // 1. Display "Copied URL message"
-  // 2. Update CSS to display popup constistantly.
-  // 3. Test copy is not allowed page.
+  // 1. Update UI CSS.
   if (checkIFrameImage()) return;
   copyPopupImageURL();
 });
@@ -508,17 +514,20 @@ function copyPopupImageURL() {
   if (popupURLTextArea) {
     popupURLTextArea.select();
     document.execCommand("copy");
-    // console.log("URL");
-    // console.log(popupURLTextArea.innerHTML);
 
     let notificationText = document.getElementsByClassName(
       "cf-debugger-copy-url-notification"
     )[0];
-    notificationText.innerHTML = `Copied URL: ${popupURLTextArea.innerHTML}`;
+    notificationText.innerHTML = "Copied the popup image URL.";
+    let notificationTextDOM = $(".cf-debugger-copy-url-notification");
+    notificationTextDOM.addClass("active");
+
+    setTimeout(function() {
+      notificationTextDOM.removeClass("active");
+    }, 1250);
   } else {
-    // console.log("popupURLTextArea undefined");
-    // console.log(popupURLTextArea);
-    notificationText.innerHTML = "Copied URL: Undefined";
+    // Debugging Purposes
+    // notificationText.innerHTML = "Copied URL: Undefined";
   }
 }
 
@@ -721,14 +730,6 @@ function moveChecker(mX, mY) {
   }
 
   // // Apply the hovered images to the popup DOM
-  // handleHoveredImages(hoveredImages, hoveredImageCount);
-
-  // // If no matching image was found, reset the previous hovered image
-  // // and hide popup
-  // if (!found) {
-  //   resetPrevIMG();
-  //   hidePopup();
-  // }
   resetPrevIMG();
   if (found) {
     handleHoveredImages(hoveredImages, hoveredImageCount);
