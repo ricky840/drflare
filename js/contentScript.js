@@ -492,7 +492,7 @@ function parseBackgroundURL(backgroundImageURL) {
 /**
  * A listener for 'copy popup image URL' action from the background script.
  * Hasn't implemented yet.
- * Resource: https://css-tricks.com/pop-from-top-notification/
+ * Resource: https://speckyboy.com/css-js-notification-alert-code/
  */
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   // key Alt + Shift + C
@@ -500,7 +500,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
   // Ignore iframe since only the main contains the popup DOM.
   // TODO:
-  // 1. Update UI CSS.
+  // 1. JS logic handle when copy is not allowed
+  // 2. CSS display correct color when Copy is not allowed (Green vs. Red)
   if (checkIFrameImage()) return;
   copyPopupImageURL();
 });
@@ -513,11 +514,14 @@ function copyPopupImageURL() {
   // Testing popup URL copy tool
   if (popupURLTextArea) {
     popupURLTextArea.select();
-    document.execCommand("copy");
 
+    let isCopyAllowed = document.execCommand("copy");
+    console.log(`Is 'copy' command allowed? ${isCopyAllowed}`);
     let notificationText = document.getElementsByClassName(
       "cf-debugger-copy-url-notification"
     )[0];
+
+    document.execCommand("copy");
     notificationText.innerHTML = "Copied the popup image URL.";
     let notificationTextDOM = $(".cf-debugger-copy-url-notification");
     notificationTextDOM.addClass("active");

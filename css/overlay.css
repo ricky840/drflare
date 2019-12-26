@@ -184,45 +184,30 @@
 }
 
 .cf-debugger-copy-url-notification {
-  position: absolute;
-  top: 0px;
-  width: 100%;
+  position: absolute !important;
+  top: 0px !important;
+  width: 100% !important;
   height: 0;
-  box-sizing: border-box;
-  color: white;
-  text-align: center;
-  background: rgba(0, 0, 0, 0.6);
-  overflow: hidden;
-  box-sizing: border-box;
-  transition: height 0.2s;
-
-  /* position: absolute;
-  width: 100%;
-  height: 0;
-  box-sizing: border-box;
-  color: orange;
-  text-align: center;
-  background: rgba(0, 0, 0, 0.6);
-  overflow: hidden;
-  box-sizing: border-box;
-  transition: height 0.2s;
+  box-sizing: border-box !important;
+  color: white !important;
+  text-align: center !important;
   border-radius: 0.28571429rem !important;
-  top: 10px !important;
-  right: 5px !important;
-  padding-left: 10px !important;
-  padding-right: 10px !important;
-  padding-top: 5px !important;
-  padding-bottom: 10px !important; */
+  right: 0px !important;
+  padding-top: 3px !important;
+  background: #ff851b !important;
+  overflow: hidden;
+  box-sizing: border-box !important;
+  transition: height 0.2s !important;
 }
 
 .cf-debugger-copy-url-notification.active {
-  height: 25px;
+  height: 24px;
 }
 
 .cf-debugger-popup-command {
   font-family: "Lato", "Helvetica Neue", Arial, Helvetica, sans-serif !important;
   color: #ff851b !important;
-  font-size: 13px !important;
+  font-size: 14px !important;
   margin-top: 10px !important;
   margin-bottom: 0px !important;
   display: block !important;
