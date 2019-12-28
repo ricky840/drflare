@@ -1,6 +1,6 @@
 {
   "name": "Dr.FLARE",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Get insights of your Cloudflared website. Provides an easy way to see benefits with Cloudflare.",
   "manifest_version": 2,
   "background": {
@@ -31,5 +31,13 @@
     "48": "img/circle-new-logo.png",
     "128": "img/circle-new-logo.png"
   },
-  "permissions": ["activeTab", "storage", "tabs", "webNavigation", "<all_urls>"]
+  "permissions": [
+    "activeTab",
+    "clipboardRead",
+    "clipboardWrite",
+    "storage",
+    "tabs",
+    "webNavigation",
+    "<all_urls>"
+  ]
 }

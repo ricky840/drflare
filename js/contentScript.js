@@ -66,7 +66,7 @@ var isReadyToCheck = true;
 // ];
 
 // Another collection of popup response header list
-var popupResponseHeaders = [
+const popupResponseHeaders = [
   "cf-ray",
   "content-type",
   "content-length",
@@ -80,7 +80,7 @@ var popupResponseHeaders = [
 ];
 
 // A list of popup labels
-var cloudflareFeatureNames = [
+const cloudflareFeatureNames = [
   "Proxied",
   "HIT",
   "MISS",
@@ -90,6 +90,8 @@ var cloudflareFeatureNames = [
   "Polish",
   "Resized"
 ];
+
+const CF_DEBUGGER_URL_TEXT_AREA = "cf-debugger-popup-url-text-area";
 
 // Popup dimension: width and height
 var popupWidth = 370;
@@ -240,13 +242,6 @@ function appendPopupDOMToBody() {
   popupURLCopyCommand.appendChild(textNode);
   popupDiv.appendChild(popupURLCopyCommand);
 
-  // cf-debugger-popup-url-text-area
-  let popupURLTextAra = document.createElement("textarea");
-  popupURLTextAra.className = "cf-debugger-popup-url-text-area";
-  textNode = document.createTextNode("");
-  popupURLTextAra.appendChild(textNode);
-  popupDiv.appendChild(popupURLTextAra);
-
   // Image place holder.
   let popupImageThumbnailHeader = document.createElement("h4");
   popupImageThumbnailHeader.className = "cf-debugger-popup-title";
@@ -300,6 +295,14 @@ function appendPopupDOMToBody() {
 
   let notificationDiv = createNotificationDOM();
   popupDiv.appendChild(notificationDiv);
+
+  // cf-debugger-popup-url-text-area
+  let popupURLTextArea = document.createElement("textarea");
+  popupURLTextArea.className = "cf-debugger-popup-url-text-area";
+  // popupURLTextArea.attributes = "contenteditable='true'";
+  textNode = document.createTextNode("");
+  popupURLTextArea.appendChild(textNode);
+  popupDiv.appendChild(popupURLTextArea);
 
   document.body.appendChild(popupDiv);
   // document.body.appendChild(notificationDiv);
@@ -496,38 +499,82 @@ function parseBackgroundURL(backgroundImageURL) {
  */
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   // key Alt + Shift + C
-  if (message.type !== "copy-popup-url") return;
-
+  if (message.type !== "copy-popup-url" || message.tabId != tabId) return;
   // Ignore iframe since only the main contains the popup DOM.
-  // TODO:
-  // 1. JS logic handle when copy is not allowed
-  // 2. CSS display correct color when Copy is not allowed (Green vs. Red)
   if (checkIFrameImage()) return;
-  copyPopupImageURL();
+  // copyPopupImageURL();
+  document.execCommand("copy");
 });
 
-function copyPopupImageURL() {
+const bodyDOM = document.querySelector("body");
+
+// Copy event listener on body to handle Image URL copy action
+bodyDOM.addEventListener("copy", event => {
+  let eventCopy = event;
+  // event.returnValue: True /  False depending on the
+  // if (event && event.returnValue) {
+  if (eventCopy && eventCopy.target) {
+    let targetDOM = eventCopy.target;
+    if (targetDOM) {
+      // Copy command is allowed.
+
+      /*
+      Not sure why the returnValue is always True even though
+      the event object in console displays "returnValue: False"
+      Currently, haven't implemented a way to detect when coping URL
+      is successful or not.
+      */
+
+      // eventCopy.returnValue is always True at the moment.
+      if (eventCopy.returnValue) {
+        // Testing popup URL copy tool
+        updateCopyPopupImageURL(true);
+      } else {
+        // Handle deactivated website
+        updateCopyPopupImageURL(false);
+      }
+    } else {
+      // Copy event on other tab
+    }
+  } else {
+    console.log("Copy action not allowed on this website.");
+  }
+});
+
+/**
+ * Updating the notification message depending on the "copy" action.
+ * @param {bool} success - "copy" action went successfully.
+ */
+function updateCopyPopupImageURL(success) {
   let popupURLTextArea = document.getElementsByClassName(
-    "cf-debugger-popup-url-text-area"
+    CF_DEBUGGER_URL_TEXT_AREA
   )[0];
-
-  // Testing popup URL copy tool
   if (popupURLTextArea) {
+    // No return value for select() Method.
     popupURLTextArea.select();
-
-    let isCopyAllowed = document.execCommand("copy");
-    console.log(`Is 'copy' command allowed? ${isCopyAllowed}`);
     let notificationText = document.getElementsByClassName(
       "cf-debugger-copy-url-notification"
     )[0];
-
-    document.execCommand("copy");
-    notificationText.innerHTML = "Copied the popup image URL.";
     let notificationTextDOM = $(".cf-debugger-copy-url-notification");
-    notificationTextDOM.addClass("active");
 
+    // URL copy successful ? Yes : No
+    if (success) {
+      notificationText.innerHTML = "Copied the popup image URL.";
+      notificationTextDOM.addClass("success");
+    } else {
+      notificationText.innerHTML = "Copy function is disabled :(";
+      notificationTextDOM.addClass("fail");
+    }
+
+    notificationTextDOM.addClass("active");
+    // Disply the message for 1.25 second.
     setTimeout(function() {
       notificationTextDOM.removeClass("active");
+      if (success) {
+        notificationTextDOM.removeClass("success");
+      } else {
+        notificationTextDOM.removeClass("fail");
+      }
     }, 1250);
   } else {
     // Debugging Purposes
