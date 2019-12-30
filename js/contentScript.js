@@ -60,24 +60,38 @@ var previousHoveredImageURL = "";
 var isReadyToCheck = true;
 
 // A list of popup response headers
-var popupResponseHeaders = [
-  'cf-ray', 'content-type',
-  'content-length'
-];
+// var popupResponseHeaders = [
+//   'cf-ray', 'content-type',
+//   'content-length'
+// ];
 
-/* Another collection of popup response header list
-var popupResponseHeaders = [
-  'status', 'cf-ray', 'cf-cache-status', 'content-type',
-  'content-length', 'expires', 'age', 'cf-railgun',
-  'cf-polished', 'cf-bgj', 'cf-resized'
+// Another collection of popup response header list
+const popupResponseHeaders = [
+  "cf-ray",
+  "content-type",
+  "content-length",
+  "cf-cache-status",
+  "expires",
+  "age",
+  "cf-railgun",
+  "cf-polished",
+  "cf-bgj",
+  "cf-resized"
 ];
-*/
 
 // A list of popup labels
-var cloudflareFeatureNames = [
-  'Proxied', 'HIT', 'MISS', 'External',
-  'Railgun', 'Minify', 'Polish', 'Resized'
+const cloudflareFeatureNames = [
+  "Proxied",
+  "HIT",
+  "MISS",
+  "External",
+  "Railgun",
+  "Minify",
+  "Polish",
+  "Resized"
 ];
+
+const CF_DEBUGGER_URL_TEXT_AREA = "cf-debugger-popup-url-text-area";
 
 // Popup dimension: width and height
 var popupWidth = 370;
@@ -88,12 +102,12 @@ var popupHeight = 550;
 ///////////      Content JS injection & Image Request listener    /////////////
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
- 
+
 /**
  * Check to see if content script has already been injected
  */
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type !== 'content-script-status') return;
+  if (message.type !== "content-script-status") return;
   tabId = message.tabId;
 
   // Send response back to devTools.js (injectContentScript function)
@@ -105,20 +119,23 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
  * Check to see if the page is dom-ready
  */
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type !== 'content-script-dom-status') return;
+  if (message.type !== "content-script-dom-status") return;
   tabId = message.tabId;
 
-  if (document.readyState === "interactive" || document.readyState === "complete") {
+  if (
+    document.readyState === "interactive" ||
+    document.readyState === "complete"
+  ) {
     let documentDOM = $(document);
     let documentDOMLength = documentDOM.length;
     let i, iframeBodyDOM, iframeDOMS;
 
     for (i = 0; i < documentDOMLength; i++) {
       // Append one customized popup DOM at the end of the main HTML.
-      if ((message.currentURL == documentDOM[i].URL) || hasPopUpDOM()) {
+      if (message.currentURL == documentDOM[i].URL || hasPopUpDOM()) {
         if (!hasPopUpDOM()) {
           appendPopupDOMToBody();
-          iframeDOMS = $(documentDOM[i].querySelectorAll('iframe'));
+          iframeDOMS = $(documentDOM[i].querySelectorAll("iframe"));
           /**
            * Each ifram will have a SEPARATE copy of contentJS injected. In
            * other words, the number of mouse events will also scale up.
@@ -127,20 +144,23 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
            */
           mouseMoveThreashold = mouseMoveThreashold * (1 + iframeDOMS.length);
         }
-      /**
-       * iframes need an indentifier class because the images DOMs in iframe
-       * cannot be accessed from the main HTML DOM. In order to access iframe
-       * image DOM for the popup in main, the hovered iframe image information
-       * needs to be send through background.
-       * Current flow:
-       * contentscript (iframe) -> background (devTools) -> contentscript (main)
-       */ 
+        /**
+         * iframes need an indentifier class because the images DOMs in iframe
+         * cannot be accessed from the main HTML DOM. In order to access iframe
+         * image DOM for the popup in main, the hovered iframe image information
+         * needs to be send through background.
+         * Current flow:
+         * contentscript (iframe) -> background (devTools) -> contentscript (main)
+         */
       } else {
-        iframeBodyDOM = $(documentDOM[i].querySelectorAll('body'));
-        if (iframeBodyDOM.attr("class") && iframeBodyDOM.attr("class").match("cfdebugger-iframe-body")) {
+        iframeBodyDOM = $(documentDOM[i].querySelectorAll("body"));
+        if (
+          iframeBodyDOM.attr("class") &&
+          iframeBodyDOM.attr("class").match("cfdebugger-iframe-body")
+        ) {
           // Do nothing.
         } else {
-          iframeBodyDOM.addClass('cfdebugger-iframe-body');
+          iframeBodyDOM.addClass("cfdebugger-iframe-body");
         }
       }
     }
@@ -158,35 +178,35 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
  */
 function appendPopupDOMToBody() {
   let textNode;
-  let popupDiv = document.createElement('div');
-  popupDiv.className = 'cf-debugger-popup';
+  let popupDiv = document.createElement("div");
+  popupDiv.className = "cf-debugger-popup";
 
   // Empty title for now
-  let popupFeatureHeader = document.createElement('p');
-  popupFeatureHeader.className = 'cf-debugger-popup-title';
-  textNode = document.createTextNode('Cloudflare Features');
+  let popupFeatureHeader = document.createElement("p");
+  popupFeatureHeader.className = "cf-debugger-popup-title";
+  textNode = document.createTextNode("Cloudflare Features");
   popupFeatureHeader.appendChild(textNode);
   popupDiv.appendChild(popupFeatureHeader);
 
-  let popupDividerFirst = document.createElement('div');
-  popupDividerFirst.className = 'cf-debugger-popup-divider';
+  let popupDividerFirst = document.createElement("div");
+  popupDividerFirst.className = "cf-debugger-popup-divider";
   popupDiv.appendChild(popupDividerFirst);
 
-  let popupGrid = document.createElement('div');
-  popupGrid.className = 'cf-debugger-popup-grid';
+  let popupGrid = document.createElement("div");
+  popupGrid.className = "cf-debugger-popup-grid";
 
   // Add labels to popup
   let i, j, popupRow, popupColumn, popupLabel;
   for (i = 0; i < cloudflareFeatureNames.length; i = i + numberOfLabelsInRow) {
-    popupRow = document.createElement('div');
-    popupRow.className = 'cf-debugger-popup-row';
+    popupRow = document.createElement("div");
+    popupRow.className = "cf-debugger-popup-row";
 
     for (j = i; j < i + numberOfLabelsInRow; j++) {
-      popupColumn = document.createElement('div');
-      popupColumn.className = 'cf-debugger-popup-column';
+      popupColumn = document.createElement("div");
+      popupColumn.className = "cf-debugger-popup-column";
 
-      popupLabel = document.createElement('div');
-      popupLabel.className = 'cf-debugger-popup-label';
+      popupLabel = document.createElement("div");
+      popupLabel.className = "cf-debugger-popup-label";
       textNode = document.createTextNode(cloudflareFeatureNames[j]);
       popupLabel.appendChild(textNode);
 
@@ -200,73 +220,111 @@ function appendPopupDOMToBody() {
   popupDiv.appendChild(popupGrid);
 
   // URL section
-  let popupURLHeader = document.createElement('h4');
-  popupURLHeader.className = 'cf-debugger-popup-title';
-  textNode = document.createTextNode('Image URL');
+  let popupURLHeader = document.createElement("h4");
+  popupURLHeader.className = "cf-debugger-popup-title";
+  textNode = document.createTextNode("Image URL");
   popupURLHeader.appendChild(textNode);
   popupDiv.appendChild(popupURLHeader);
 
-  let popupDividerSecond = document.createElement('div');
-  popupDividerSecond.className = 'cf-debugger-popup-divider';
+  let popupDividerSecond = document.createElement("div");
+  popupDividerSecond.className = "cf-debugger-popup-divider";
   popupDiv.appendChild(popupDividerSecond);
 
-  let popupURLHolder = document.createElement('p');
-  popupURLHolder.className = 'cf-debugger-popup-url-holder';
-  textNode = document.createTextNode('');
+  let popupURLHolder = document.createElement("p");
+  popupURLHolder.className = "cf-debugger-popup-url-holder";
+  textNode = document.createTextNode("");
   popupURLHolder.appendChild(textNode);
   popupDiv.appendChild(popupURLHolder);
 
+  let popupURLCopyCommand = document.createElement("h4");
+  popupURLCopyCommand.className = "cf-debugger-popup-command";
+  textNode = document.createTextNode("Copy URL Key: Alt (Option) + Shift + C");
+  popupURLCopyCommand.appendChild(textNode);
+  popupDiv.appendChild(popupURLCopyCommand);
+
   // Image place holder.
-  let popupImageThumbnailHeader = document.createElement('h4');
-  popupImageThumbnailHeader.className = 'cf-debugger-popup-title';
-  textNode = document.createTextNode('Image');
+  let popupImageThumbnailHeader = document.createElement("h4");
+  popupImageThumbnailHeader.className = "cf-debugger-popup-title";
+  textNode = document.createTextNode("Image");
   popupImageThumbnailHeader.appendChild(textNode);
   popupDiv.appendChild(popupImageThumbnailHeader);
 
-  let popupDividerThumbnail = document.createElement('div');
-  popupDividerThumbnail.className = 'cf-debugger-popup-divider';
+  let popupDividerThumbnail = document.createElement("div");
+  popupDividerThumbnail.className = "cf-debugger-popup-divider";
   popupDiv.appendChild(popupDividerThumbnail);
 
-  let popupImageThumbnailContainer = document.createElement('div');
-  popupImageThumbnailContainer.className = 'cf-debugger-popup-thumbnail-container';
+  let popupImageThumbnailContainer = document.createElement("div");
+  popupImageThumbnailContainer.className =
+    "cf-debugger-popup-thumbnail-container";
 
-  let popupImageThumbnail = document.createElement('img');
-  popupImageThumbnail.className = 'cf-debugger-popup-thumbnail';
+  let popupImageThumbnail = document.createElement("img");
+  popupImageThumbnail.className = "cf-debugger-popup-thumbnail";
   popupImageThumbnailContainer.appendChild(popupImageThumbnail);
 
   popupDiv.appendChild(popupImageThumbnailContainer);
 
-  let popupImageCountHeader = document.createElement('h4');
-  popupImageCountHeader.className = 'cf-debugger-popup-title';
-  textNode = document.createTextNode('Layered Images');
+  let popupImageCountHeader = document.createElement("h4");
+  popupImageCountHeader.className = "cf-debugger-popup-title";
+  textNode = document.createTextNode("Layered Images");
   popupImageCountHeader.appendChild(textNode);
   popupDiv.appendChild(popupImageCountHeader);
 
-  let popupDividerForth = document.createElement('div');
-  popupDividerForth.className = 'cf-debugger-popup-divider';
+  let popupDividerForth = document.createElement("div");
+  popupDividerForth.className = "cf-debugger-popup-divider";
   popupDiv.appendChild(popupDividerForth);
 
   // Number of images underneath of cursor
-  let popupImageCount = document.createElement('p');
-  popupImageCount.className = 'cf-debugger-popup-image-counter';
+  let popupImageCount = document.createElement("p");
+  popupImageCount.className = "cf-debugger-popup-image-counter";
   popupDiv.appendChild(popupImageCount);
 
-  let popupReasponseHeader = document.createElement('h4');
-  popupReasponseHeader.className = 'cf-debugger-popup-title';
-  textNode = document.createTextNode('Response Headers');
+  let popupReasponseHeader = document.createElement("h4");
+  popupReasponseHeader.className = "cf-debugger-popup-title";
+  textNode = document.createTextNode("Response Headers");
   popupReasponseHeader.appendChild(textNode);
   popupDiv.appendChild(popupReasponseHeader);
 
-  let popupDividerThird = document.createElement('div');
-  popupDividerThird.className = 'cf-debugger-popup-divider';
+  let popupDividerThird = document.createElement("div");
+  popupDividerThird.className = "cf-debugger-popup-divider";
   popupDiv.appendChild(popupDividerThird);
 
   // Response headers
-  let popupResponseHolder = document.createElement('div');
-  popupResponseHolder.className = 'cf-debugger-popup-headers';
+  let popupResponseHolder = document.createElement("div");
+  popupResponseHolder.className = "cf-debugger-popup-headers";
   popupDiv.appendChild(popupResponseHolder);
 
+  let notificationDiv = createNotificationDOM();
+  popupDiv.appendChild(notificationDiv);
+
+  // cf-debugger-popup-url-text-area
+  let popupURLTextArea = document.createElement("textarea");
+  popupURLTextArea.className = "cf-debugger-popup-url-text-area";
+  // popupURLTextArea.attributes = "contenteditable='true'";
+  textNode = document.createTextNode("");
+  popupURLTextArea.appendChild(textNode);
+  popupDiv.appendChild(popupURLTextArea);
+
   document.body.appendChild(popupDiv);
+  // document.body.appendChild(notificationDiv);
+}
+
+/**
+ * Construct and append a popup DOM at the end of the main 'body'.
+ * Note: Tried to append this popup as a HTML string but that broke some of
+ * tested websites.
+ */
+function createNotificationDOM() {
+  let textNode;
+  let notificationDiv = document.createElement("div");
+  notificationDiv.className = "cf-debugger-copy-url-notification";
+
+  let notificationText = document.createElement("p");
+  notificationText.className = "cf-debugger-copy-url-notification-text";
+  textNode = document.createTextNode("Copied the popup image URL.");
+  notificationText.appendChild(textNode);
+  notificationDiv.appendChild(notificationText);
+
+  return notificationDiv;
 }
 
 /**
@@ -275,7 +333,7 @@ function appendPopupDOMToBody() {
  * @returns {bool} - true if the popup DOM has been appended to the main HTML
  */
 function hasPopUpDOM() {
-  let popUpDOM = $('.cf-debugger-popup');
+  let popUpDOM = $(".cf-debugger-popup");
   if (popUpDOM.length > 0) return true;
 
   return false;
@@ -287,7 +345,7 @@ function hasPopUpDOM() {
  * matching image DOMs from the received requests.
  */
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type !== 'content-script-paint') return;
+  if (message.type !== "content-script-paint") return;
 
   // End if no new image request(s) came in.
   let imageRequestLength = message.requests.length;
@@ -297,8 +355,6 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   for (let i = 0; i < imageRequestLength; i++) {
     if (!(message.requests[i].requestId in imageRequests)) {
       imageRequests[message.requests[i].requestId] = message.requests[i];
-      // console.dir(message.requests[i]);
-      // console.log(message.requests[i].url);
     }
   }
 
@@ -371,20 +427,20 @@ function markEveryImage(targetImages) {
      * If an image DOM already has 'cfdebugger-request-id' attribute, the
      * image has been matched with a request previously.
      */
-    if (!imgjQueryObj[0].hasAttribute('cfdebugger-request-id')) {
+    if (!imgjQueryObj[0].hasAttribute("cfdebugger-request-id")) {
       // Get the matching image request details
       imgRequest = getImageRequest(imgjQueryObj);
       if (imgRequest) {
-        imgjQueryObj.attr('cfdebugger-request-id', imgRequest.requestId);
+        imgjQueryObj.attr("cfdebugger-request-id", imgRequest.requestId);
         // Cloudflare Cached image
         if (imgRequest.cfCached) {
-          imgjQueryObj.attr('cf-debugger-style', 'cache');
-        // Existing 'cf-ray' header, cache missed image request
+          imgjQueryObj.attr("cf-debugger-style", "cache");
+          // Existing 'cf-ray' header, cache missed image request
         } else if (imgRequest.rayId != "") {
-          imgjQueryObj.attr('cf-debugger-style', 'miss');
-        // External image request
+          imgjQueryObj.attr("cf-debugger-style", "miss");
+          // External image request
         } else {
-          imgjQueryObj.attr('cf-debugger-style', 'external');
+          imgjQueryObj.attr("cf-debugger-style", "external");
         }
       }
     }
@@ -407,7 +463,7 @@ function getImageRequest(imgjQueryObj) {
     // 'background-image' CSS field.
 
     // Parse 'backgroud-image' URL.
-    sourceURL = parseBackgroundURL(imgjQueryObj.css('background-image'));
+    sourceURL = parseBackgroundURL(imgjQueryObj.css("background-image"));
   }
 
   // Loop through every received image request
@@ -439,18 +495,92 @@ function parseBackgroundURL(backgroundImageURL) {
 /**
  * A listener for 'copy popup image URL' action from the background script.
  * Hasn't implemented yet.
+ * Resource: https://speckyboy.com/css-js-notification-alert-code/
  */
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type !== 'copy-url') return;
-  let popupURLTextArea = document.getElementsByClassName(
-    'cf-debugger-popup-url-text-area')[0];
-
-  // Testing popup URL copy tool
-  /*
-    popupURLTextArea.select();
-    document.execCommand("copy");
-  */
+  // key Alt + Shift + C
+  if (message.type !== "copy-popup-url" || message.tabId != tabId) return;
+  // Ignore iframe since only the main contains the popup DOM.
+  if (checkIFrameImage()) return;
+  // copyPopupImageURL();
+  document.execCommand("copy");
 });
+
+const bodyDOM = document.querySelector("body");
+
+// Copy event listener on body to handle Image URL copy action
+bodyDOM.addEventListener("copy", event => {
+  let eventCopy = event;
+  // event.returnValue: True /  False depending on the
+  // if (event && event.returnValue) {
+  if (eventCopy && eventCopy.target) {
+    let targetDOM = eventCopy.target;
+    if (targetDOM) {
+      // Copy command is allowed.
+
+      /*
+      Not sure why the returnValue is always True even though
+      the event object in console displays "returnValue: False"
+      Currently, haven't implemented a way to detect when coping URL
+      is successful or not.
+      */
+
+      // eventCopy.returnValue is always True at the moment.
+      if (eventCopy.returnValue) {
+        // Testing popup URL copy tool
+        updateCopyPopupImageURL(true);
+      } else {
+        // Handle deactivated website
+        updateCopyPopupImageURL(false);
+      }
+    } else {
+      // Copy event on other tab
+    }
+  } else {
+    console.log("Copy action not allowed on this website.");
+  }
+});
+
+/**
+ * Updating the notification message depending on the "copy" action.
+ * @param {bool} success - "copy" action went successfully.
+ */
+function updateCopyPopupImageURL(success) {
+  let popupURLTextArea = document.getElementsByClassName(
+    CF_DEBUGGER_URL_TEXT_AREA
+  )[0];
+  if (popupURLTextArea) {
+    // No return value for select() Method.
+    popupURLTextArea.select();
+    let notificationText = document.getElementsByClassName(
+      "cf-debugger-copy-url-notification"
+    )[0];
+    let notificationTextDOM = $(".cf-debugger-copy-url-notification");
+
+    // URL copy successful ? Yes : No
+    if (success) {
+      notificationText.innerHTML = "Copied the popup image URL.";
+      notificationTextDOM.addClass("success");
+    } else {
+      notificationText.innerHTML = "Copy function is disabled :(";
+      notificationTextDOM.addClass("fail");
+    }
+
+    notificationTextDOM.addClass("active");
+    // Disply the message for 1.25 second.
+    setTimeout(function() {
+      notificationTextDOM.removeClass("active");
+      if (success) {
+        notificationTextDOM.removeClass("success");
+      } else {
+        notificationTextDOM.removeClass("fail");
+      }
+    }, 1250);
+  } else {
+    // Debugging Purposes
+    // notificationText.innerHTML = "Copied URL: Undefined";
+  }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -459,10 +589,10 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Trigger whenever user cursor enters a different DOM object, and 
+ * Trigger whenever user cursor enters a different DOM object, and
  * then it checks the images underneath of the cursor point.
  */
-$("body").on('mouseenter', '*', function(event) {
+$("body").on("mouseenter", "*", function(event) {
   if (hoverMouseMovementCounter()) {
     hoveredImageChecker();
   }
@@ -503,24 +633,30 @@ function hoveredImageChecker() {
    */
   let firstLevelParentNode = null;
 
-  if (lastIndex > 0) firstLevelParentNode = $(elementHoverOver[lastIndex].parentNode);
+  if (lastIndex > 0)
+    firstLevelParentNode = $(elementHoverOver[lastIndex].parentNode);
 
   // Check if the surface layer has a parent DOM
-  if (firstLevelParentNode[0].parentNode && firstLevelParentNode[0].parentNode !=
-    undefined && lastIndex > 0) {
+  if (
+    firstLevelParentNode[0].parentNode &&
+    firstLevelParentNode[0].parentNode != undefined &&
+    lastIndex > 0
+  ) {
     secondLevelParentNode = $(firstLevelParentNode[0].parentNode);
   }
 
   // When second layer isn't empty, get all image DOMs
   if (secondLevelParentNode) {
-    childMatch = secondLevelParentNode.find("[cfdebugger-request-id]").addBack(
-      "[cfdebugger-request-id]");
+    childMatch = secondLevelParentNode
+      .find("[cfdebugger-request-id]")
+      .addBack("[cfdebugger-request-id]");
   }
 
   // Fallback. Get all image DOMs in the first parent layer.
   if (firstLevelParentNode && childMatch.length > imageObjectCountLimit) {
-    childMatch = firstLevelParentNode.find("[cfdebugger-request-id]").addBack(
-      "[cfdebugger-request-id]");
+    childMatch = firstLevelParentNode
+      .find("[cfdebugger-request-id]")
+      .addBack("[cfdebugger-request-id]");
   }
 
   hidePopup();
@@ -529,13 +665,15 @@ function hoveredImageChecker() {
 /**
  * Hide popup if cursor isn't hovering an image.
  */
-function hidePopup() { $('.cf-debugger-popup').hide(); }
+function hidePopup() {
+  $(".cf-debugger-popup").hide();
+}
 
 /**
  * Trigger whenever user cursor moves.
  * Use all image DOMs found from 'mouseenter' event.
  */
-$("body").on('mousemove', '*', function(event) {
+$("body").on("mousemove", "*", function(event) {
   // Set current cursor X and Y coordinates.
   mouseX = event.clientX;
   mouseY = event.clientY;
@@ -556,7 +694,7 @@ $("body").on('mousemove', '*', function(event) {
 /**
  * Counter for mouseMovementCounterForParent variable to reduce frequency of
  * hovered images checking logic.
- * 
+ *
  * @returns - true if the counter is great than or equal to its threshold
  */
 function mouseMovementCounter() {
@@ -571,13 +709,18 @@ function mouseMovementCounter() {
 
 /**
  * Check if the current image DOM belongs to an iframe.
- * 
+ *
  * @returns {bool} - true if the current image DOM belongs
  *                   to iframe
  */
 function checkIFrameImage() {
-  if ($('body').attr('class') && $('body').attr('class').match(
-      'cfdebugger-iframe-body')) return true;
+  if (
+    $("body").attr("class") &&
+    $("body")
+      .attr("class")
+      .match("cfdebugger-iframe-body")
+  )
+    return true;
 
   return false;
 }
@@ -587,7 +730,7 @@ function checkIFrameImage() {
  */
 function resetPreviousImageMatch() {
   chrome.runtime.sendMessage({
-    type: 'reset-previous-image',
+    type: "reset-previous-image",
     tabId: tabId
   });
 }
@@ -600,8 +743,7 @@ function resetPreviousImageMatch() {
  * @param {*} mY - current cursor Y position
  */
 function moveChecker(mX, mY) {
-
-  // Stop mousemove events from overloading the process 
+  // Stop mousemove events from overloading the process
   isReadyToCheck = false;
 
   // Get object right underneath of cursor
@@ -624,7 +766,8 @@ function moveChecker(mX, mY) {
       let tempObj = $(this)[0].getBoundingClientRect();
 
       // Check if cursor is within the image DOM
-      if (mX >= tempObj.left &&
+      if (
+        mX >= tempObj.left &&
         mX <= tempObj.right &&
         mY >= tempObj.top &&
         mY <= tempObj.bottom
@@ -638,14 +781,6 @@ function moveChecker(mX, mY) {
   }
 
   // // Apply the hovered images to the popup DOM
-  // handleHoveredImages(hoveredImages, hoveredImageCount);
-
-  // // If no matching image was found, reset the previous hovered image
-  // // and hide popup
-  // if (!found) {
-  //   resetPrevIMG();
-  //   hidePopup();
-  // }
   resetPrevIMG();
   if (found) {
     handleHoveredImages(hoveredImages, hoveredImageCount);
@@ -661,7 +796,7 @@ function moveChecker(mX, mY) {
 
 /**
  * Update popup window details and hovered image filter.
- * 
+ *
  * @param {*} imageDOMs  - A list of image DOMs right underneath of cursor
  * @param {*} imageCount - Total number of images right underneath of cursor
  */
@@ -671,14 +806,14 @@ function handleHoveredImages(imageDOMs, imageCount) {
   let imageDOMsLength = imageDOMs.length;
   // console.log(`length: ${imageDOMsLength}`);
 
-  // Loop through each hovered image DOM and display popup and handle 
+  // Loop through each hovered image DOM and display popup and handle
   // differently if the image belongs to an iframe
   for (let i = 0; i < imageDOMsLength; i++) {
     imageDOM = imageDOMs[i];
     style = imageDOM.attr("cf-debugger-style");
 
     // Check if the image DOM has already been hovered previously
-    if (!style.match('hover')) imageDOM.attr("cf-debugger-style", 'hover');
+    if (!style.match("hover")) imageDOM.attr("cf-debugger-style", "hover");
     // Get image request object with image DOM
     imageRequest = getImageRequest(imageDOM);
     if (imageRequest) previousHoveredImages[imageRequest.requestId] = imageDOM;
@@ -700,7 +835,7 @@ function handleHoveredImages(imageDOMs, imageCount) {
 /**
  * Counter for 'mouseMovementCounterForIFrame' variable to reduce frequency
  * of hovered images checking logic.
- * 
+ *
  * @returns - true if the counter is great than or equal to its threshold
  */
 function iFrameMouseMovementCounter() {
@@ -716,7 +851,7 @@ function iFrameMouseMovementCounter() {
 
 /**
  * Update popup DOM correspond to the hovered image request information.
- * 
+ *
  * @param {*} imageRequest - Hovered image request object with all details
  * @param {*} count        - Number of images underneath cursor
  */
@@ -724,87 +859,161 @@ function updatePopupDOM(imageRequest, count = 0) {
   if (imageRequest) {
     // To avoid unnecessary request count for popup image, send the image URL
     // to background to omit from any incoming request.
-    
 
-    let popupLabels = document.getElementsByClassName('cf-debugger-popup-label');
-    let i;
+    let popupLabels = document.getElementsByClassName(
+      "cf-debugger-popup-label"
+    );
 
     // Update CF features that are enabled.
-    for (i = 0; i < popupLabels.length; i++) {
-      switch (popupLabels[i].innerHTML) {
-        case ('Proxied'):
-          popupLabels[i].setAttribute('cf-label', (imageRequest.rayId != "") ? "green" : "grey");
-          break;
-        case ('HIT'):
-          popupLabels[i].setAttribute('cf-label', (imageRequest.cfCached != "") ? "green" : "grey");
-          break;
-        case ('MISS'):
-          popupLabels[i].setAttribute('cf-label', (!imageRequest.cfCached && imageRequest.rayId != "") ? "green" : "grey");
-          break;
-        case ('External'):
-          popupLabels[i].setAttribute('cf-label', (imageRequest.rayId == "") ? "green" : "grey");
-          break;
-        case ('Railgun'):
-          popupLabels[i].setAttribute('cf-label', (imageRequest.railguned) ? "green" : "grey");
-          break;
-        case ('Polish'):
-          popupLabels[i].setAttribute('cf-label', (imageRequest.imagePolished != "") ? "green" : "grey");
-          break;
-        case ('Minify'):
-          popupLabels[i].setAttribute('cf-label', (imageRequest.minified != "") ? "green" : "grey");
-          break;
-        case ('Resized'):
-          popupLabels[i].setAttribute('cf-label', (imageRequest.imageResized != "") ? "green" : "grey");
-          break;
-      }
-    }
+    updatePopupCFLabels(popupLabels, imageRequest);
 
-    let popupURL = document.getElementsByClassName('cf-debugger-popup-url-holder')[0];
+    // Update hovered image URL.
+    let popupURL = document.getElementsByClassName(
+      "cf-debugger-popup-url-holder"
+    )[0];
     popupURL.textContent = imageRequest.url;
 
-    let thumbnailImage = document.getElementsByClassName('cf-debugger-popup-thumbnail')[0];
-    // thumbnailImage.src = imageRequest.url;
+    // Update hovered image URL for copying URL.
+    let popupURLTextArea = document.getElementsByClassName(
+      "cf-debugger-popup-url-text-area"
+    )[0];
+    popupURLTextArea.textContent = imageRequest.url;
+
+    // Update hovered image thumbnail.
+    let thumbnailImage = document.getElementsByClassName(
+      "cf-debugger-popup-thumbnail"
+    )[0];
 
     // Sending a popup image request with a special header so that it won't counted as a new
     // request in Panel.
     let src = imageRequest.url;
     sendPopupImageWithSpecialHeader(src, thumbnailImage);
 
-    let popupImageCount = document.getElementsByClassName('cf-debugger-popup-image-counter')[0];
+    // Number of images underneath of a mouse cursor.
+    let popupImageCount = document.getElementsByClassName(
+      "cf-debugger-popup-image-counter"
+    )[0];
     popupImageCount.textContent = `DOM has ${count} layers of image`;
 
-    let popupTitle = document.getElementsByClassName('cf-debugger-popup-headers')[0];
+    let popupHeaderDOM = document.getElementsByClassName(
+      "cf-debugger-popup-headers"
+    )[0];
     popupURL.textContent = imageRequest.url;
 
-    while (popupTitle.hasChildNodes()) {
-      popupTitle.removeChild(popupTitle.firstChild);
+    // Remove previous response headers
+    while (popupHeaderDOM.hasChildNodes()) {
+      popupHeaderDOM.removeChild(popupHeaderDOM.firstChild);
     }
 
-    let header, headerValue, textNode, responseHeader, responseSubHeader;
+    // Update response header information
+    popupHeaderDOM = updatePopupResponseHeaders(popupHeaderDOM, imageRequest);
 
-    // Display response header information
-    for (i = 0; i < popupResponseHeaders.length; i++) {
-      header = popupResponseHeaders[i];
-      headerValue = imageRequest.responseHeaders[header] == undefined ? 'N/A' :
-        imageRequest.responseHeaders[header];
+    let popupDiv = document.getElementsByClassName("cf-debugger-popup")[0];
+    popupDiv.appendChild(popupHeaderDOM);
+  }
+}
 
-      responseHeader = document.createElement('div');
-      responseHeader.className = 'cf-debugger-popup-response-header';
+/**
+ * Update Popup CF feature labels at the top.
+ * Green = Enabled, Gray = Disabled
+ *
+ * @param {*} popupLabels  - Collection of every CF label
+ * @param {*} imageRequest - Hovered image request object
+ */
+function updatePopupCFLabels(popupLabels, imageRequest) {
+  let popupLabel;
+  for (let i = 0; i < popupLabels.length; i++) {
+    popupLabel = popupLabels[i];
+    switch (popupLabel.innerHTML) {
+      case "Proxied":
+        popupLabel.setAttribute(
+          "cf-label",
+          imageRequest.rayId != "" ? "green" : "grey"
+        );
+        break;
+      case "HIT":
+        popupLabel.setAttribute(
+          "cf-label",
+          imageRequest.cfCached != "" ? "green" : "grey"
+        );
+        break;
+      case "MISS":
+        popupLabel.setAttribute(
+          "cf-label",
+          !imageRequest.cfCached && imageRequest.rayId != "" ? "green" : "grey"
+        );
+        break;
+      case "External":
+        popupLabel.setAttribute(
+          "cf-label",
+          imageRequest.rayId == "" ? "green" : "grey"
+        );
+        break;
+      case "Railgun":
+        popupLabel.setAttribute(
+          "cf-label",
+          imageRequest.railguned ? "green" : "grey"
+        );
+        break;
+      case "Polish":
+        popupLabel.setAttribute(
+          "cf-label",
+          imageRequest.imagePolished != "" ? "green" : "grey"
+        );
+        break;
+      case "Minify":
+        popupLabel.setAttribute(
+          "cf-label",
+          imageRequest.minified != "" ? "green" : "grey"
+        );
+        break;
+      case "Resized":
+        popupLabel.setAttribute(
+          "cf-label",
+          imageRequest.imageResized != "" ? "green" : "grey"
+        );
+        break;
+    }
+  }
+}
+
+/**
+ * Update the list of Response headers based on the hovered image request.
+ *
+ * @param {*} popupHeaderDOM - Response header holder DOM
+ * @param {*} imageRequest   - Hovered image request object
+ * @returns - Updated response header holder DOM
+ */
+function updatePopupResponseHeaders(popupHeaderDOM, imageRequest) {
+  let header,
+    headerValue,
+    textNode,
+    responseHeader,
+    responseSubHeader,
+    isInResponseHeaders;
+
+  for (let i = 0; i < popupResponseHeaders.length; i++) {
+    header = popupResponseHeaders[i];
+    isInResponseHeaders = imageRequest.responseHeaders[header] != undefined;
+
+    if (isInResponseHeaders) {
+      headerValue = imageRequest.responseHeaders[header];
+      responseHeader = document.createElement("div");
+      responseHeader.className = "cf-debugger-popup-response-header";
       textNode = document.createTextNode(header);
       responseHeader.appendChild(textNode);
 
-      responseSubHeader = document.createElement('div');
-      responseSubHeader.className = 'cf-debugger-popup-response-sub-header';
+      responseSubHeader = document.createElement("div");
+      responseSubHeader.className = "cf-debugger-popup-response-sub-header";
       textNode = document.createTextNode(headerValue);
       responseSubHeader.appendChild(textNode);
       responseHeader.appendChild(responseSubHeader);
 
-      popupTitle.appendChild(responseHeader);
+      popupHeaderDOM.appendChild(responseHeader);
     }
-
-    let popupDiv = document.getElementsByClassName('cf-debugger-popup')[0];
-    popupDiv.appendChild(popupTitle);
   }
+
+  return popupHeaderDOM;
 }
 
 /**
@@ -816,18 +1025,18 @@ function updatePopupDOM(imageRequest, count = 0) {
  * @param {*} thumbnailImage - Thumbnail image holder DOM
  */
 function sendPopupImageWithSpecialHeader(imageURL, thumbnailImage = null) {
-  if (thumbnailImage && (previousHoveredImageURL !== imageURL)) {
+  if (thumbnailImage && previousHoveredImageURL !== imageURL) {
     previousHoveredImageURL = imageURL;
     let thumbnailImageRequest = new XMLHttpRequest();
     thumbnailImageRequest.open("GET", imageURL, true);
     // Special Popup image request header
     thumbnailImageRequest.setRequestHeader("Dr-Flare-Popup", "1");
     thumbnailImageRequest.responseType = "arraybuffer";
-    thumbnailImageRequest.onload = function (oEvent) {
+    thumbnailImageRequest.onload = function(oEvent) {
       // Response's body content in ArrayBuffer
       let arrayBuffer = thumbnailImageRequest.response;
       if (arrayBuffer) {
-        let contentType = this.getResponseHeader('content-type');
+        let contentType = this.getResponseHeader("content-type");
         // ArrayBuffer to base64 encoded image
         let u8 = new Uint8Array(arrayBuffer);
         /**
@@ -836,9 +1045,11 @@ function sendPopupImageWithSpecialHeader(imageURL, thumbnailImage = null) {
          * https://stackoverflow.com/questions/49123222/converting-array-buffer-
          * to-string-maximum-call-stack-size-exceeded/49124600
          */
-        let b64encoded = btoa(new Uint8Array(u8).reduce(function (data, byte) {
-          return data + String.fromCharCode(byte);
-        }, ''));
+        let b64encoded = btoa(
+          new Uint8Array(u8).reduce(function(data, byte) {
+            return data + String.fromCharCode(byte);
+          }, "")
+        );
 
         thumbnailImage.src = `data:${contentType};base64,${b64encoded}`;
       }
@@ -850,23 +1061,24 @@ function sendPopupImageWithSpecialHeader(imageURL, thumbnailImage = null) {
 /**
  * Depending on cursor's position, popup displays on a different location.
  * By default, the popup window displays on the top right corner of the page.
- * 
+ *
  * @param {*} imageDOM - Hovered image DOM
  */
 function setPopupPosition(imageDOM = null) {
-  let popupDOM = $('.cf-debugger-popup');
+  let popupDOM = $(".cf-debugger-popup");
   let popupDOMDimension = popupDOM[0].getBoundingClientRect();
   let windowWidth = $(window).width();
   // On the very first, popup window width is set to 0
-  let width = (popupDOMDimension.width == 0) ? popupWidth : popupDOMDimension.width;
-  
+  let width =
+    popupDOMDimension.width == 0 ? popupWidth : popupDOMDimension.width;
+
   // Popup stays at the right corner unless cursor X position is closer to
   // default popup position. Y-axis isn't important.
-  if ((windowWidth - (width + popupMouseOffset)) < mouseX) {
-    popupDOM[0].style.removeProperty('right');
+  if (windowWidth - (width + popupMouseOffset) < mouseX) {
+    popupDOM[0].style.removeProperty("right");
     popupDOM[0].style.left = 0;
   } else {
-    popupDOM[0].style.removeProperty('left');
+    popupDOM[0].style.removeProperty("left");
     popupDOM[0].style.right = 0;
   }
 }
@@ -874,7 +1086,7 @@ function setPopupPosition(imageDOM = null) {
 /**
  * Counter for 'mouseMovementCounterForHover' variable to reduce frequency of
  * hovered images checking logic.
- * 
+ *
  * @returns - true if the counter is great than or equal to its threshold
  */
 function hoverMouseMovementCounter() {
@@ -896,14 +1108,16 @@ function resetPrevIMG() {
   for (requestId in previousHoveredImages) {
     // Cloudflare cached image
     if (previousHoveredImages[requestId] && imageRequests[requestId].cfCached) {
-      previousHoveredImages[requestId].attr("cf-debugger-style", 'cache');
-    // Cloudflare cache missed image
-    } else if (previousHoveredImages[requestId] && imageRequests[requestId].rayId !=
-      "") {
-      previousHoveredImages[requestId].attr("cf-debugger-style", 'miss');
-    // External (or third party) image
+      previousHoveredImages[requestId].attr("cf-debugger-style", "cache");
+      // Cloudflare cache missed image
+    } else if (
+      previousHoveredImages[requestId] &&
+      imageRequests[requestId].rayId != ""
+    ) {
+      previousHoveredImages[requestId].attr("cf-debugger-style", "miss");
+      // External (or third party) image
     } else {
-      previousHoveredImages[requestId].attr('cf-debugger-style', 'external');
+      previousHoveredImages[requestId].attr("cf-debugger-style", "external");
     }
   }
   previousHoveredImages = {};
@@ -912,20 +1126,22 @@ function resetPrevIMG() {
 /**
  * Display Popup DOM.
  */
-function showPopup() { $('.cf-debugger-popup').fadeIn('fast'); }
+function showPopup() {
+  $(".cf-debugger-popup").fadeIn("fast");
+}
 
 /**
  * For images in iframe, hovered image request needs to be sent back to the
  * background (devtool.js) and then forwarded it to the main contentJS where
  * the popup window can be accessed.
- * 
+ *
  * @param {*} imageRequest - Hovered image request object
  */
 function sendImageToDevTools(imageRequest) {
   if (iFrameImageFound) {
     iFrameImageFound = false;
     chrome.runtime.sendMessage({
-      type: 'found-image',
+      type: "found-image",
       message: imageRequest,
       url: imageRequest.url,
       tabId: tabId
@@ -935,7 +1151,7 @@ function sendImageToDevTools(imageRequest) {
 
 // Update the popup window when iframe image was hovered.
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type.match('found-image-response') && tabId == message.tabId) {
+  if (message.type.match("found-image-response") && tabId == message.tabId) {
     if (!checkIFrameImage()) {
       setPopupPosition();
       updatePopupDOM(message.message, 1);
@@ -949,7 +1165,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
 // Reset iframe image back to its original color filtering.
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  if (message.type.match('remove-grey-scale') && tabId == message.tabId) {
+  if (message.type.match("remove-grey-scale") && tabId == message.tabId) {
     // Only when the current content script is on iframe
     if (checkIFrameImage()) {
       resetPrevIMG();

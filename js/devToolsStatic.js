@@ -11,7 +11,7 @@ const PANEL_HTML = "panel.html";
 const tabId = chrome.devtools.inspectedWindow.tabId;
 
 // Special popup image request header
-const POPUP_IMAGE_REQUEST_HEADER = 'dr-flare-popup';
+const POPUP_IMAGE_REQUEST_HEADER = "dr-flare-popup";
 
 // Panel Open Status
 var panelReady = false;
@@ -49,3 +49,6 @@ var requestId = REQUEST_ID_START;
 // Hovered image URL
 var hoveredImageURL = "";
 var hoveredImageRedirectURL = "";
+
+// Customized Key command names in manifest.json
+const COPY_POPUP_URL = "toggle-copy-popup-url";

@@ -12,22 +12,22 @@
 function startInterval() {
   interval = setInterval(function() {
     if (requestObjectsImages.length > 0) {
-      if(contectScriptInjected) {
+      if (contectScriptInjected) {
         let heartBeatMsg = {
-          type: 'content-script-dom-status', 
-          currentURL: currentURL, 
-          tabId: tabId, 
-          message: 'alive?', 
-          from: 'devTools.js'
+          type: "content-script-dom-status",
+          currentURL: currentURL,
+          tabId: tabId,
+          message: "alive?",
+          from: "devTools.js"
         };
         chrome.tabs.sendMessage(tabId, heartBeatMsg, function(response) {
           if (response !== undefined && response.result === true) {
             paintedObjectsImages = requestObjectsImages;
             chrome.tabs.sendMessage(tabId, {
-              type: 'content-script-paint', 
-              requests: paintedObjectsImages, 
-              tabId: tabId, 
-              from: 'devTools.js'
+              type: "content-script-paint",
+              requests: paintedObjectsImages,
+              tabId: tabId,
+              from: "devTools.js"
             });
             requestObjectsImages = [];
           } else {
@@ -46,7 +46,7 @@ function startInterval() {
 /**
  * Injecting content script to loaded page for image color filtering
  * and mouse events.
- * 
+ *
  * @param {*} tabId   - Tab ID for the devtool
  * @param {*} frameId - Frame ID of each page
  * @returns {*} - new Promise
@@ -54,11 +54,11 @@ function startInterval() {
 function injectContentScript(tabId, frameId) {
   return new Promise(function(resolve, reject) {
     let heartBeatMsg = {
-      type: 'content-script-status', 
-      tabId: tabId, 
-      frameId: frameId, 
-      message: 'alive?', 
-      from: 'devTools.js'
+      type: "content-script-status",
+      tabId: tabId,
+      frameId: frameId,
+      message: "alive?",
+      from: "devTools.js"
     };
     chrome.tabs.sendMessage(tabId, heartBeatMsg, function(response) {
       if (response !== undefined && response.result === true) {
@@ -68,16 +68,28 @@ function injectContentScript(tabId, frameId) {
         if (chrome.runtime.lastError) {
           // See below. This is to prevent the error message.
           // https://stackoverflow.com/questions/28431505/unchecked-runtime-lasterror-when-using-chrome-api/28432087#28432087
-          console.log("ContentScript does not exist, injecting.."); 
+          console.log("ContentScript does not exist, injecting..");
         }
-        chrome.tabs.insertCSS(tabId, {file: "css/overlay.css", allFrames: true}, function() {
-          chrome.tabs.executeScript(tabId, {file: 'lib/jquery-3.1.1.min.js', allFrames: true}, function() {
-            chrome.tabs.executeScript(tabId, {file: 'js/contentScript.js', allFrames: true}, function() {
-              console.log("ContentScript injected!");
-              resolve();
-            });
-          });
-        });
+        chrome.tabs.insertCSS(
+          tabId,
+          { file: "css/overlay.css", allFrames: true },
+          function() {
+            chrome.tabs.executeScript(
+              tabId,
+              { file: "lib/jquery-3.1.1.min.js", allFrames: true },
+              function() {
+                chrome.tabs.executeScript(
+                  tabId,
+                  { file: "js/contentScript.js", allFrames: true },
+                  function() {
+                    console.log("ContentScript injected!");
+                    resolve();
+                  }
+                );
+              }
+            );
+          }
+        );
       }
     });
   });
@@ -85,7 +97,7 @@ function injectContentScript(tabId, frameId) {
 
 /**
  * Check if a new incoming request was requested because of the popup window image.
- * 
+ *
  * @param {*} requestObject - Incoming request object from the Network tab
  * @returns {bool} true if the request is related to hovered image
  */
@@ -96,7 +108,10 @@ function isHoveredImageRequest(requestObject) {
       let requestHeaders = request.headers;
       for (let header in requestHeaders) {
         header = requestHeaders[header];
-        if (header['name'] && header['name'].toLowerCase() === POPUP_IMAGE_REQUEST_HEADER) {
+        if (
+          header["name"] &&
+          header["name"].toLowerCase() === POPUP_IMAGE_REQUEST_HEADER
+        ) {
           return true;
         }
       }
@@ -119,17 +134,19 @@ function sendRequestToPanel(requestObject) {
   let networkRequest = new NetworkRequest(requestId);
   networkRequest.setDetails(requestObject);
 
-  if (panelReady && !networkRequest.url.startsWith('data:')) {
+  if (panelReady && !networkRequest.url.startsWith("data:")) {
     chrome.runtime.sendMessage({
-      type: 'web-request-objects',
-      message: networkRequest, 
-      tabId: tabId, 
-      from: 'webRequestListener.js'
+      type: "web-request-objects",
+      message: networkRequest,
+      tabId: tabId,
+      from: "webRequestListener.js"
     });
 
-    if (networkRequest.objectType.includes("image") || 
+    if (
+      networkRequest.objectType.includes("image") ||
       networkRequest.statusCode === 301 ||
-      networkRequest.statusCode === 302) {
+      networkRequest.statusCode === 302
+    ) {
       requestObjectsImages.push(networkRequest);
     }
   }
@@ -163,23 +180,27 @@ function dateTimeInUnix(dateTime) {
  * @param {*} b - Another network request
  */
 function compareStartedDateTime(a, b) {
-  if (dateTimeInUnix(a.startedDateTime) < dateTimeInUnix(b.startedDateTime)) return -1;
-  if (dateTimeInUnix(a.startedDateTime) > dateTimeInUnix(b.startedDateTime)) return 1;
+  if (dateTimeInUnix(a.startedDateTime) < dateTimeInUnix(b.startedDateTime))
+    return -1;
+  if (dateTimeInUnix(a.startedDateTime) > dateTimeInUnix(b.startedDateTime))
+    return 1;
   return 0;
 }
 
 if (tabId) {
-  chrome.storage.local.get('options', function(data) {
-    let options = data['options'];
-    optionDisablePaintingAndPopupCache = options.disablePaintAndPopup; 
+  chrome.storage.local.get("options", function(data) {
+    let options = data["options"];
+    optionDisablePaintingAndPopupCache = options.disablePaintAndPopup;
 
     // Create panel once we load the options
-    chrome.devtools.panels.create(PANEL_NAME, PANEL_LOGO, PANEL_HTML, function(panel) {
+    chrome.devtools.panels.create(PANEL_NAME, PANEL_LOGO, PANEL_HTML, function(
+      panel
+    ) {
       panelReady = true;
       panel.onSearch.addListener(function(action, queryString) {
         chrome.runtime.sendMessage({
-          type: 'search-panel-string',
-          action: action, 
+          type: "search-panel-string",
+          action: action,
           query: queryString,
           tabId: tabId
         });
@@ -189,7 +210,7 @@ if (tabId) {
 
   //Network Panel onRequestFinished
   chrome.devtools.network.onRequestFinished.addListener(function(request) {
-    if (bufferNetworkRequests && !request.request.url.startsWith('data:')) {
+    if (bufferNetworkRequests && !request.request.url.startsWith("data:")) {
       networkRequestBuffer.push(request);
     } else if (!bufferNetworkRequests) {
       // Send Buffered Requests First
@@ -198,7 +219,7 @@ if (tabId) {
         let saveFlag = false;
         // Sort by startedTime before filtering
         networkRequestBuffer.sort(compareStartedDateTime);
-        for (let i=0; i < networkRequestBuffer.length; i++) {
+        for (let i = 0; i < networkRequestBuffer.length; i++) {
           if (networkRequestBuffer[i].request.url == newUrlOnTab) {
             saveFlag = true;
           }
@@ -207,7 +228,7 @@ if (tabId) {
           }
         }
         if (requestsFiltered.length > 0) {
-          for (let i=0; i < requestsFiltered.length; i++) {
+          for (let i = 0; i < requestsFiltered.length; i++) {
             sendRequestToPanel(requestsFiltered[i]);
           }
         }
@@ -219,7 +240,10 @@ if (tabId) {
 
   // On webNavigation-onBeforeNavigate
   chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    if (message.type.match('webNavigation-onBeforeNavigate') && tabId == message.tabId) {
+    if (
+      message.type.match("webNavigation-onBeforeNavigate") &&
+      tabId == message.tabId
+    ) {
       console.log("Buffering Requests");
       bufferNetworkRequests = true;
       newUrlOnTab = message.newUrl;
@@ -227,9 +251,12 @@ if (tabId) {
     }
   });
 
-  // webNavigation.onDOMContentLoaded 
+  // webNavigation.onDOMContentLoaded
   chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    if (message.type.match('webNavigation-onDOMContentLoaded') && tabId == message.tabId) {  
+    if (
+      message.type.match("webNavigation-onDOMContentLoaded") &&
+      tabId == message.tabId
+    ) {
       // Stop Buffering Request
       console.log("Buffering Stopped");
       bufferNetworkRequests = false;
@@ -238,7 +265,7 @@ if (tabId) {
 
   // webNavigation.onCompleted
   chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    if (message.type.match('page-onload-event') && tabId == message.tabId) {
+    if (message.type.match("page-onload-event") && tabId == message.tabId) {
       if (message.frameId == 0) {
         currentURL = message.newUrl;
         // Inject ContentScript and turn on timer only when disablePainting option is false
@@ -250,12 +277,14 @@ if (tabId) {
             });
           }
           if (!timer) {
-            console.log('Timer On');
+            console.log("Timer On");
             timer = true;
             startInterval();
           }
         } else {
-          console.log("DisablePaintingAndPopup is on, we are not injecting contentScript");
+          console.log(
+            "DisablePaintingAndPopup is on, we are not injecting contentScript"
+          );
         }
       }
     }
@@ -263,19 +292,21 @@ if (tabId) {
 
   // Option Listener
   chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    if (message.type.match('popupOption-disablePainting')) {
+    if (message.type.match("popupOption-disablePainting")) {
       optionDisablePaintingAndPopupCache = message.option;
-      console.log(`DisablePaintingAndPopup Option Changed to ${optionDisablePaintingAndPopupCache}`);
+      console.log(
+        `DisablePaintingAndPopup Option Changed to ${optionDisablePaintingAndPopupCache}`
+      );
     }
   });
 
   // Passing image found image request from iframe content script to the content script
   // of the main where popup window can be accessed
   chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    if (message.type.match('found-image') && tabId == message.tabId) {
+    if (message.type.match("found-image") && tabId == message.tabId) {
       chrome.tabs.sendMessage(tabId, {
-        type: 'found-image-response',
-        message: message.message, 
+        type: "found-image-response",
+        message: message.message,
         tabId: tabId
       });
     }
@@ -284,13 +315,26 @@ if (tabId) {
   // Send the 'remove-grey-scale' message back to every content script including the ones
   // in iframe
   chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    if (message.type.match('reset-previous-image') && tabId == message.tabId) {
+    if (message.type.match("reset-previous-image") && tabId == message.tabId) {
       hoveredImageURL = "";
       hoveredImageRedirectURL = "";
       chrome.tabs.sendMessage(tabId, {
-        type: 'remove-grey-scale',
+        type: "remove-grey-scale",
         tabId: tabId
       });
     }
   });
 }
+
+// Key command listener
+chrome.commands.onCommand.addListener(function(command) {
+  console.log("Command:", command);
+  if (command && command == COPY_POPUP_URL) {
+    console.log("Copy popup URL request received");
+    chrome.tabs.sendMessage(tabId, {
+      type: "copy-popup-url",
+      message: "Please do",
+      tabId: tabId
+    });
+  }
+});
