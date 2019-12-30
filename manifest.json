@@ -14,8 +14,8 @@
   "commands": {
     "toggle-copy-popup-url": {
       "suggested_key": {
-        "default": "Ctrl+Shift+C",
-        "windows": "Ctrl+Shift+C",
+        "default": "Alt+Shift+C",
+        "windows": "Alt+Shift+C",
         "mac": "Alt+Shift+C"
       },
       "description": "Toggle Popup URL copy"
