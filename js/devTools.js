@@ -190,7 +190,7 @@ function compareStartedDateTime(a, b) {
 if (tabId) {
   chrome.storage.local.get("options", function(data) {
     let options = data["options"];
-    optionDisablePaintingAndPopupCache = options.disablePaintAndPopup;
+    optionDisablePaintingAndPopupCache = options.disablePaintAndPopupOption;
 
     // Create panel once we load the options
     chrome.devtools.panels.create(PANEL_NAME, PANEL_LOGO, PANEL_HTML, function(
@@ -292,7 +292,7 @@ if (tabId) {
 
   // Option Listener
   chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    if (message.type.match("popupOption-disablePainting")) {
+    if (message.type.match("disablePaintAndPopupOption-message")) {
       optionDisablePaintingAndPopupCache = message.option;
       console.log(
         `DisablePaintingAndPopup Option Changed to ${optionDisablePaintingAndPopupCache}`

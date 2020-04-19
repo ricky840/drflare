@@ -54,7 +54,10 @@ var initStorage = function() {
   console.log("Initializing Storage");
   chrome.storage.local.get("options", function(result) {
     if (result["options"] === undefined) {
-      let options = { disablePaintAndPopup: false };
+      let options = {
+        disablePaintAndPopupOption: false,
+        disableURLFilterOption: false
+      };
       chrome.storage.local.set({ options: options });
     }
   });

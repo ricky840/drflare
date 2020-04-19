@@ -893,7 +893,7 @@ function updatePopupDOM(imageRequest, count = 0) {
     let popupImageCount = document.getElementsByClassName(
       "cf-debugger-popup-image-counter"
     )[0];
-    popupImageCount.textContent = `DOM has ${count} layers of image`;
+    popupImageCount.textContent = `DOM has ${count} ${count > 1 ? "layers" : "layer"} of ${count > 1 ? "images" : "image"}`;
 
     let popupHeaderDOM = document.getElementsByClassName(
       "cf-debugger-popup-headers"

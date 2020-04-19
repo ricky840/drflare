@@ -33,11 +33,18 @@ body {
 }
 
 .item-less-margin-top {
-	margin-top: 10px !important;
+  /* margin-top: 10px !important; */
+  margin-top: 0px !important;
 }
 
 .item-less-margin-bottom {
-  margin-bottom: 20px !important;
+  /* margin-bottom: 20px !important; */
+  margin-bottom: 0px !important;
+}
+
+.item-zero-margin-all {
+  margin-top: 0px !important;
+  margin-bottom: 0px !important;
 }
 
 .no-margin-top-bottom {
@@ -68,4 +75,8 @@ body {
 .external {
   -webkit-filter: grayscale(100%) brightness(0.50) !important;
   filter: grayscale(100%) brightness(0.50) !important;
+}
+
+.checkbox-padding-left {
+  padding-left: 0 !important;
 }

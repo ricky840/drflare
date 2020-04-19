@@ -56,14 +56,28 @@
 							</div>
 						</div>
 					</div>
-				</div>
+        </div>
+        
+        <div class="ui divider no-margin-sides"></div>
+
+        <div class="row row-no-padding">
+          <div class="twelve wide column">
+            <div class="header">
+              <i class="cogs icon middle aligned"></i>
+              Disable on specific websites
+            </div>
+          </div>
+          <div class="four wide column">
+            
+          </div>
+        </div>
 
         <div class="ui divider no-margin-sides"></div>
 
         <div class="row row-no-padding">
-          <div class="four wide column">
+          <div class="three wide column checkbox-padding-left">
             <div class="ui items">
-              <div class="item item-less-margin-top">
+              <div class="item item-zero-margin-all">
                 <div class="middle aligned content">
                   <div class="ui toggle checkbox">
                     <input id="paint-option" type="checkbox">
@@ -73,12 +87,58 @@
               </div>
             </div>
           </div>
-          <div class="twelve wide column">
+          <div class="thirteen wide column">
             <div class="header">Disable Painting Images</div>
             <div class="description">Requires a page refresh to apply</div>
           </div>
         </div>
 
+        <div class="ui divider no-margin-sides"></div>
+
+        <div class="row row-no-padding">
+          <div class="three wide column checkbox-padding-left">
+            <div class="ui items">
+              <div class="item item-zero-margin-all">
+                <div class="middle aligned content">
+                  <div class="ui toggle checkbox">
+                    <input id="url-filter-option" type="checkbox">
+                    <label></label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ten wide column">
+            <div class="header">Apply on specific websites only</div>
+          </div>
+          <div class="three wide column">
+            <button class="ui button icon">
+              <i class="icon caret square down"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="row row-no-padding">
+          <div class="ui accordion">
+            <div class="title middle aligned">
+              <i class="dropdown icon"></i>
+              URL List
+            </div>
+            <div class="content">
+              <div class="transition hidden">
+                <div class="ui list large">
+                  <div class="item">
+                    <div class="fields">
+                      <input type="text" name="url" placeholder="Ex) https://example.com">
+                      <button class="ui button icon remove_url">
+                        <i class="x icon">
+                        </i>
+                      </button>
+                    </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
