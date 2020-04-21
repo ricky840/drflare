@@ -134,7 +134,7 @@ function sendRequestToPanel(requestObject) {
   let networkRequest = new NetworkRequest(requestId);
   networkRequest.setDetails(requestObject);
 
-  if (panelReady && !networkRequest.url.startsWith("data:")) {
+  if (panelReady && !networkRequest.url.startsWith("data:") && !optionDisableURLFilter) {
     chrome.runtime.sendMessage({
       type: "web-request-objects",
       message: networkRequest,
@@ -191,6 +191,7 @@ if (tabId) {
   chrome.storage.local.get("options", function(data) {
     let options = data["options"];
     optionDisablePaintingAndPopupCache = options.disablePaintAndPopupOption;
+    optionDisableURLFilter = options.disableURLFilterOption;
 
     // Create panel once we load the options
     chrome.devtools.panels.create(PANEL_NAME, PANEL_LOGO, PANEL_HTML, function(
@@ -269,7 +270,7 @@ if (tabId) {
       if (message.frameId == 0) {
         currentURL = message.newUrl;
         // Inject ContentScript and turn on timer only when disablePainting option is false
-        if (!optionDisablePaintingAndPopupCache) {
+        if (isAllowedToInjectContentScript(optionDisablePaintingAndPopupCache, optionDisableURLFilter)) {
           if (!contectScriptInjected) {
             console.log("Injecting ContentScript");
             injectContentScript(tabId, message.frameId).then(function() {
@@ -290,12 +291,39 @@ if (tabId) {
     }
   });
 
-  // Option Listener
+  /**
+   * Check the popup options to determine whether the app should inject the 'contentScript.js'
+   * into window or not.
+   * 
+   * @param {bool} disablePaintingAndPopupOption 
+   * @param {bool} disableURLFilterOption 
+   */
+
+  function isAllowedToInjectContentScript(disablePaintingAndPopupOption, disableURLFilterOption) {
+    // When both options are disabled (unchecked)
+    if (!disablePaintingAndPopupOption && !disableURLFilterOption) {
+      return true
+    }
+
+    else return false
+  }
+
+  // Paint Option Listener
   chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    if (message.type.match("disablePaintAndPopupOption-message")) {
+    if (message.type.match(DISABLE_PAINT_AND_POPUP_OPTION_MESSAGE)) {
       optionDisablePaintingAndPopupCache = message.option;
       console.log(
         `DisablePaintingAndPopup Option Changed to ${optionDisablePaintingAndPopupCache}`
+      );
+    }
+  });
+
+  // URL Filter Option Listener
+  chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+    if (message.type.match(DISABLE_URL_FILTER_OPTION_MESSAGE)) {
+      optionDisableURLFilter = message.option;
+      console.log(
+        `DisableURLFilter Option Changed to ${optionDisableURLFilter}`
       );
     }
   });

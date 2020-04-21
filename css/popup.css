@@ -52,6 +52,10 @@ body {
 	margin-bottom: 0px !important;
 }
 
+.small-margin-bottom {
+  margin-bottom: 1rem !important;
+}
+
 .column-no-padding-sides {
   padding-left: 0px !important;
   padding-right: 0px !important;

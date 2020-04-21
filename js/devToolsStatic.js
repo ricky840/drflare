@@ -18,6 +18,7 @@ var panelReady = false;
 
 // Popup window Option
 var optionDisablePaintingAndPopupCache = false;
+var optionDisableURLFilter = false;
 
 // webNavigation.onDOMContentLoaded Event Flag
 var onDOMContentLoadedEvent = false;
@@ -52,3 +53,6 @@ var hoveredImageRedirectURL = "";
 
 // Customized Key command names in manifest.json
 const COPY_POPUP_URL = "toggle-copy-popup-url";
+
+const DISABLE_PAINT_AND_POPUP_OPTION_MESSAGE = "disablePaintAndPopupOption-message";
+const DISABLE_URL_FILTER_OPTION_MESSAGE = "disableURLFilterOption-message";
